@@ -51,12 +51,12 @@
     .nav-actions { display: flex; align-items: center; gap: 10px; }
     .action-btn { background: var(--purple-deep); color: #fff; border: 1px solid var(--purple-light); padding: 0.55rem 1.2rem; border-radius: 30px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
     .action-btn:hover { background: var(--purple-mid); transform: translateY(-1px); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     /* Shop Page */
     #shop-page { display: none; padding-top: 100px; }
     #shop-page.active { display: block; }
 
-    /* Psychological Progress Bar for Wholesale */
     .promo-banner { background: linear-gradient(90deg, #4917a1, #b042ff, #4917a1); background-size: 200% auto; color: #fff; text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600; animation: shimmer 4s linear infinite; }
     @keyframes shimmer { to { background-position: 200% center; } }
 
@@ -76,7 +76,6 @@
     .wrap { max-width: 1300px; margin: 0 auto; padding: 0 2rem 4rem; }
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 24px; }
 
-    /* Product Card with Psychological Triggers */
     .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s; }
     .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 25px rgba(134,68,237,0.3); border-color: var(--purple-mid); }
 
@@ -86,13 +85,11 @@
 
     .product-tag { position: absolute; top: 12px; left: 12px; background: rgba(73, 23, 161, 0.9); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 5px 12px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(4px); }
 
-    /* Scarcity / Psychological Badge */
     .urgency-badge { position: absolute; top: 12px; right: 12px; background: rgba(255, 0, 127, 0.9); color: #fff; font-size: 0.6rem; font-weight: 800; padding: 4px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(255,0,127,0.5); }
 
     .product-info { padding: 1.4rem; display: flex; flex-direction: column; flex: 1; }
     .product-info h3 { font-size: 1.05rem; margin-bottom: 0.4rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    /* Anchored Pricing UI */
     .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 1.2rem; }
     .price { color: var(--purple-light); font-weight: 800; font-size: 1.2rem; }
     .compare-price { color: var(--muted); font-size: 0.85rem; text-decoration: line-through; }
@@ -112,8 +109,10 @@
     .admin-form label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .admin-list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; border: 1px solid var(--border); }
     .admin-btns { display: flex; gap: 6px; }
-    .edit-btn { background: var(--purple-mid); color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .del-btn { background: #ff3366; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .edit-btn { background: var(--purple-mid); color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+    .del-btn { background: #ff3366; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+    .sync-note { font-size: 0.75rem; color: var(--muted); padding: 8px 10px; background: rgba(187, 0, 255, 0.08); border: 1px dashed rgba(176,66,255,0.4); border-radius: 8px; margin-bottom: 10px; }
+    .sync-status { font-size: 0.8rem; color: var(--muted); margin-top: 8px; min-height: 1.2em; }
 
     /* Cart Drawer */
     #cart-drawer { position: fixed; right: -400px; top: 0; bottom: 0; width: 400px; background: #0f0b1a; border-left: 1px solid var(--border); z-index: 200; display: flex; flex-direction: column; transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: -20px 0 50px rgba(0,0,0,0.8); }
@@ -130,19 +129,10 @@
     .whatsapp-checkout-btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 1.1rem; border-radius: 12px; font-weight: 800; font-size: 1.05rem; cursor: pointer; box-shadow: 0 4px 20px rgba(37,211,102,0.4); transition: transform 0.2s; }
     .whatsapp-checkout-btn:hover { transform: scale(1.02); }
 
-    /* Confirmation Modal */
-    #confirmation-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(6px); }
-    #confirmation-modal.open { display: flex; }
-    .modal-box { background: var(--bg-card); border: 1px solid var(--purple-mid); border-radius: 24px; max-width: 500px; width: 100%; padding: 2.5rem; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
-    .customer-form input { width: 100%; padding: 0.85rem; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 8px; color: #fff; margin-bottom: 10px; font-family: inherit; }
-    .order-receipt { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 1rem; text-align: left; max-height: 160px; overflow-y: auto; font-size: 0.85rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
-    .modal-btn-wa { flex: 1; background: #25D366; color: #fff; border: none; padding: 1rem; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
-
     #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 150; display: none; backdrop-filter: blur(5px); }
     #overlay.open { display: block; }
     footer { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 4rem; }
 
-    /* Mobile responsiveness */
     @media (max-width: 600px) {
       .hero h1 { font-size: 2.2rem; }
       header { padding: 0.8rem 1rem; }
@@ -194,7 +184,6 @@
       </div>
     </section>
 
-    <!-- Categories Dynamic Bar -->
     <div class="categories-bar" id="categories-container"></div>
 
     <div class="wrap">
@@ -211,6 +200,27 @@
   <div id="admin-modal">
     <div class="admin-box">
       <h2>⚙️ Manage Store (Admin)</h2>
+
+      <!-- Publish & Sync -->
+      <div class="admin-section">
+        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">☁️ Publish Catalog to GitHub</h3>
+        <div class="sync-note">Edits below are only on <b>your device</b> until you click <b>Publish</b>. Publishing saves your full catalog (categories + products) to your repo so every visitor sees it.</div>
+
+        <details style="margin-bottom:10px;">
+          <summary style="font-size:0.8rem; color:var(--muted); cursor:pointer; margin-bottom:8px;">🔑 Token Setup (one time)</summary>
+          <label>GitHub Access Token:</label>
+          <input type="password" id="gh-token-input" placeholder="github_pat_... or ghp_...">
+          <div style="display:flex; gap:6px;">
+            <button class="action-btn" style="flex:1; justify-content:center;" onclick="saveGhToken()">Save Token</button>
+            <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="testGhToken()">Test</button>
+            <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="clearGhToken()">Clear</button>
+          </div>
+          <p id="token-status" class="sync-status"></p>
+        </details>
+
+        <button class="action-btn" id="publish-btn" style="width:100%; justify-content:center;" onclick="publishStore()">☁️ Publish to GitHub — Make It Live for Everyone</button>
+        <p id="publish-status" class="sync-status"></p>
+      </div>
 
       <!-- Category Management -->
       <div class="admin-section">
@@ -282,6 +292,10 @@
     const WHOLESALE_PASSWORD = "artesania2025";
     const ADMIN_PASSWORD = "admin";
 
+    // ---- GitHub catalog storage config (Option 2: repo = database) ----
+    const GH_STORE_FILE = "store-data.json";
+    const GH_RAW_URL = "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_STORE_FILE;
+
     const defaultCategories = ["All", "Katanas", "Anime Figures", "Wands", "Cosplay", "Keychains", "Gifts & Stationery"];
     const defaultProducts = [
       { id: 1, name: "Demon Slayer Nichirin Katana (Metal)", category: "Katanas", retailPrice: 1999, wholesalePrice: 1499, badge: "🔥 Best Seller", img: "https://images.unsplash.com/photo-1589241062272-c0a000071dfa?w=500&auto=format&fit=crop&q=80" },
@@ -292,15 +306,39 @@
       { id: 6, name: "Hermione Granger Light-up Wand", category: "Wands", retailPrice: 899, wholesalePrice: 650, badge: "✨ Studio Choice", img: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&auto=format&fit=crop&q=80" }
     ];
 
-    let categories = JSON.parse(localStorage.getItem("ink_categories")) || defaultCategories;
-    let products = JSON.parse(localStorage.getItem("ink_products")) || defaultProducts;
+    let categories = JSON.parse(localStorage.getItem("ink_categories")) || defaultCategories.slice();
+    let products = JSON.parse(localStorage.getItem("ink_products")) || defaultProducts.slice();
     let cart = JSON.parse(localStorage.getItem("ink_cart")) || {};
     let currentMode = "Retail";
     let currentCategory = "All";
     let customerInfo = JSON.parse(localStorage.getItem("ink_customer")) || null;
 
+    // ---------- Cloud catalog loading ----------
+    async function refreshCatalogFromCloud() {
+      try {
+        const fetchP = fetch(GH_RAW_URL + "?t=" + Date.now(), { cache: "no-store" });
+        const res = await Promise.race([fetchP, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 6000))]);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (Array.isArray(data.products) && data.products.length) {
+          products = data.products;
+          if (Array.isArray(data.categories) && data.categories.length) {
+            categories = data.categories;
+          }
+          localStorage.setItem("ink_products", JSON.stringify(products));
+          localStorage.setItem("ink_categories", JSON.stringify(categories));
+          renderCategories();
+          renderProducts();
+          updateCartUI();
+        }
+      } catch (e) {
+        // Cloud not available yet (never published) — keep local fallback data silently.
+      }
+    }
+
     if (customerInfo) {
       revealStore();
+      refreshCatalogFromCloud();
     }
 
     function registerCustomer() {
@@ -315,6 +353,7 @@
       customerInfo = { name, phone };
       localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
       revealStore();
+      refreshCatalogFromCloud();
     }
 
     function revealStore() {
@@ -428,7 +467,7 @@
       });
     }
 
-    // ---- ADMIN PANEL FUNCTIONS ----
+    // ---------- ADMIN PANEL ----------
     function openAdminModal() {
       const pass = prompt("Enter Admin Password:");
       if (pass === ADMIN_PASSWORD) {
@@ -436,6 +475,7 @@
         document.getElementById("overlay").classList.add("open");
         renderAdminList();
         renderAdminCategoryList();
+        initTokenStatus();
       } else if (pass !== null) {
         alert("Incorrect Admin Password!");
       }
@@ -447,6 +487,104 @@
       resetProductForm();
     }
 
+    // ---------- GitHub token handling ----------
+    function initTokenStatus() {
+      const status = document.getElementById("token-status");
+      const saved = localStorage.getItem("ink_gh_token");
+      if (saved) {
+        status.textContent = "✅ Token saved on this device. Ready to publish.";
+      } else {
+        status.textContent = "No token saved yet. See guide in chat to create one.";
+      }
+    }
+
+    function saveGhToken() {
+      const val = document.getElementById("gh-token-input").value.trim();
+      const status = document.getElementById("token-status");
+      if (!val) { status.textContent = "⚠️ Paste your token in the box first."; return; }
+      localStorage.setItem("ink_gh_token", val);
+      document.getElementById("gh-token-input").value = "";
+      status.textContent = "✅ Token saved on this device. Ready to publish.";
+    }
+
+    function clearGhToken() {
+      localStorage.removeItem("ink_gh_token");
+      document.getElementById("token-status").textContent = "Token cleared from this device.";
+    }
+
+    async function testGhToken() {
+      const status = document.getElementById("token-status");
+      const token = localStorage.getItem("ink_gh_token");
+      if (!token) { status.textContent = "⚠️ Save a token first."; return; }
+      status.textContent = "Testing token…";
+      try {
+        const res = await fetch(GH_RAW_URL + "?t=" + Date.now(), {
+          headers: { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" }
+        });
+        if (res.ok || res.status === 404) {
+          // 404 only means the file isn't published yet — access itself is fine, but only read+write is verified after a publish
+          status.textContent = res.ok ? "✅ Token can access your store's catalog file." : "✅ Token can reach the repo (file will be created on first Publish).";
+        } else {
+          status.textContent = "❌ Token rejected (" + res.status + "). Check permissions.";
+        }
+      } catch (e) {
+        status.textContent = "❌ Network error while testing.";
+      }
+    }
+
+    // ---------- Publish catalog to repo ----------
+    async function publishStore() {
+      const status = document.getElementById("publish-status");
+      const btn = document.getElementById("publish-btn");
+      const token = localStorage.getItem("ink_gh_token");
+
+      if (!token) {
+        status.textContent = "⚠️ Add your GitHub token first (Token Setup).";
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = "☁️ Uploading catalog to GitHub…";
+
+      const catalog = { exportedAt: new Date().toISOString(), categories: categories, products: products };
+      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(catalog))));
+      const apiUrl = "https://api.github.com/repos/inkandblinkco/ink-and-blink/contents/" + GH_STORE_FILE;
+      const headers = { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json", "Content-Type": "application/json" };
+
+      try {
+        // 1. get the current file's sha (or confirm it doesn't exist yet)
+        let sha;
+        const getRes = await fetch(apiUrl, { headers: { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" } });
+        if (getRes.status === 200) {
+          sha = (await getRes.json()).sha;
+        } else if (getRes.status !== 404) {
+          throw new Error("Cannot read catalog file (HTTP " + getRes.status + ").");
+        }
+
+        // 2. create / update it
+        const putRes = await fetch(apiUrl, {
+          method: "PUT",
+          headers: headers,
+          body: JSON.stringify({
+            message: "Update store catalog (" + products.length + " products)",
+            content: b64,
+            branch: "main",
+            ...(sha ? { sha } : {})
+          })
+        });
+        const putJson = await putRes.json();
+        if (!putRes.ok) throw new Error(putJson.message || ("HTTP " + putRes.status));
+
+        localStorage.setItem("ink_last_publish", new Date().toISOString());
+        status.textContent = "🎉 Published! Every visitor sees this within ~1 minute.";
+        btn.disabled = false;
+      } catch (e) {
+        status.textContent = "❌ Publish failed: " + e.message + (String(e.message).includes("401") ? " — token issue, re-check Token Setup." : "");
+        btn.disabled = false;
+      }
+    }
+
+    // ---------- Categories ----------
     function addNewCategory() {
       const newCat = document.getElementById("new-cat-name").value.trim();
       if (!newCat) { alert("Enter a category name!"); return; }
@@ -457,7 +595,8 @@
       document.getElementById("new-cat-name").value = "";
       renderCategories();
       renderAdminCategoryList();
-      alert(`Category "${newCat}" created!`);
+      showUnpublishedHint();
+      alert(`Category "${newCat}" created! Remember to Publish to make it live for everyone.`);
     }
 
     function renderAdminCategoryList() {
@@ -497,6 +636,7 @@
       renderAdminList();
       renderAdminCategoryList();
       renderProducts();
+      showUnpublishedHint();
     }
 
     function deleteCategory(cat) {
@@ -514,7 +654,13 @@
         renderAdminList();
         renderAdminCategoryList();
         renderProducts();
+        showUnpublishedHint();
       }
+    }
+
+    function showUnpublishedHint() {
+      const status = document.getElementById("publish-status");
+      if (status) status.textContent = "✏️ You have changes on this device that are NOT live for visitors yet — click Publish.";
     }
 
     function renderAdminList() {
@@ -614,11 +760,11 @@
     function commitProductData(editId, name, retailPrice, wholesalePrice, category, img) {
       if (editId) {
         products = products.map(p => p.id == editId ? { ...p, name, retailPrice, wholesalePrice, category, img } : p);
-        alert("Product updated successfully!");
+        alert("Product updated! Remember to Publish so visitors see it.");
       } else {
         const newId = Date.now();
         products.push({ id: newId, name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival" });
-        alert("Product added successfully!");
+        alert("Product added! Remember to Publish so visitors see it.");
       }
 
       try {
@@ -631,6 +777,7 @@
       resetProductForm();
       renderProducts();
       renderAdminList();
+      showUnpublishedHint();
     }
 
     function deleteProduct(id) {
@@ -639,10 +786,11 @@
         localStorage.setItem("ink_products", JSON.stringify(products));
         renderProducts();
         renderAdminList();
+        showUnpublishedHint();
       }
     }
 
-    // ---- Cart & Checkout ----
+    // ---------- Cart & Checkout ----------
     function addToCart(productId) {
       const qtyInput = document.getElementById(`qty-${productId}`);
       const qty = parseInt(qtyInput.value) || 1;
