@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ink & Blink — By The Artesania Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07050d;
+      --bg-card: #130f24;
+      --purple-glow: #b042ff;
+      --purple-light: #e2d1ff;
+      --purple-mid: #8644ed;
+      --purple-deep: #4917a1;
+      --accent-gold: #ffb703;
+      --accent-pink: #ff007f;
+      --text: #f3f0ff;
+      --muted: #9b91b8;
+      --border: rgba(134, 68, 237, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+    h1, h2, h3, .logo-title { font-family: 'Cinzel', serif; }
+
+    .board-bg { position: fixed; inset: 0; z-index: -2; background: radial-gradient(circle at 50% -20%, #30195e 0%, #07050d 70%); }
+    .wave-overlay { position: fixed; inset: 0; z-index: -1; opacity: 0.3; background: radial-gradient(circle at 10% 20%, rgba(176, 66, 255, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(134, 68, 237, 0.2) 0%, transparent 50%); pointer-events: none; }
+
+    /* Customer Login Gate */
+    #customer-login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; position: relative; z-index: 20; background: rgba(7,5,13,0.95); backdrop-filter: blur(20px); }
+    .customer-login-box { background: var(--bg-card); border: 1px solid var(--border); padding: 3rem 2.5rem; border-radius: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(134,68,237,0.15); width: 100%; max-width: 440px; text-align: center; }
+    .login-badge { width: 75px; height: 75px; border-radius: 50%; background: #000; border: 2px solid var(--purple-mid); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; color: var(--purple-light); font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; box-shadow: 0 0 20px rgba(134,68,237,0.4); }
+    .customer-login-box h2 { color: var(--purple-light); margin-bottom: 0.4rem; font-size: 1.7rem; }
+    .customer-login-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+    .customer-login-box input { width: 100%; padding: 0.9rem 1rem; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 10px; color: #fff; font-size: 1rem; margin-bottom: 1rem; outline: none; transition: border-color 0.2s; }
+    .customer-login-box input:focus { border-color: var(--purple-glow); box-shadow: 0 0 10px rgba(176,66,255,0.3); }
+    .customer-login-box button { width: 100%; padding: 0.95rem; background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid)); color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 1.05rem; cursor: pointer; box-shadow: 0 4px 20px rgba(134,68,237,0.4); transition: transform 0.2s; }
+    .customer-login-box button:hover { transform: translateY(-2px); }
+
+    header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(7, 5, 13, 0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+    .brand-logo-circle { width: 44px; height: 44px; border-radius: 50%; background: #000; border: 2px solid var(--purple-mid); display: flex; align-items: center; justify-content: center; color: var(--purple-light); font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.9rem; user-select: none; box-shadow: 0 0 12px rgba(134,68,237,0.4); }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-text span:first-child { font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: var(--purple-light); }
+    .brand-text span:last-child { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--muted); }
+
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .action-btn { background: var(--purple-deep); color: #fff; border: 1px solid var(--purple-light); padding: 0.55rem 1.2rem; border-radius: 30px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .action-btn:hover { background: var(--purple-mid); transform: translateY(-1px); }
+
+    /* Shop Page */
+    #shop-page { display: none; padding-top: 100px; }
+    #shop-page.active { display: block; }
+
+    /* Psychological Progress Bar for Wholesale */
+    .promo-banner { background: linear-gradient(90deg, #4917a1, #b042ff, #4917a1); background-size: 200% auto; color: #fff; text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600; animation: shimmer 4s linear infinite; }
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    .hero { text-align: center; padding: 2.5rem 1.5rem 1rem; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 3rem; color: var(--purple-light); margin-bottom: 0.4rem; text-shadow: 0 0 30px rgba(176,66,255,0.3); }
+    .hero p { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.5rem; }
+
+    .mode-selector { display: inline-flex; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 35px; border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6); }
+    .mode-selector button { background: transparent; border: none; padding: 9px 24px; border-radius: 30px; color: var(--muted); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.25s; }
+    .mode-selector button.active { background: var(--purple-mid); color: #fff; box-shadow: 0 0 20px rgba(134,68,237,0.6); }
+
+    .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 0.5rem 2rem 1.5rem; justify-content: center; scrollbar-width: none; }
+    .cat-btn { background: var(--bg-card); border: 1px solid var(--border); padding: 9px 20px; border-radius: 25px; color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+    .cat-btn:hover { border-color: var(--purple-glow); color: var(--text); }
+    .cat-btn.active { background: var(--purple-deep); border-color: var(--purple-light); color: #fff; box-shadow: 0 0 15px rgba(134,68,237,0.4); }
+
+    .wrap { max-width: 1300px; margin: 0 auto; padding: 0 2rem 4rem; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 24px; }
+
+    /* Product Card with Psychological Triggers */
+    .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; position: relative; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s; }
+    .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 25px rgba(134,68,237,0.3); border-color: var(--purple-mid); }
+
+    .product-img-wrap { width: 100%; aspect-ratio: 1/1; position: relative; overflow: hidden; background: #000; }
+    .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .product-card:hover .product-img-wrap img { transform: scale(1.08); }
+
+    .product-tag { position: absolute; top: 12px; left: 12px; background: rgba(73, 23, 161, 0.9); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 5px 12px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(4px); }
+
+    /* Scarcity / Psychological Badge */
+    .urgency-badge { position: absolute; top: 12px; right: 12px; background: rgba(255, 0, 127, 0.9); color: #fff; font-size: 0.6rem; font-weight: 800; padding: 4px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(255,0,127,0.5); }
+
+    .product-info { padding: 1.4rem; display: flex; flex-direction: column; flex: 1; }
+    .product-info h3 { font-size: 1.05rem; margin-bottom: 0.4rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* Anchored Pricing UI */
+    .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 1.2rem; }
+    .price { color: var(--purple-light); font-weight: 800; font-size: 1.2rem; }
+    .compare-price { color: var(--muted); font-size: 0.85rem; text-decoration: line-through; }
+
+    .product-footer { margin-top: auto; display: flex; gap: 10px; align-items: center; }
+    .qty-input { width: 55px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; color: #fff; text-align: center; padding: 10px; font-size: 0.9rem; font-weight: 700; outline: none; }
+    .add-btn { flex: 1; background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid)); border: none; color: #fff; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 15px rgba(134,68,237,0.3); transition: opacity 0.2s; }
+    .add-btn:hover { opacity: 0.9; }
+
+    /* Admin Panel Modal */
+    #admin-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 400; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(8px); }
+    #admin-modal.open { display: flex; }
+    .admin-box { background: var(--bg-card); border: 1px solid var(--purple-mid); border-radius: 24px; max-width: 650px; width: 100%; padding: 2.5rem; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
+    .admin-box h2 { color: var(--purple-light); margin-bottom: 1.2rem; }
+    .admin-section { background: rgba(0,0,0,0.35); padding: 1.2rem; border-radius: 14px; margin-bottom: 1.2rem; border: 1px solid var(--border); }
+    .admin-form input, .admin-form select { width: 100%; padding: 10px; margin-bottom: 10px; background: #07050d; border: 1px solid var(--border); color: #fff; border-radius: 8px; font-family: inherit; }
+    .admin-form label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .admin-list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; border: 1px solid var(--border); }
+    .admin-btns { display: flex; gap: 6px; }
+    .edit-btn { background: var(--purple-mid); color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .del-btn { background: #ff3366; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+    /* Cart Drawer */
+    #cart-drawer { position: fixed; right: -400px; top: 0; bottom: 0; width: 400px; background: #0f0b1a; border-left: 1px solid var(--border); z-index: 200; display: flex; flex-direction: column; transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: -20px 0 50px rgba(0,0,0,0.8); }
+    #cart-drawer.open { right: 0; }
+    .cart-header { padding: 1.8rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .cart-header h3 { color: var(--purple-light); font-size: 1.3rem; }
+    .close-cart { background: none; border: none; color: var(--muted); font-size: 1.8rem; cursor: pointer; }
+    .cart-items-list { flex: 1; overflow-y: auto; padding: 1.8rem; display: flex; flex-direction: column; gap: 16px; }
+    .cart-item { display: flex; gap: 14px; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
+    .cart-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+    .cart-footer { padding: 1.8rem; border-top: 1px solid var(--border); background: rgba(0,0,0,0.3); }
+    .cart-total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; font-weight: 700; }
+    .cart-total-row span:last-child { color: var(--purple-light); font-size: 1.2rem; }
+    .whatsapp-checkout-btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 1.1rem; border-radius: 12px; font-weight: 800; font-size: 1.05rem; cursor: pointer; box-shadow: 0 4px 20px rgba(37,211,102,0.4); transition: transform 0.2s; }
+    .whatsapp-checkout-btn:hover { transform: scale(1.02); }
+
+    /* Confirmation Modal */
+    #confirmation-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(6px); }
+    #confirmation-modal.open { display: flex; }
+    .modal-box { background: var(--bg-card); border: 1px solid var(--purple-mid); border-radius: 24px; max-width: 500px; width: 100%; padding: 2.5rem; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
+    .customer-form input { width: 100%; padding: 0.85rem; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 8px; color: #fff; margin-bottom: 10px; font-family: inherit; }
+    .order-receipt { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 1rem; text-align: left; max-height: 160px; overflow-y: auto; font-size: 0.85rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+    .modal-btn-wa { flex: 1; background: #25D366; color: #fff; border: none; padding: 1rem; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(37,211,102,0.4); }
+
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 150; display: none; backdrop-filter: blur(5px); }
+    #overlay.open { display: block; }
+    footer { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 4rem; }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2.2rem; }
+      header { padding: 0.8rem 1rem; }
+      .wrap { padding: 0 1rem 3rem; }
+      #cart-drawer { width: 100%; right: -100%; }
+      .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="board-bg"></div>
+  <div class="wave-overlay"></div>
+
+  <!-- CUSTOMER LOGIN GATE -->
+  <div id="customer-login-page">
+    <div class="customer-login-box">
+      <div class="login-badge">I&B</div>
+      <h2>Ink & Blink</h2>
+      <p>By The Artesania Studio • Enter your details to browse</p>
+      <input type="text" id="visitor-name" placeholder="Your Name" required>
+      <input type="tel" id="visitor-phone" placeholder="WhatsApp Mobile Number" required>
+      <button onclick="registerCustomer()">Enter Store</button>
+    </div>
+  </div>
+
+  <!-- MAIN SHOP -->
+  <div id="shop-page">
+    <div id="promo-banner" class="promo-banner">✨ Wholesale Advantage: Unlock exclusive bulk margins across all anime & gift collections!</div>
+
+    <header>
+      <div class="brand" ondblclick="openAdminModal()" title="Double click logo for admin">
+        <div class="brand-logo-circle">I&B</div>
+        <div class="brand-text">
+          <span>Ink & Blink</span>
+          <span>Artesania Studio</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="action-btn" onclick="toggleCart(true)">🛍️ Bag <span id="cart-count">(0)</span></button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1 id="hero-title">Retail Store</h1>
+      <p id="hero-sub">Explore our premium anime figures, katanas, wands and exclusive gifts.</p>
+      <div class="mode-selector">
+        <button class="active" onclick="handleModeSwitch('Retail')" id="mode-retail">Retail Mode</button>
+        <button onclick="handleModeSwitch('Wholesale')" id="mode-wholesale">Wholesale Mode 🔒</button>
+      </div>
+    </section>
+
+    <!-- Categories Dynamic Bar -->
+    <div class="categories-bar" id="categories-container"></div>
+
+    <div class="wrap">
+      <div class="product-grid" id="product-grid"></div>
+    </div>
+
+    <footer>
+      <p>© 2025 Ink & Blink — By The Artesania Studio. All Rights Reserved.</p>
+      <p style="margin-top: 6px;">Direct WhatsApp Orders & Support: +91 90755 90745</p>
+    </footer>
+  </div>
+
+  <!-- ADMIN PANEL MODAL -->
+  <div id="admin-modal">
+    <div class="admin-box">
+      <h2>⚙️ Manage Store (Admin)</h2>
+
+      <!-- Category Management -->
+      <div class="admin-section">
+        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Manage Categories</h3>
+        <div class="admin-form" style="margin-bottom:8px; padding:0; background:none;">
+          <input type="text" id="new-cat-name" placeholder="New Category Name">
+          <button class="action-btn" style="width:100%; justify-content:center;" onclick="addNewCategory()">+ Create Category</button>
+        </div>
+        <div id="admin-category-list" style="max-height: 100px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- Add / Edit Product Section -->
+      <div class="admin-section">
+        <h3 id="form-title" style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Add New Product</h3>
+        <div class="admin-form" style="margin-bottom:0; padding:0; background:none;">
+          <input type="hidden" id="edit-product-id">
+          <input type="text" id="new-name" placeholder="Product Name">
+
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label>Retail Price (₹):</label>
+              <input type="number" id="new-retail-price" placeholder="e.g. 599">
+            </div>
+            <div style="flex:1;">
+              <label>Wholesale Price (₹):</label>
+              <input type="number" id="new-wholesale-price" placeholder="e.g. 399">
+            </div>
+          </div>
+
+          <select id="new-category"></select>
+          <label>Upload Image from Computer:</label>
+          <input type="file" id="new-img-file" accept="image/*">
+          <label style="margin-top:5px;">Or Paste Image URL:</label>
+          <input type="text" id="new-img-url" placeholder="https://...">
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="action-btn" id="save-product-btn" style="flex:1; justify-content:center;" onclick="saveProduct()">+ Save Product</button>
+            <button class="action-btn" id="cancel-edit-btn" style="background:#444; display:none; justify-content:center;" onclick="resetProductForm()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Current Inventory</h3>
+      <div id="admin-product-list" style="max-height: 140px; overflow-y: auto; margin-bottom: 1rem;"></div>
+
+      <button class="action-btn" style="background:#444; width:100%; justify-content:center;" onclick="closeAdminModal()">Close Admin</button>
+    </div>
+  </div>
+
+  <!-- CART DRAWER -->
+  <div id="cart-drawer">
+    <div class="cart-header">
+      <h3>Your Order Bag</h3>
+      <button class="close-cart" onclick="toggleCart(false)">&times;</button>
+    </div>
+    <div class="cart-items-list" id="cart-items-list"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Estimated Total:</span>
+        <span id="cart-total-price">₹0.00</span>
+      </div>
+      <button class="whatsapp-checkout-btn" onclick="checkoutWhatsApp()">💬 Checkout on WhatsApp</button>
+    </div>
+  </div>
+
+  <div id="overlay" onclick="toggleCart(false); closeAdminModal();"></div>
+
+  <script>
+    const WHATSAPP_NUMBER = "919075590745";
+    const WHOLESALE_PASSWORD = "artesania2025";
+    const ADMIN_PASSWORD = "admin";
+
+    const defaultCategories = ["All", "Katanas", "Anime Figures", "Wands", "Cosplay", "Keychains", "Gifts & Stationery"];
+    const defaultProducts = [
+      { id: 1, name: "Demon Slayer Nichirin Katana (Metal)", category: "Katanas", retailPrice: 1999, wholesalePrice: 1499, badge: "🔥 Best Seller", img: "https://images.unsplash.com/photo-1589241062272-c0a000071dfa?w=500&auto=format&fit=crop&q=80" },
+      { id: 2, name: "One Piece Roronoa Zoro Wado Ichimonji", category: "Katanas", retailPrice: 2199, wholesalePrice: 1650, badge: "⚡ High Demand", img: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=500&auto=format&fit=crop&q=80" },
+      { id: 3, name: "Naruto Uzumaki Sage Mode PVC Figure", category: "Anime Figures", retailPrice: 1299, wholesalePrice: 899, badge: "✨ Studio Choice", img: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop&q=80" },
+      { id: 4, name: "Gojo Satoru Unlimited Void Figurine", category: "Anime Figures", retailPrice: 1799, wholesalePrice: 1299, badge: "🔥 Best Seller", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80" },
+      { id: 5, name: "Wizard Elder Magic Wand with Box", category: "Wands", retailPrice: 699, wholesalePrice: 499, badge: "🎁 Great Gift", img: "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=500&auto=format&fit=crop&q=80" },
+      { id: 6, name: "Hermione Granger Light-up Wand", category: "Wands", retailPrice: 899, wholesalePrice: 650, badge: "✨ Studio Choice", img: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&auto=format&fit=crop&q=80" }
+    ];
+
+    let categories = JSON.parse(localStorage.getItem("ink_categories")) || defaultCategories;
+    let products = JSON.parse(localStorage.getItem("ink_products")) || defaultProducts;
+    let cart = JSON.parse(localStorage.getItem("ink_cart")) || {};
+    let currentMode = "Retail";
+    let currentCategory = "All";
+    let customerInfo = JSON.parse(localStorage.getItem("ink_customer")) || null;
+
+    if (customerInfo) {
+      revealStore();
+    }
+
+    function registerCustomer() {
+      const name = document.getElementById("visitor-name").value.trim();
+      const phone = document.getElementById("visitor-phone").value.trim();
+
+      if (!name || !phone) {
+        alert("Please enter both your Name and WhatsApp Mobile Number!");
+        return;
+      }
+
+      customerInfo = { name, phone };
+      localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
+      revealStore();
+    }
+
+    function revealStore() {
+      document.getElementById("customer-login-page").style.display = "none";
+      document.getElementById("shop-page").classList.add("active");
+      renderCategories();
+      renderProducts();
+      updateCartUI();
+    }
+
+    function handleModeSwitch(targetMode) {
+      if (targetMode === "Wholesale") {
+        const pass = prompt("🔒 Wholesale Portal Locked.\nEnter Wholesale Password to continue:");
+        if (pass === WHOLESALE_PASSWORD) {
+          setMode("Wholesale");
+          alert("Wholesale mode unlocked successfully!");
+        } else if (pass !== null) {
+          alert("Incorrect password! Staying in Retail Mode.");
+        }
+      } else {
+        setMode("Retail");
+      }
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById("mode-retail").classList.toggle("active", mode === "Retail");
+      document.getElementById("mode-wholesale").classList.toggle("active", mode === "Wholesale");
+
+      const promo = document.getElementById("promo-banner");
+      if (mode === "Wholesale") {
+        document.getElementById("hero-title").textContent = "Wholesale B2B Portal";
+        document.getElementById("hero-sub").textContent = "Bulk ordering unlocked with special studio pricing.";
+        promo.textContent = "📦 Wholesale Active: Minimum order value ₹5,000 applies for bulk dispatch.";
+      } else {
+        document.getElementById("hero-title").textContent = "Retail Store";
+        document.getElementById("hero-sub").textContent = "Explore our premium anime figures, katanas, wands and gifts.";
+        promo.textContent = "✨ Special Offer: Free shipping on retail gift boxes above ₹999!";
+      }
+
+      renderProducts();
+      updateCartUI();
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll(".cat-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.textContent === cat);
+      });
+      renderProducts();
+    }
+
+    function renderCategories() {
+      const container = document.getElementById("categories-container");
+      const select = document.getElementById("new-category");
+
+      container.innerHTML = "";
+      select.innerHTML = "";
+
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = `cat-btn ${currentCategory === cat ? 'active' : ''}`;
+        btn.textContent = cat;
+        btn.onclick = () => filterCategory(cat);
+        container.appendChild(btn);
+
+        if(cat !== "All") {
+          const opt = document.createElement("option");
+          opt.value = cat;
+          opt.textContent = cat;
+          select.appendChild(opt);
+        }
+      });
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("product-grid");
+      grid.innerHTML = "";
+      const filtered = currentCategory === "All" ? products : products.filter(p => p.category === currentCategory);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column: 1/-1;">No products in this category yet.</p>`;
+        return;
+      }
+
+      filtered.forEach(p => {
+        const activePrice = currentMode === "Wholesale" ? (p.wholesalePrice || p.retailPrice) : p.retailPrice;
+        const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : p.retailPrice;
+
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <div class="product-img-wrap">
+            <span class="product-tag">${p.category}</span>
+            ${p.badge ? `<span class="urgency-badge">${p.badge}</span>` : ''}
+            <img src="${p.img}" alt="${p.name}" loading="lazy">
+          </div>
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <div class="price-row">
+              <span class="price">₹${activePrice}</span>
+              ${currentMode === "Retail" ? `<span class="compare-price">₹${comparePrice}</span>` : ''}
+            </div>
+            <div class="product-footer">
+              <input type="number" class="qty-input" id="qty-${p.id}" value="1" min="1" max="99">
+              <button class="add-btn" onclick="addToCart(${p.id})">Add to Bag</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // ---- ADMIN PANEL FUNCTIONS ----
+    function openAdminModal() {
+      const pass = prompt("Enter Admin Password:");
+      if (pass === ADMIN_PASSWORD) {
+        document.getElementById("admin-modal").classList.add("open");
+        document.getElementById("overlay").classList.add("open");
+        renderAdminList();
+        renderAdminCategoryList();
+      } else if (pass !== null) {
+        alert("Incorrect Admin Password!");
+      }
+    }
+
+    function closeAdminModal() {
+      document.getElementById("admin-modal").classList.remove("open");
+      document.getElementById("overlay").classList.remove("open");
+      resetProductForm();
+    }
+
+    function addNewCategory() {
+      const newCat = document.getElementById("new-cat-name").value.trim();
+      if (!newCat) { alert("Enter a category name!"); return; }
+      if (categories.includes(newCat)) { alert("Category already exists!"); return; }
+
+      categories.push(newCat);
+      localStorage.setItem("ink_categories", JSON.stringify(categories));
+      document.getElementById("new-cat-name").value = "";
+      renderCategories();
+      renderAdminCategoryList();
+      alert(`Category "${newCat}" created!`);
+    }
+
+    function renderAdminCategoryList() {
+      const list = document.getElementById("admin-category-list");
+      list.innerHTML = "";
+      categories.forEach(cat => {
+        if (cat === "All") return;
+        const item = document.createElement("div");
+        item.className = "admin-list-item";
+        item.innerHTML = `
+          <span><b>${cat}</b></span>
+          <div class="admin-btns">
+            <button class="edit-btn" onclick="editCategory('${cat}')">Rename</button>
+            <button class="del-btn" onclick="deleteCategory('${cat}')">Delete</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function editCategory(oldCat) {
+      const newCat = prompt(`Rename category "${oldCat}" to:`, oldCat);
+      if (!newCat || newCat.trim() === "" || newCat === oldCat) return;
+      const cleanNewCat = newCat.trim();
+
+      if (categories.includes(cleanNewCat)) { alert("Category name already exists!"); return; }
+
+      categories = categories.map(c => c === oldCat ? cleanNewCat : c);
+      localStorage.setItem("ink_categories", JSON.stringify(categories));
+
+      products.forEach(p => {
+        if (p.category === oldCat) p.category = cleanNewCat;
+      });
+      localStorage.setItem("ink_products", JSON.stringify(products));
+
+      renderCategories();
+      renderAdminList();
+      renderAdminCategoryList();
+      renderProducts();
+    }
+
+    function deleteCategory(cat) {
+      if (confirm(`Delete category "${cat}"? Products will be moved to "Gifts & Stationery".`)) {
+        categories = categories.filter(c => c !== cat);
+        localStorage.setItem("ink_categories", JSON.stringify(categories));
+
+        products.forEach(p => {
+          if (p.category === cat) p.category = "Gifts & Stationery";
+        });
+        localStorage.setItem("ink_products", JSON.stringify(products));
+
+        if (currentCategory === cat) currentCategory = "All";
+        renderCategories();
+        renderAdminList();
+        renderAdminCategoryList();
+        renderProducts();
+      }
+    }
+
+    function renderAdminList() {
+      const list = document.getElementById("admin-product-list");
+      list.innerHTML = "";
+      products.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "admin-list-item";
+        item.innerHTML = `
+          <span><b>${p.name}</b> [${p.category}] (R:₹${p.retailPrice} | W:₹${p.wholesalePrice})</span>
+          <div class="admin-btns">
+            <button class="edit-btn" onclick="startEditProduct(${p.id})">Edit</button>
+            <button class="del-btn" onclick="deleteProduct(${p.id})">Delete</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function startEditProduct(id) {
+      const p = products.find(prod => prod.id === id);
+      if (!p) return;
+
+      document.getElementById("edit-product-id").value = p.id;
+      document.getElementById("new-name").value = p.name;
+      document.getElementById("new-retail-price").value = p.retailPrice || p.price;
+      document.getElementById("new-wholesale-price").value = p.wholesalePrice || p.price;
+      document.getElementById("new-category").value = p.category;
+      document.getElementById("new-img-url").value = p.img.startsWith("data:") ? "" : p.img;
+
+      document.getElementById("form-title").textContent = "Edit Product";
+      document.getElementById("save-product-btn").textContent = "Update Product";
+      document.getElementById("cancel-edit-btn").style.display = "inline-block";
+    }
+
+    function resetProductForm() {
+      document.getElementById("edit-product-id").value = "";
+      document.getElementById("new-name").value = "";
+      document.getElementById("new-retail-price").value = "";
+      document.getElementById("new-wholesale-price").value = "";
+      document.getElementById("new-img-file").value = "";
+      document.getElementById("new-img-url").value = "";
+
+      document.getElementById("form-title").textContent = "Add New Product";
+      document.getElementById("save-product-btn").textContent = "+ Save Product";
+      document.getElementById("cancel-edit-btn").style.display = "none";
+    }
+
+    function compressAndSaveImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 400;
+          const MAX_HEIGHT = 400;
+          let width = img.width, height = img.height;
+          if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+          else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveProduct() {
+      const editId = document.getElementById("edit-product-id").value;
+      const name = document.getElementById("new-name").value.trim();
+      const retailPrice = parseFloat(document.getElementById("new-retail-price").value);
+      const wholesalePrice = parseFloat(document.getElementById("new-wholesale-price").value);
+      const category = document.getElementById("new-category").value;
+      const fileInput = document.getElementById("new-img-file");
+      const urlInput = document.getElementById("new-img-url").value.trim();
+
+      if (!name || isNaN(retailPrice) || isNaN(wholesalePrice)) {
+        alert("Please enter a valid name and both retail/wholesale prices.");
+        return;
+      }
+
+      const existingProduct = editId ? products.find(p => p.id == editId) : null;
+      let defaultImg = existingProduct ? existingProduct.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80";
+
+      if (fileInput.files && fileInput.files[0]) {
+        compressAndSaveImage(fileInput.files[0], function(optimizedImgUrl) {
+          commitProductData(editId, name, retailPrice, wholesalePrice, category, optimizedImgUrl);
+        });
+      } else {
+        const img = urlInput || defaultImg;
+        commitProductData(editId, name, retailPrice, wholesalePrice, category, img);
+      }
+    }
+
+    function commitProductData(editId, name, retailPrice, wholesalePrice, category, img) {
+      if (editId) {
+        products = products.map(p => p.id == editId ? { ...p, name, retailPrice, wholesalePrice, category, img } : p);
+        alert("Product updated successfully!");
+      } else {
+        const newId = Date.now();
+        products.push({ id: newId, name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival" });
+        alert("Product added successfully!");
+      }
+
+      try {
+        localStorage.setItem("ink_products", JSON.stringify(products));
+      } catch (e) {
+        alert("Storage full! Try a smaller image.");
+        return;
+      }
+
+      resetProductForm();
+      renderProducts();
+      renderAdminList();
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Delete this product?")) {
+        products = products.filter(p => p.id !== id);
+        localStorage.setItem("ink_products", JSON.stringify(products));
+        renderProducts();
+        renderAdminList();
+      }
+    }
+
+    // ---- Cart & Checkout ----
+    function addToCart(productId) {
+      const qtyInput = document.getElementById(`qty-${productId}`);
+      const qty = parseInt(qtyInput.value) || 1;
+      cart[productId] = (cart[productId] || 0) + qty;
+      localStorage.setItem("ink_cart", JSON.stringify(cart));
+      updateCartUI();
+      toggleCart(true);
+    }
+
+    function removeFromCart(productId) {
+      delete cart[productId];
+      localStorage.setItem("ink_cart", JSON.stringify(cart));
+      updateCartUI();
+    }
+
+    function toggleCart(open) {
+      const drawer = document.getElementById("cart-drawer");
+      const overlay = document.getElementById("overlay");
+      if (open) { drawer.classList.add("open"); overlay.classList.add("open"); }
+      else { if (!document.getElementById("admin-modal").classList.contains("open")) overlay.classList.remove("open"); drawer.classList.remove("open"); }
+    }
+
+    function updateCartUI() {
+      const list = document.getElementById("cart-items-list");
+      list.innerHTML = "";
+      let totalCount = 0, totalPrice = 0, hasItems = false;
+
+      for (const [id, qty] of Object.entries(cart)) {
+        hasItems = true;
+        const product = products.find(p => p.id == id);
+        if (!product) continue;
+
+        const activePrice = currentMode === "Wholesale" ? (product.wholesalePrice || product.retailPrice) : product.retailPrice;
+        totalCount += qty;
+        totalPrice += activePrice * qty;
+
+        const itemEl = document.createElement("div");
+        itemEl.className = "cart-item";
+        itemEl.innerHTML = `
+          <img src="${product.img}" alt="${product.name}">
+          <div style="flex:1;">
+            <h4 style="font-size:0.85rem;">${product.name}</h4>
+            <span style="font-size:0.8rem; color:var(--purple-light);">Qty: ${qty} x ₹${activePrice}</span>
+            <button style="background:none; border:none; color:#ff4d4d; font-size:0.75rem; cursor:pointer; text-decoration:underline;" onclick="removeFromCart(${product.id})">Remove</button>
+          </div>
+        `;
+        list.appendChild(itemEl);
+      }
+
+      if (!hasItems) { list.innerHTML = `<p style="color:var(--muted); text-align:center; margin-top:2rem;">Your bag is empty.</p>`; }
+      document.getElementById("cart-count").textContent = `(${totalCount})`;
+      document.getElementById("cart-total-price").textContent = `₹${totalPrice.toLocaleString('en-IN')}.00`;
+    }
+
+    function checkoutWhatsApp() {
+      if (Object.keys(cart).length === 0) { alert("Your bag is empty!"); return; }
+      toggleCart(false);
+
+      let message = "New Order Inquiry - Ink & Blink\n";
+      message += "Customer Name: " + customerInfo.name + "\n";
+      message += "Customer WhatsApp: " + customerInfo.phone + "\n";
+      message += "Mode: " + currentMode + "\n\n";
+      message += "Order Items:\n";
+
+      let total = 0;
+      for (const [id, qty] of Object.entries(cart)) {
+        const product = products.find(p => p.id == id);
+        if (product) {
+          const activePrice = currentMode === "Wholesale" ? (product.wholesalePrice || product.retailPrice) : product.retailPrice;
+          const subtotal = activePrice * qty;
+          total += subtotal;
+          message += "- " + product.name + " (Qty: " + qty + ") - ₹" + subtotal + "\n";
+        }
+      }
+
+      message += "\nEstimated Total: ₹" + total.toLocaleString('en-IN') + "\n\nThank you for shopping with Ink & Blink!";
+      window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message), "_blank");
+    }
+  </script>
+</body>
+</html>
