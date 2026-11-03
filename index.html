@@ -426,6 +426,9 @@
   <script>
     const WHATSAPP_NUMBER = "919075590745";
 
+    // ---- Visitor login capture: POSTs name+phone to the owner's Google Sheet ----
+    const LEADS_URL = "https://script.google.com/macros/s/AKfycby9jZKgVJhN_o97946iT5vC1loveR-HuKB6gAnX4fhhZaedSPdLTrcWfgDzqOgkiW0HZg/exec";
+
     // ---- Passwords are stored as one-way SHA-256 hashes (never plain text) ----
     // To change a password: compute the hash of your new password (e.g. sha-256.online-hashcalculator.com) and replace below.
     const ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";       // was: "admin"
@@ -583,6 +586,17 @@
 
       customerInfo = { name, phone };
       localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
+
+      // ---- Save this visitor to the owner's Google Sheet (fire & forget) ----
+      try {
+        fetch(LEADS_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ name: name, phone: phone, mode: currentMode })
+        }).catch(() => {});
+      } catch (e) { /* never block the visitor if the sheet call fails */ }
+
       revealStore();
       refreshCatalogFromCloud();
     }
