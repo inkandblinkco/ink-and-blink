@@ -230,6 +230,168 @@
       .save-chip { display: block; width: fit-content; }
     }
   </style>
+
+  <style id="nova-theme">
+    /* ====== NOVA REDESIGN (printinggnova-style) — override layer ====== */
+    /* Original purple palette passes through from the base stylesheet */
+    :root {
+      --bg-card: rgba(24, 15, 48, 0.72);
+      --bg-solid: #140d2b;
+    }
+
+    * { box-sizing: border-box; }
+    body { line-height: 1.6; }
+    h1, h2, h3 { letter-spacing: .2px; }
+    .brand-text span:first-child, .login-badge, .footer-brand { font-family: 'Cinzel', serif; }
+    .hero h1, .grid-head h2, .testimonials h2, .nova-marquee-title h2, .worlds-title { font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.5px; }
+
+    /* Purple background glows pass through from base stylesheet */
+
+    /* Fixed announcement marquee above header */
+    #promo-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 101; background: linear-gradient(90deg, #4a19a8, #c15cff, #4a19a8); color: #fff; overflow: hidden; padding: 10px 0; white-space: nowrap; }
+    body.wholesale #promo-banner { background: linear-gradient(90deg, #123b82, #4da3ff, #123b82); }
+    .banner-marquee { width: 100%; overflow: hidden; }
+    .banner-track { display: flex; width: max-content; animation: bannerSlide 38s linear infinite; }
+    .banner-run { display: flex; }
+    .banner-item { padding: 0 26px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.4px; }
+    @keyframes bannerSlide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    header { top: 40px; background: rgba(10, 10, 15, 0.92); border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    body.wholesale header { background: rgba(5, 9, 18, 0.92); }
+    #shop-page { padding-top: 138px; }
+
+    .action-btn { background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid)); border: none; border-radius: 10px; box-shadow: 0 4px 16px rgba(134, 68, 237, 0.35); }
+    .action-btn:hover { box-shadow: 0 7px 22px rgba(193, 92, 255, 0.5); }
+    .btn-primary-big { background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid)); border-radius: 10px; box-shadow: 0 8px 26px rgba(134, 68, 237, 0.45); }
+    .btn-primary-big:hover { box-shadow: 0 12px 34px rgba(193, 92, 255, 0.55); }
+
+    /* Hero: original purple gradient heading passes through */
+
+    /* Circular category cards */
+    .categories-bar { display: flex; gap: 26px; align-items: flex-start; justify-content: center; flex-wrap: wrap; padding: 0.8rem 2rem 1.4rem; overflow-x: auto; scrollbar-width: none; }
+    .categories-bar::-webkit-scrollbar { display: none; }
+    .cat-btn { background: none !important; border: none !important; padding: 0 !important; backdrop-filter: none !important; box-shadow: none !important; display: flex; flex-direction: column; align-items: center; gap: 9px; white-space: nowrap; cursor: pointer; }
+    .cat-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--bg-card); border: 2px solid rgba(160, 100, 255, 0.22); display: flex; align-items: center; justify-content: center; font-size: 30px; transition: all 0.25s ease; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
+    .cat-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); letter-spacing: 0.3px; }
+    .cat-btn:hover .cat-circle { transform: translateY(-4px) scale(1.06); border-color: var(--purple-glow); box-shadow: 0 12px 28px rgba(134, 68, 237, 0.35); }
+    .cat-btn.active .cat-circle { border-color: var(--purple-glow); box-shadow: 0 0 0 4px rgba(134, 68, 237, 0.18), 0 12px 28px rgba(134, 68, 237, 0.35); }
+    .cat-btn.active .cat-label { color: var(--purple-light); }
+
+    /* Section heading accent bar */
+    .grid-head h2 { position: relative; padding-left: 16px; }
+    .grid-head h2::before { content: ""; position: absolute; left: 0; top: 12%; bottom: 12%; width: 5px; border-radius: 3px; background: var(--purple-glow); }
+    .view-all { background: transparent; border: 1px solid rgba(255, 255, 255, 0.14); color: var(--text); padding: 8px 18px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: inherit; }
+    .view-all:hover { background: var(--purple-mid); border-color: var(--purple-mid); color: #fff; }
+
+    /* Nova product cards */
+    .product-card { background: var(--bg-card); backdrop-filter: none; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; }
+    .product-card:hover { border-color: var(--purple-glow); box-shadow: 0 16px 40px rgba(134, 68, 237, 0.25), 0 0 24px rgba(193, 92, 255, 0.25); }
+    .product-img-wrap { background: linear-gradient(140deg, #1c1130, #060310); }
+    .qty-input { background: rgba(0, 0, 0, 0.42); border: 1px solid rgba(160, 100, 255, 0.25); border-radius: 10px; }
+
+    /* Scrolling collection strip */
+    .nova-marquee-section { max-width: 1300px; margin: 0 auto; padding: 0.4rem 2rem 2.2rem; }
+    .nova-marquee-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.1rem; }
+    .nova-marquee-title h2 { font-size: 1.55rem; color: #fff; position: relative; padding-left: 16px; }
+    .nova-marquee-title h2::before { content: ""; position: absolute; left: 0; top: 12%; bottom: 12%; width: 5px; border-radius: 3px; background: var(--purple-glow); }
+    .nova-marquee { overflow: hidden; }
+    .nova-track { display: flex; width: max-content; animation: novaScroll 48s linear infinite; }
+    .nova-marquee:hover .nova-track { animation-play-state: paused; }
+    .nova-run { display: flex; gap: 22px; padding-right: 22px; }
+    .nova-item { width: 200px; background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; overflow: hidden; flex-shrink: 0; transition: border-color 0.25s, transform 0.25s; }
+    .nova-item:hover { border-color: var(--purple-glow); transform: translateY(-4px); }
+    .nova-item img { width: 100%; height: 200px; object-fit: cover; display: block; }
+    .nova-item .n-name { font-size: 0.8rem; font-weight: 600; padding: 9px 10px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .nova-item .n-btn { width: calc(100% - 20px); margin: 0 10px 12px; background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid)); color: #fff; border: none; border-radius: 9px; padding: 8px 0; font-weight: 800; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
+    .nova-item .n-btn:active { transform: scale(0.97); }
+    @keyframes novaScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* Shop by fan world (hover-expand strip) */
+    .nova-worlds-section { max-width: 1300px; margin: 0 auto 1rem; padding: 0 2rem; }
+    .worlds-title { font-size: 1.55rem; color: #fff; margin-bottom: 1.1rem; position: relative; padding-left: 16px; }
+    .worlds-title::before { content: ""; position: absolute; left: 0; top: 12%; bottom: 12%; width: 5px; border-radius: 3px; background: var(--purple-glow); }
+    .anime-strip { display: flex; gap: 12px; }
+    .anime-card { flex: 1; min-height: 104px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: flex 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s; overflow: hidden; position: relative; }
+    .anime-card:hover { flex: 2.4; filter: brightness(1.15); }
+    .anime-card > span { font-weight: 800; font-size: 1rem; color: #fff; text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); padding: 0 10px; }
+    .anime-card .w-arrow { font-size: 1.2rem; color: #fff; opacity: 0; transition: opacity 0.3s; }
+    .anime-card:hover .w-arrow { opacity: 1; }
+
+    /* Trust icons: purple glow passes through from base stylesheet */
+
+    /* Testimonial carousel */
+    .rev-carousel { position: relative; max-width: 1000px; margin: 0 auto; }
+    .rev-viewport { overflow: hidden; }
+    .rev-track { display: flex; transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
+    .rev-slide { flex: 0 0 50%; padding: 0 9px; }
+    .rev-card { background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 18px; padding: 1.6rem; height: 100%; }
+    .rev-card .review-stars { color: var(--accent-gold); margin-bottom: 0.6rem; letter-spacing: 2px; font-size: 0.9rem; }
+    .rev-card p { font-size: 0.9rem; color: #d9d2ea; margin-bottom: 1rem; line-height: 1.65; font-style: italic; }
+    .rev-who { font-size: 0.78rem; color: var(--muted); font-weight: 700; }
+    .rev-who b { color: var(--purple-light); }
+    .rev-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); color: #fff; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 1.25rem; z-index: 2; line-height: 1; display: flex; align-items: center; justify-content: center; }
+    .rev-nav:hover { background: var(--purple-mid); border-color: var(--purple-mid); }
+    .rev-nav.prev { left: -10px; }
+    .rev-nav.next { right: -10px; }
+    .rev-dots { display: flex; gap: 8px; justify-content: center; margin-top: 1.3rem; }
+    .rev-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); border: none; cursor: pointer; padding: 0; transition: all 0.25s; }
+    .rev-dot.active { background: var(--purple-glow); transform: scale(1.25); }
+
+    /* WhatsApp float button */
+    #wa-float { position: fixed; right: 20px; bottom: 24px; z-index: 96; }
+    #wa-float a { display: flex; align-items: center; gap: 9px; background: #25d366; color: #fff; text-decoration: none; padding: 13px 18px; border-radius: 40px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(37, 211, 102, 0.45); transition: transform 0.2s, box-shadow 0.2s; }
+    #wa-float a:hover { transform: translateY(-3px); box-shadow: 0 14px 38px rgba(37, 211, 102, 0.6); }
+    #wa-float svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* Richer footer */
+    footer { background: #0c0c12; border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 3rem 2rem 5.5rem; margin-top: 3.5rem; text-align: left; }
+    .foot-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 2rem; }
+    .foot-col .footer-brand { color: var(--purple-light); font-size: 1.25rem; margin-bottom: 0.2rem; }
+    .footer-sub { text-transform: uppercase; letter-spacing: 2.5px; font-size: 0.62rem; color: var(--muted); margin-bottom: 0.7rem; }
+    .foot-col p { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.8rem; line-height: 1.6; }
+    .foot-col h4 { color: #fff; font-size: 0.92rem; margin-bottom: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .foot-col a { display: block; color: var(--muted); text-decoration: none; margin-bottom: 0.55rem; font-size: 0.85rem; transition: color 0.2s; cursor: pointer; }
+    .foot-col a:hover { color: var(--purple-glow); }
+    .foot-legal { max-width: 1200px; margin: 2.2rem auto 0; border-top: 1px solid rgba(255, 255, 255, 0.07); padding-top: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+    .foot-legal a { color: var(--muted); font-size: 0.74rem; }
+    .foot-legal a:hover { color: var(--muted); }
+
+    /* Restyle internals */
+    #admin-modal .admin-box { background: var(--bg-solid); }
+    .admin-form input, .admin-form select { background: #0a0a0f; border: 1px solid rgba(255, 255, 255, 0.1); }
+    #cart-drawer { background: #101016; border-left: 1px solid rgba(255, 255, 255, 0.06); }
+    .cart-item { border: 1px solid rgba(255, 255, 255, 0.06); }
+    #sticky-bag { background: rgba(10, 10, 15, 0.92); border-top: 1px solid rgba(255, 255, 255, 0.06); }
+    #sticky-bag button { background: linear-gradient(120deg, var(--purple-deep), var(--purple-mid)); }
+    body.wholesale #sticky-bag button { background: linear-gradient(120deg, #123b82, #2f6fd0); }
+
+    @media (max-width: 600px) {
+      #shop-page { padding-top: 128px; }
+      .categories-bar { gap: 20px; justify-content: flex-start; padding: 0.6rem 1rem 1.2rem; }
+      .cat-circle { width: 68px; height: 68px; font-size: 26px; }
+      .nova-marquee-section, .nova-worlds-section { padding-left: 1rem; padding-right: 1rem; }
+      .nova-item img { height: 170px; }
+      .anime-strip { overflow-x: auto; scrollbar-width: none; gap: 10px; padding-bottom: 4px; }
+      .anime-strip::-webkit-scrollbar { display: none; }
+      .anime-card { flex: none; min-width: 150px; min-height: 88px; }
+      .anime-card .w-arrow { display: none; }
+      .rev-slide { flex: 0 0 100%; padding: 0; }
+      .rev-nav.prev { left: 2px; }
+      .rev-nav.next { right: 2px; }
+      #wa-float { right: 12px; bottom: 84px; }
+      #wa-float a { padding: 12px 14px; font-size: 0.8rem; }
+      .foot-grid { grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+      .foot-legal { flex-direction: column; align-items: flex-start; }
+    }
+    /* Category & fan-world image fills + admin image rows */
+    .cat-circle { position: relative; overflow: hidden; }
+    .cat-emoji { position: relative; }
+    .cat-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .img-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
+    .img-row-label { min-width: 118px; font-size: 0.8rem; font-weight: 700; color: var(--purple-light); }
+    .img-row input[type="text"] { flex: 1; min-width: 130px; padding: 7px; background: #07050d; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-family: inherit; font-size: 0.8rem; }
+    .img-row input[type="file"] { max-width: 150px; font-size: 0.7rem; color: var(--muted); }
+  </style>
 </head>
 <body>
   <div class="board-bg"></div>
@@ -267,7 +429,7 @@
         </div>
         <div class="brand-text">
           <span>Ink & Blink</span>
-          <span>Artesania Studio</span>
+          <span>The Artesania Studio</span>
         </div>
       </div>
       <div class="nav-actions">
@@ -291,39 +453,94 @@
 
     <div class="categories-bar" id="categories-container"></div>
 
+    <!-- Scrolling collection strip -->
+    <section class="nova-marquee-section">
+      <div class="nova-marquee-title">
+        <h2>Shop The Collection</h2>
+        <button class="view-all" onclick="filterCategory('All')">View All →</button>
+      </div>
+      <div class="nova-marquee">
+        <div class="nova-track" id="nova-track"></div>
+      </div>
+    </section>
+
     <div class="wrap">
       <div class="grid-head">
         <h2 id="grid-title">Trending This Week 🔥</h2>
-        <span class="live-dot" id="grid-live">● restocked regularly</span>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="live-dot" id="grid-live">● restocked regularly</span>
+          <button class="view-all" onclick="filterCategory('All')">View All →</button>
+        </div>
       </div>
       <div class="product-grid" id="product-grid"></div>
     </div>
+
+    <section class="nova-worlds-section">
+      <h2 class="worlds-title">Shop By Fan World</h2>
+      <div class="anime-strip" id="anime-strip"></div>
+    </section>
 
     <div class="trust-strip">
       <div class="trust-item"><span class="tk">🛡️</span> Original & Quality-Checked</div>
       <div class="trust-item"><span class="tk">🚚</span> Fast India-Wide Dispatch</div>
       <div class="trust-item"><span class="tk">🔒</span> Secure WhatsApp Ordering</div>
-      <div class="trust-item"><span class="tk">📦</span> Bubble-Wrapped**, graded packaging</div>
+      <div class="trust-item"><span class="tk">📦</span> Bubble-Wrapped, Graded Packaging</div>
     </div>
 
     <section class="testimonials">
       <h2>Loved by Collectors 🧡</h2>
       <p class="sub">Real words from people who ordered this month.</p>
-      <div class="review-grid" id="review-grid"></div>
+      <div id="review-carousel-root"></div>
     </section>
 
+    <!-- WhatsApp float button -->
+    <div id="wa-float">
+      <a href="#" onclick="openWhatsAppChat(); return false;">
+        <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M16 2.7C8.7 2.7 2.8 8.6 2.8 15.9c0 2.3.6 4.5 1.7 6.4l-1.8 7 7.2-1.9c1.8 1 3.9 1.5 6 1.5h.1c7.3 0 13.2-5.9 13.2-13.2 0-3.5-1.4-6.9-3.9-9.4-2.5-2.4-5.8-3.7-9.3-3.6zm0 24.1h-.1c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.3 1.1 1.2-4.2-.3-.4c-1.1-1.7-1.7-3.7-1.7-5.7 0-5.9 5-10.7 11-10.7 2.9 0 5.7 1.1 7.7 3.2 2.1 2 3.2 4.8 3.2 7.6 0 5.9-4.9 10.8-10.9 10.8zm6-8c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.3-.7.1-.3-.2-1.3-.5-2.5-1.5-.9-.8-1.6-1.8-1.8-2.1-.2-.3 0-.5.1-.7.2-.2.4-.5.6-.7.2-.2.3-.4.4-.6.1-.3 0-.5-.1-.7-.1-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5-.2 0-.4 0-.7 0-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.7 5.8 5.2.8.4 1.4.6 1.9.7.8.3 1.5.2 2.1.1.7-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg>
+        Chat with us
+      </a>
+    </div>
+
     <footer>
-      <div class="footer-brand">Ink & Blink</div>
-      <div>By The Artesania Studio</div>
-      <div class="footer-links">
-        <a href="#">Terms</a>
-        <a href="#">Shipping</a>
-        <a href="#">Replacement Policy</a>
-        <a href="#" id="footer-mode-link" onclick="footerModeSwitch(); return false;">🔒 Wholesale Portal</a>
-        <a href="#">Contact</a>
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="footer-brand">Ink & Blink</div>
+          <div class="footer-sub">The Artesania Studio</div>
+          <p>Premium anime collectibles, katanas & gifts by The Artesania Studio. Hand-checked, safely packed, shipped India-wide. New drops every Friday.</p>
+          <p>💬 Direct orders & support: <b>+91 90755 90745</b></p>
+        </div>
+        <div class="foot-col">
+          <h4>Quick Links</h4>
+          <a href="#" onclick="scrollToGrid(); return false;">All Products</a>
+          <a href="#">Terms</a>
+          <a href="#">Shipping</a>
+          <a href="#">Replacement Policy</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="foot-col">
+          <h4>Shop</h4>
+          <a onclick="jumpCategory('Katanas')">Katanas</a>
+          <a onclick="jumpCategory('Anime Figures')">Anime Figures</a>
+          <a onclick="jumpCategory('Wands')">Wands</a>
+          <a onclick="jumpCategory('Cosplay')">Cosplay</a>
+          <a onclick="jumpCategory('Keychains')">Keychains</a>
+          <a onclick="jumpCategory('Gifts & Stationery')">Gifts & Stationery</a>
+        </div>
+        <div class="foot-col">
+          <h4>Why Ink & Blink</h4>
+          <a onclick="scrollToGrid(); return false;">🔥 Shop Best Sellers</a>
+          <a>🛡️ 100% Quality-Checked</a>
+          <a>🚚 72h Avg. Dispatch</a>
+          <a>📦 4,800+ Orders Delivered</a>
+          <a>⭐ 4.8★ Average Rating</a>
+        </div>
       </div>
-      <p>© 2025 Ink & Blink — All Rights Reserved.</p>
-      <p style="margin-top: 4px;">Direct WhatsApp Orders & Support: <b>+91 90755 90745</b></p>
+      <div class="foot-legal">
+        <span>© 2025 Ink & Blink — All Rights Reserved.</span>
+        <span style="display:flex; gap:1.2rem;">
+          <a href="#" id="footer-mode-link" onclick="footerModeSwitch(); return false;">🔒 Wholesale Portal</a>
+        </span>
+      </div>
     </footer>
   </div>
 
@@ -394,6 +611,12 @@
             <button class="action-btn" id="cancel-edit-btn" style="background:#444; display:none; justify-content:center;" onclick="resetProductForm()">Cancel</button>
           </div>
         </div>
+      </div>
+
+      <div class="admin-section">
+        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">🖼️ Category & Fan-World Images</h3>
+        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer, then click <b>Save</b>. Then press <b>Publish</b> at the top to make it live for everyone.</div>
+        <div id="admin-image-rows"></div>
       </div>
 
       <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Current Inventory</h3>
@@ -479,15 +702,12 @@
 
     let announceTimer = null;
     function startAnnouncements() {
-      clearInterval(announceTimer);
       const banner = document.getElementById("promo-banner");
+      if (!banner) return;
       const list = currentMode === "Wholesale" ? wholesaleAnnouncements : retailAnnouncements;
-      let idx = 0;
-      banner.textContent = list[0];
-      announceTimer = setInterval(() => {
-        idx = (idx + 1) % list.length;
-        banner.textContent = list[idx];
-      }, 4200);
+      const strip = list.map(t => `<span class="banner-item">${t}</span>`).join("");
+      banner.innerHTML =
+        `<div class="banner-marquee"><div class="banner-track"><div class="banner-run">${strip}</div><div class="banner-run" aria-hidden="true">${strip}</div></div></div>`;
     }
 
     let categories = JSON.parse(localStorage.getItem("ink_categories")) || defaultCategories.slice();
@@ -497,6 +717,35 @@
     let currentCategory = "All";
     let customerInfo = JSON.parse(localStorage.getItem("ink_customer")) || null;
     let wholesalePrices = {}; // id -> wholesale price; only populated after wholesale unlock
+    // Images for category circles & fan-world cards (published inside store-data.json)
+    let categoryImages = JSON.parse(localStorage.getItem("ink_cat_images") || "{}");
+    let worldImages = JSON.parse(localStorage.getItem("ink_world_images") || "{}");
+
+    const FAN_WORLDS = [
+      { name: "Demon Slayer", grad: "linear-gradient(135deg,#7f0a1f,#3a0715)" },
+      { name: "One Piece", grad: "linear-gradient(135deg,#0b3d5c,#072233)" },
+      { name: "Naruto", grad: "linear-gradient(135deg,#c2410c,#7c2d12)" },
+      { name: "Jujutsu Kaisen", grad: "linear-gradient(135deg,#4c1d95,#1e1b4b)" },
+      { name: "Attack on Titan", grad: "linear-gradient(135deg,#14532d,#052e16)" },
+      { name: "Harry Potter", grad: "linear-gradient(135deg,#713f12,#3b2506)" }
+    ];
+
+    function renderWorlds() {
+      const strip = document.getElementById("anime-strip");
+      if (!strip) return;
+      strip.innerHTML = "";
+      FAN_WORLDS.forEach(w => {
+        const card = document.createElement("div");
+        card.className = "anime-card";
+        const u = worldImages[w.name];
+        card.style.background = u
+          ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)), url("${u}") center/cover`
+          : w.grad;
+        card.innerHTML = `<span>${w.name}</span><span class="w-arrow">→</span>`;
+        card.onclick = () => openWorldChat(w.name);
+        strip.appendChild(card);
+      });
+    }
 
     function activePriceFor(p) {
       if (currentMode !== "Wholesale") return p.retailPrice;
@@ -546,6 +795,14 @@
             if (Array.isArray(data.categories) && data.categories.length) {
               categories = data.categories;
             }
+            if (data.categoryImages && typeof data.categoryImages === "object") {
+              categoryImages = data.categoryImages;
+              localStorage.setItem("ink_cat_images", JSON.stringify(categoryImages));
+            }
+            if (data.worldImages && typeof data.worldImages === "object") {
+              worldImages = data.worldImages;
+              localStorage.setItem("ink_world_images", JSON.stringify(worldImages));
+            }
             try {
               const localW = JSON.parse(localStorage.getItem("ink_wholesale") || "null");
               if (localW && typeof localW === "object") {
@@ -560,6 +817,7 @@
             renderCategories();
             renderProducts();
             renderReviews();
+            renderWorlds();
             updateCartUI();
             return; // success — stop trying sources
           }
@@ -567,11 +825,6 @@
           // try next source; if all fail, local fallback stays in use
         }
       }
-    }
-
-    if (customerInfo) {
-      revealStore();
-      refreshCatalogFromCloud();
     }
 
     function registerCustomer() {
@@ -605,6 +858,8 @@
       document.getElementById("shop-page").classList.add("active");
       renderCategories();
       renderProducts();
+      renderImageMarquee();
+      renderWorlds();
       renderReviews();
       renderHeroCTAs();
       updateCartUI();
@@ -694,6 +949,7 @@
       }
 
       renderProducts();
+      renderImageMarquee();
       renderHeroCTAs();
       renderReviews();
       startAnnouncements();
@@ -703,10 +959,12 @@
     function filterCategory(cat) {
       currentCategory = cat;
       document.querySelectorAll(".cat-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.textContent === cat);
+        btn.classList.toggle("active", btn.dataset.cat === cat);
       });
       renderProducts();
     }
+
+    const catIcons = { "All": "🛍️", "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
 
     function renderCategories() {
       const container = document.getElementById("categories-container");
@@ -718,7 +976,9 @@
       categories.forEach(cat => {
         const btn = document.createElement("button");
         btn.className = `cat-btn ${currentCategory === cat ? 'active' : ''}`;
-        btn.textContent = cat;
+        btn.dataset.cat = cat;
+        const img = categoryImages[cat];
+        btn.innerHTML = `<span class="cat-circle"><span class="cat-emoji">${catIcons[cat] || "⭐"}</span>${img ? `<img class="cat-fill" src="${img}" alt="${cat}" onerror="this.remove()" onload="if(this.previousElementSibling) this.previousElementSibling.style.display='none'">` : ""}</span><span class="cat-label">${cat}</span>`;
         btn.onclick = () => filterCategory(cat);
         container.appendChild(btn);
 
@@ -774,19 +1034,102 @@
     }
 
     function renderReviews() {
-      const grid = document.getElementById("review-grid");
-      if (!grid) return;
-      grid.innerHTML = "";
-      retailTestimonials.forEach(t => {
-        const card = document.createElement("div");
-        card.className = "review-card";
-        card.innerHTML = `
-          <div class="review-stars">★★★★★</div>
-          <p>"${t.text}"</p>
-          <div class="review-who"><b>${t.who}</b> · ${t.city} · Verified Buyer</div>
-        `;
-        grid.appendChild(card);
-      });
+      const root = document.getElementById("review-carousel-root");
+      if (!root) return;
+
+      const slides = retailTestimonials.map(t => `
+        <div class="rev-slide">
+          <div class="rev-card">
+            <div class="review-stars">★★★★★</div>
+            <p>"${t.text}"</p>
+            <div class="rev-who"><b>${t.who}</b> · ${t.city} · Verified Buyer</div>
+          </div>
+        </div>
+      `).join("");
+
+      root.innerHTML = `
+        <div class="rev-carousel">
+          <button class="rev-nav prev" onclick="revMove(-1)" aria-label="Previous review">‹</button>
+          <div class="rev-viewport"><div class="rev-track" id="rev-track">${slides}</div></div>
+          <button class="rev-nav next" onclick="revMove(1)" aria-label="Next review">›</button>
+        </div>
+        <div class="rev-dots" id="rev-dots"></div>
+      `;
+
+      revIndex = 0;
+      buildRevDots();
+      updateRevPos();
+      if (revTimer) clearInterval(revTimer);
+      revTimer = setInterval(() => revMove(1), 5000);
+      root.onmouseenter = () => { if (revTimer) { clearInterval(revTimer); revTimer = null; } };
+      root.onmouseleave = () => { if (!revTimer) revTimer = setInterval(() => revMove(1), 5000); };
+    }
+
+    let revIndex = 0;
+    let revTimer = null;
+    function revPerView() { return window.innerWidth > 760 ? 2 : 1; }
+    function revMaxIndex() { return Math.max(0, retailTestimonials.length - revPerView()); }
+    function buildRevDots() {
+      const dots = document.getElementById("rev-dots");
+      if (!dots) return;
+      dots.innerHTML = "";
+      for (let i = 0; i <= revMaxIndex(); i++) {
+        const d = document.createElement("button");
+        d.className = "rev-dot" + (i === revIndex ? " active" : "");
+        d.onclick = () => { revIndex = i; updateRevPos(); buildRevDots(); };
+        dots.appendChild(d);
+      }
+    }
+    function updateRevPos() {
+      const track = document.getElementById("rev-track");
+      if (!track) return;
+      if (revIndex > revMaxIndex()) revIndex = revMaxIndex();
+      if (revIndex < 0) revIndex = 0;
+      track.style.transform = `translateX(-${revIndex * (100 / revPerView())}%)`;
+      document.querySelectorAll(".rev-dot").forEach((d, i) => d.classList.toggle("active", i === revIndex));
+    }
+    function revMove(dir) {
+      const max = revMaxIndex();
+      revIndex = revIndex + dir > max ? 0 : (revIndex + dir < 0 ? max : revIndex + dir);
+      updateRevPos();
+      buildRevDots();
+    }
+    window.addEventListener("resize", () => { if (document.getElementById("rev-track")) { buildRevDots(); updateRevPos(); } });
+
+    function renderImageMarquee() {
+      const track = document.getElementById("nova-track");
+      if (!track) return;
+      const items = products.map(p => `
+        <div class="nova-item">
+          <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
+          <div class="n-name">${p.name}</div>
+          <button class="n-btn" onclick="buyNow(${p.id})">Buy Now</button>
+        </div>
+      `).join("");
+      track.innerHTML = `<div class="nova-run">${items}</div><div class="nova-run" aria-hidden="true">${items}</div>`;
+    }
+
+    function buyNow(id) {
+      cart[id] = (cart[id] || 0) + 1;
+      localStorage.setItem("ink_cart", JSON.stringify(cart));
+      updateCartUI();
+      toggleCart(true);
+    }
+
+    function openWorldChat(world) {
+      window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent("Hi! I'm looking for " + world + " collectibles from Ink & Blink."), "_blank");
+    }
+
+    function openWhatsAppChat() {
+      window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent("Hi Ink & Blink! I saw your store and want to know more about your collectibles."), "_blank");
+    }
+
+    function jumpCategory(cat) {
+      if (categories.includes(cat)) filterCategory(cat);
+      scrollToGrid();
+    }
+    function scrollToGrid() {
+      document.getElementById("product-grid").scrollIntoView({ behavior: "smooth" });
     }
 
     // ---------- ADMIN PANEL ----------
@@ -805,6 +1148,7 @@
         document.getElementById("overlay").classList.add("open");
         renderAdminList();
         renderAdminCategoryList();
+        renderAdminImageRows();
         initTokenStatus();
       } else {
         alert("Incorrect Admin Password!");
@@ -916,6 +1260,8 @@
         const retailCatalog = {
           exportedAt: new Date().toISOString(),
           categories: categories,
+          categoryImages: categoryImages,
+          worldImages: worldImages,
           products: products.map(p => {
             const { wholesalePrice, ...retail } = p;
             return retail;
@@ -972,6 +1318,70 @@
         `;
         list.appendChild(item);
       });
+    }
+
+    // ---------- Category / Fan-World image editor ----------
+    function safeId(str) { return String(str).replace(/[^A-Za-z0-9]/g, "_"); }
+
+    function imageRowHTML(type, name, icon) {
+      const saved = (type === "cat" ? categoryImages[name] : worldImages[name]) || "";
+      return `
+        <div class="img-row">
+          <span class="img-row-label">${icon} ${name}</span>
+          <input type="text" id="img-url-${type}-${safeId(name)}" placeholder="https:// image link" value="${saved.startsWith("data:") ? "" : saved}">
+          <input type="file" id="img-file-${type}-${safeId(name)}" accept="image/*">
+          <button class="edit-btn" onclick="saveSingleImage('${type}','${name}')">Save</button>
+          <button class="del-btn" onclick="clearSingleImage('${type}','${name}')" title="Remove image">×</button>
+        </div>`;
+    }
+
+    function renderAdminImageRows() {
+      const box = document.getElementById("admin-image-rows");
+      if (!box) return;
+      const rows = [];
+      categories.filter(c => c !== "All").forEach(cat => rows.push(imageRowHTML("cat", cat, catIcons[cat] || "⭐")));
+      FAN_WORLDS.forEach(w => rows.push(imageRowHTML("world", w.name, "🌍")));
+      box.innerHTML = rows.join("");
+    }
+
+    function persistImages(type) {
+      try { localStorage.setItem(type === "cat" ? "ink_cat_images" : "ink_world_images", JSON.stringify(type === "cat" ? categoryImages : worldImages)); } catch (e) {}
+    }
+
+    function saveSingleImage(type, name) {
+      const fid = safeId(name);
+      const fileInput = document.getElementById(`img-file-${type}-${fid}`);
+      const urlInput = document.getElementById(`img-url-${type}-${fid}`);
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      const url = urlInput ? urlInput.value.trim() : "";
+      const target = type === "cat" ? categoryImages : worldImages;
+
+      const commit = (src) => {
+        target[name] = src;
+        persistImages(type);
+        renderCategories();
+        renderWorlds();
+        renderAdminImageRows();
+        alert(`Image set for "${name}". Now click ☁️ Publish at the top to make it live for everyone.`);
+      };
+
+      if (file) {
+        compressAndSaveImage(file, commit);
+      } else if (url) {
+        commit(url);
+      } else {
+        alert("Choose a photo from your computer OR paste an image link first.");
+      }
+    }
+
+    function clearSingleImage(type, name) {
+      const target = type === "cat" ? categoryImages : worldImages;
+      delete target[name];
+      persistImages(type);
+      renderCategories();
+      renderWorlds();
+      renderAdminImageRows();
+      showUnpublishedHint();
     }
 
     function editCategory(oldCat) {
@@ -1250,6 +1660,12 @@
 
       message += "\nEstimated Total: ₹" + total.toLocaleString('en-IN') + "\n\nThank you for shopping with Ink & Blink!";
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message), "_blank");
+    }
+
+    // ---- Boot: if this visitor already logged in before, open the store straight away ----
+    if (customerInfo) {
+      revealStore();
+      refreshCatalogFromCloud();
     }
   </script>
 </body>
