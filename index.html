@@ -260,7 +260,7 @@
     <div id="promo-banner" class="promo-banner">✨ Free shipping on retail orders above ₹999 — this week only!</div>
 
     <header>
-      <div class="brand" ondblclick="openAdminModal()" title="Double click logo for admin">
+      <div class="brand" ondblclick="openAdminModal()">
         <div class="brand-logo-circle">
           <span class="logo-fallback">I&B</span>
           <img src="logo.png" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
@@ -280,10 +280,8 @@
       <h1 id="hero-title">Own Your Fandom.<br>Not Just Watch It.</h1>
       <p id="hero-sub">From display-grade katanas to studio-quality figures — every piece is hand-checked, safely packed and shipped with obsession. New drops every week.</p>
       <div class="hero-cta-row" id="hero-cta-row"></div>
-      <div class="mode-selector">
-        <button class="active" onclick="handleModeSwitch('Retail')" id="mode-retail">🛍️ Retail</button>
-        <button onclick="handleModeSwitch('Wholesale')" id="mode-wholesale">💼 Wholesale 🔒</button>
-      </div>
+      <!-- Wholesale switch moved to footer to keep retail customers focused -->
+
       <div class="stats-strip">
         <div class="stat"><b>4,800+</b><span>Orders Delivered</span></div>
         <div class="stat"><b>4.8★</b><span>Average Rating</span></div>
@@ -321,6 +319,7 @@
         <a href="#">Terms</a>
         <a href="#">Shipping</a>
         <a href="#">Replacement Policy</a>
+        <a href="#" id="footer-mode-link" onclick="footerModeSwitch(); return false;">🔒 Wholesale Portal</a>
         <a href="#">Contact</a>
       </div>
       <p>© 2025 Ink & Blink — All Rights Reserved.</p>
@@ -632,6 +631,21 @@
       }
     }
 
+    function footerModeSwitch() {
+      if (currentMode === "Wholesale") {
+        setMode("Retail");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        handleModeSwitch("Wholesale");
+      }
+    }
+
+    function updateFooterModeLink() {
+      const link = document.getElementById("footer-mode-link");
+      if (!link) return;
+      link.textContent = currentMode === "Wholesale" ? "🛍️ Switch to Retail Store" : "🔒 Wholesale Portal";
+    }
+
     async function handleModeSwitch(targetMode) {
       if (targetMode === "Wholesale") {
         const pass = prompt("🔒 Wholesale Portal Locked.\nEnter Wholesale Password to continue:");
@@ -656,8 +670,7 @@
     function setMode(mode) {
       currentMode = mode;
       document.body.classList.toggle("wholesale", mode === "Wholesale");
-      document.getElementById("mode-retail").classList.toggle("active", mode === "Retail");
-      document.getElementById("mode-wholesale").classList.toggle("active", mode === "Wholesale");
+      updateFooterModeLink();
 
       if (mode === "Retail") {
         wholesalePrices = {}; // hide wholesale pricing again
