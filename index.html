@@ -356,6 +356,34 @@
     .foot-legal a { color: var(--muted); font-size: 0.74rem; }
     .foot-legal a:hover { color: var(--muted); }
 
+    /* Order fingerprint in cart + order-placed page */
+    #order-email { width: 100%; padding: 0.8rem 0.9rem; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--border); border-radius: 10px; color: #fff; font-size: 0.85rem; margin-bottom: 0.5rem; font-family: inherit; outline: none; transition: border-color 0.2s; }
+    #order-email:focus { border-color: var(--purple-glow); }
+    #order-email::placeholder { color: var(--muted); }
+    .email-hint { font-size: 0.68rem; color: var(--muted); margin-bottom: 1rem; }
+    .wa-alt { display: block; margin-top: 10px; font-size: 0.75rem; color: var(--muted); text-align: center; text-decoration: none; }
+    .wa-alt:hover { color: var(--purple-light); }
+
+    /* Order Placed confirmation page */
+    #order-placed { position: fixed; inset: 0; background: rgba(5, 3, 12, 0.97); z-index: 300; display: none; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto; backdrop-filter: blur(6px); }
+    #order-placed.open { display: flex; }
+    .order-box { background: var(--bg-solid); border: 1px solid var(--purple-mid); border-radius: 24px; padding: 2.5rem; max-width: 520px; width: 100%; text-align: center; max-height: 92vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8); }
+    .order-tick { font-size: 3rem; margin-bottom: 0.3rem; animation: tickPop 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes tickPop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .order-box h2 { color: var(--purple-light); margin-bottom: 0.4rem; font-size: 1.6rem; }
+    .order-num { color: var(--accent-gold); font-weight: 700; font-size: 0.95rem; margin-bottom: 1.2rem; }
+    .op-items { text-align: left; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
+    .op-item { display: flex; justify-content: space-between; gap: 12px; font-size: 0.85rem; padding: 7px 0; border-bottom: 1px dashed rgba(160, 100, 255, 0.22); }
+    .op-item:last-child { border-bottom: none; }
+    .op-item span { color: var(--text); }
+    .op-item b { color: var(--purple-light); white-space: nowrap; }
+    .op-total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .op-total-row span:last-child { color: var(--purple-light); }
+    .op-ship-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--accent-green); font-weight: 600; margin-bottom: 1.1rem; }
+    .op-note { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
+    .op-note b { color: var(--text); }
+    .order-box .btn-primary-big { width: 100%; margin-top: 0.4rem; }
+
     /* Restyle internals */
     #admin-modal .admin-box { background: var(--bg-solid); }
     .admin-form input, .admin-form select { background: #0a0a0f; border: 1px solid rgba(255, 255, 255, 0.1); }
