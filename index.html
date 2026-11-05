@@ -516,6 +516,7 @@
           <a href="#">Shipping</a>
           <a href="#">Replacement Policy</a>
           <a href="#">Contact</a>
+          <a onclick="footerModeSwitch(); return false;">💼 Wholesale Portal</a>
         </div>
         <div class="foot-col">
           <h4>Shop</h4>
@@ -536,7 +537,7 @@
         </div>
       </div>
       <div class="foot-legal">
-        <span>© 2025 Ink & Blink — All Rights Reserved.</span>
+        <span>© <span id="foot-year">2026</span> Ink & Blink — All Rights Reserved.</span>
         <span style="display:flex; gap:1.2rem;">
           <a href="#" id="footer-mode-link" onclick="footerModeSwitch(); return false;">🔒 Wholesale Portal</a>
         </span>
@@ -619,6 +620,17 @@
         <div id="admin-image-rows"></div>
       </div>
 
+      <div class="admin-section">
+        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">📧 Order Confirmation Emails</h3>
+        <div class="sync-note">Paste the <b>Orders Web App URL</b> from the one-time Google Apps Script setup (the code is in the setup chat). This saves every order to your "Ink &amp; Blink Orders" sheet and emails the confirmation.</div>
+        <input type="text" id="orders-url-input" placeholder="https://script.google.com/macros/s/...">
+        <div style="display:flex; gap:6px;">
+          <button class="action-btn" style="flex:1; justify-content:center;" onclick="saveOrdersUrl()">Save Orders URL</button>
+          <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="clearOrdersUrl()">Clear</button>
+        </div>
+        <p id="orders-url-status" class="sync-status"></p>
+      </div>
+
       <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Current Inventory</h3>
       <div id="admin-product-list" style="max-height: 140px; overflow-y: auto; margin-bottom: 1rem;"></div>
 
@@ -639,11 +651,29 @@
         <span id="cart-total-price">₹0.00</span>
       </div>
       <div class="cart-hint" id="cart-hint">🎁 Add ₹999 more for FREE shipping</div>
-      <button class="whatsapp-checkout-btn" onclick="checkoutWhatsApp()">💬 Checkout on WhatsApp</button>
+      <input type="email" id="order-email" placeholder="Your Email (for order confirmation)">
+      <div class="email-hint">📧 Your confirmation email is sent by The Artesania Studio.</div>
+      <button class="whatsapp-checkout-btn" onclick="placeOrder()">🧾 Place Order</button>
+      <a class="wa-alt" href="#" onclick="checkoutWhatsApp(); return false;">Prefer WhatsApp? Order there instead →</a>
     </div>
   </div>
 
   <div id="overlay" onclick="toggleCart(false); closeAdminModal();"></div>
+
+  <!-- ORDER PLACED PAGE -->
+  <div id="order-placed">
+    <div class="order-box">
+      <div class="order-tick">✅</div>
+      <h2>Order Placed Successfully!</h2>
+      <p class="order-num">Order No: <b id="op-number">—</b></p>
+      <div class="op-items" id="op-items"></div>
+      <div class="op-total-row"><span>Total:</span><span>₹<span id="op-total">0</span></span></div>
+      <div class="op-ship-row"><span>Shipping:</span><span id="op-shipping">—</span></div>
+      <p id="op-email-note" class="op-note">📧 A confirmation email with your exact items has been sent from The Artesania Studio.</p>
+      <p class="op-note">Our team will confirm payment & dispatch on WhatsApp: <b>+91 90755 90745</b></p>
+      <button class="btn-primary-big" onclick="closeOrderPage()">Continue Shopping</button>
+    </div>
+  </div>
 
   <script>
     const WHATSAPP_NUMBER = "919075590745";
@@ -1149,6 +1179,7 @@
         renderAdminList();
         renderAdminCategoryList();
         renderAdminImageRows();
+        initOrdersUrlStatus();
         initTokenStatus();
       } else {
         alert("Incorrect Admin Password!");
@@ -1576,7 +1607,11 @@
     function toggleCart(open) {
       const drawer = document.getElementById("cart-drawer");
       const overlay = document.getElementById("overlay");
-      if (open) { drawer.classList.add("open"); overlay.classList.add("open"); }
+      if (open) {
+        drawer.classList.add("open"); overlay.classList.add("open");
+        const em = document.getElementById("order-email");
+        if (em && customerInfo && customerInfo.email && !em.value) em.value = customerInfo.email;
+      }
       else { if (!document.getElementById("admin-modal").classList.contains("open")) overlay.classList.remove("open"); drawer.classList.remove("open"); }
     }
 
@@ -1662,7 +1697,125 @@
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message), "_blank");
     }
 
+    // ---------- Proper order placement (order page + email confirmations) ----------
+    function ordersUrl() {
+      return localStorage.getItem("ink_orders_url") || LEADS_URL;
+    }
+
+    function shippingNoteFor(subtotal) {
+      if (currentMode === "Wholesale") return subtotal >= 5000 ? "Pallet-grade packing included (MOQ met)" : "MOQ ₹5,000 per bulk order — confirm with team";
+      return subtotal >= 999 ? "FREE shipping" : "Shipping calculated after confirmation";
+    }
+
+    function placeOrder() {
+      if (Object.keys(cart).length === 0) { alert("Your bag is empty!"); return; }
+
+      const emailInput = document.getElementById("order-email");
+      const email = emailInput && emailInput.value.trim();
+      if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+        alert("Please enter a valid email address — or leave it blank for WhatsApp-only updates.");
+        return;
+      }
+      if (customerInfo && email) {
+        customerInfo.email = email;
+        localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
+      }
+
+      const items = [];
+      let subtotal = 0;
+      for (const [id, qty] of Object.entries(cart)) {
+        const p = products.find(pr => pr.id == id);
+        if (p) {
+          const price = activePriceFor(p);
+          const st = price * qty;
+          subtotal += st;
+          items.push({ name: p.name, qty: qty, price: price, subtotal: st });
+        }
+      }
+
+      const order = {
+        type: "order",
+        orderNumber: "IB-" + Date.now().toString(36).toUpperCase(),
+        name: customerInfo ? customerInfo.name : "",
+        phone: customerInfo ? customerInfo.phone : "",
+        email: email || (customerInfo && customerInfo.email) || "",
+        mode: currentMode,
+        items: items,
+        shippingNote: shippingNoteFor(subtotal),
+        total: subtotal,
+        placedAt: new Date().toISOString()
+      };
+
+      // Save order history on this device
+      try {
+        const history = JSON.parse(localStorage.getItem("ink_orders") || "[]");
+        history.unshift(order);
+        localStorage.setItem("ink_orders", JSON.stringify(history.slice(0, 50)));
+      } catch (e) {}
+
+      // Fire & forget to the orders endpoint (Apps Script saves + emails). Never blocks the customer.
+      try {
+        fetch(ordersUrl(), {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(order)
+        }).catch(() => {});
+      } catch (e) {}
+
+      cart = {};
+      localStorage.setItem("ink_cart", JSON.stringify(cart));
+      updateCartUI();
+      toggleCart(false);
+
+      document.getElementById("op-items").innerHTML = order.items.map(it =>
+        `<div class="op-item"><span>${it.name} × ${it.qty}</span><b>₹${it.subtotal.toLocaleString("en-IN")}</b></div>`
+      ).join("");
+      document.getElementById("op-number").textContent = order.orderNumber;
+      document.getElementById("op-total").textContent = order.total.toLocaleString("en-IN");
+      document.getElementById("op-shipping").textContent = order.shippingNote;
+      document.getElementById("op-email-note").style.display = order.email ? "block" : "none";
+      document.getElementById("order-placed").classList.add("open");
+    }
+
+    function closeOrderPage() {
+      document.getElementById("order-placed").classList.remove("open");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // ---------- Orders email endpoint settings (admin) ----------
+    function initOrdersUrlStatus() {
+      const input = document.getElementById("orders-url-input");
+      const status = document.getElementById("orders-url-status");
+      const saved = localStorage.getItem("ink_orders_url");
+      if (!input) return;
+      input.value = saved || "";
+      if (status) status.textContent = saved
+        ? "✅ Orders endpoint saved. Email confirmations are active."
+        : "⚠️ Not set yet — orders still show the confirmation page, but no emails will be sent.";
+    }
+
+    function saveOrdersUrl() {
+      const val = document.getElementById("orders-url-input").value.trim();
+      const status = document.getElementById("orders-url-status");
+      if (!val.startsWith("https://script.google.com")) {
+        status.textContent = "❌ Paste the full Apps Script Web App URL (starts with https://script.google.com/macros/).";
+        return;
+      }
+      localStorage.setItem("ink_orders_url", val);
+      status.textContent = "✅ Saved! Orders will be emailed from your Google account.";
+    }
+
+    function clearOrdersUrl() {
+      localStorage.removeItem("ink_orders_url");
+      document.getElementById("orders-url-input").value = "";
+      initOrdersUrlStatus();
+    }
+
     // ---- Boot: if this visitor already logged in before, open the store straight away ----
+    const footYear = document.getElementById("foot-year");
+    if (footYear) footYear.textContent = new Date().getFullYear();
+
     if (customerInfo) {
       revealStore();
       refreshCatalogFromCloud();
