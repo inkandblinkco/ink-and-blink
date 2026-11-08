@@ -1757,7 +1757,7 @@
           const price = activePriceFor(p);
           const st = price * qty;
           subtotal += st;
-          items.push({ name: p.name, qty: qty, price: price, subtotal: st });
+          items.push({ name: p.name, qty: qty, price: price, subtotal: st, img: (typeof p.img === "string" && p.img.startsWith("http")) ? p.img : "" });
         }
       }
 
