@@ -708,6 +708,7 @@
 
     // ---- Visitor login capture: POSTs name+phone to the owner's Google Sheet ----
     const LEADS_URL = "https://script.google.com/macros/s/AKfycby9jZKgVJhN_o97946iT5vC1loveR-HuKB6gAnX4fhhZaedSPdLTrcWfgDzqOgkiW0HZg/exec";
+    const ORDERS_URL = "https://script.google.com/macros/s/AKfycbxEelymwlfQy2EU1aPs3I4rlyKC-duycAJue3KG1-uM05Rl144S6a7FaQq3yx7_GVN3/exec"; // built-in default — survives browser data clearing
 
     // ---- Passwords are stored as one-way SHA-256 hashes (never plain text) ----
     // To change a password: compute the hash of your new password (e.g. sha-256.online-hashcalculator.com) and replace below.
@@ -1727,7 +1728,7 @@
 
     // ---------- Proper order placement (order page + email confirmations) ----------
     function ordersUrl() {
-      return localStorage.getItem("ink_orders_url") || LEADS_URL;
+      return localStorage.getItem("ink_orders_url") || ORDERS_URL || LEADS_URL;
     }
 
     function shippingNoteFor(subtotal) {
@@ -1819,8 +1820,8 @@
       if (!input) return;
       input.value = saved || "";
       if (status) status.textContent = saved
-        ? "✅ Orders endpoint saved. Email confirmations are active."
-        : "⚠️ Not set yet — orders still show the confirmation page, but no emails will be sent.";
+        ? "✅ Custom Orders endpoint saved. Using your saved URL."
+        : "✅ Using the built-in Orders endpoint (emails active). You can paste a custom URL to override.";
     }
 
     function saveOrdersUrl() {
