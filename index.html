@@ -188,6 +188,12 @@
     #admin-modal.open { display: flex; }
     .admin-box { background: var(--bg-solid); border: 1px solid var(--purple-mid); border-radius: 24px; max-width: 650px; width: 100%; padding: 2.5rem; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
     .admin-box h2 { color: var(--purple-light); margin-bottom: 1.2rem; }
+    .admin-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .admin-tab-btn { flex: 1; min-width: 90px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); color: var(--muted); padding: 0.6rem 0.4rem; border-radius: 10px; cursor: pointer; font-size: 0.78rem; font-weight: 700; font-family: inherit; transition: all 0.2s; }
+    .admin-tab-btn:hover { color: var(--purple-light); border-color: var(--purple-mid); }
+    .admin-tab-btn.active { background: linear-gradient(120deg, var(--purple-mid), var(--purple-glow)); color: #fff; border-color: transparent; }
+    .admin-tab { display: none; }
+    .admin-tab.active { display: block; }
     .admin-section { background: rgba(0,0,0,0.35); padding: 1.2rem; border-radius: 14px; margin-bottom: 1.2rem; border: 1px solid var(--border); }
     .admin-form input, .admin-form select { width: 100%; padding: 10px; margin-bottom: 10px; background: #07050d; border: 1px solid var(--border); color: #fff; border-radius: 8px; font-family: inherit; }
     .admin-form label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -584,83 +590,108 @@
     <div class="admin-box">
       <h2>⚙️ Manage Store (Admin)</h2>
 
-      <div class="admin-section">
-        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">☁️ Publish Catalog to GitHub</h3>
-        <div class="sync-note">Edits below are only on <b>your device</b> until you click <b>Publish</b>. Publishing saves your full catalog to your repo so every visitor sees it.</div>
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" data-tab="products" onclick="switchAdminTab('products')">📦 Products</button>
+        <button class="admin-tab-btn" data-tab="categories" onclick="switchAdminTab('categories')">🗂 Categories</button>
+        <button class="admin-tab-btn" data-tab="images" onclick="switchAdminTab('images')">🖼 Images</button>
+        <button class="admin-tab-btn" data-tab="emails" onclick="switchAdminTab('emails')">📧 Emails</button>
+        <button class="admin-tab-btn" data-tab="publish" onclick="switchAdminTab('publish')">☁️ Publish</button>
+      </div>
 
-        <details style="margin-bottom:10px;">
-          <summary style="font-size:0.8rem; color:var(--muted); cursor:pointer; margin-bottom:8px;">🔑 Token Setup (one time)</summary>
-          <label>GitHub Access Token:</label>
-          <input type="password" id="gh-token-input" placeholder="github_pat_... or ghp_...">
+      <!-- TAB: PRODUCTS -->
+      <div id="admin-tab-products" class="admin-tab active">
+        <div class="admin-section">
+          <h3 id="form-title" style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Add New Product</h3>
+          <div class="admin-form" style="margin-bottom:0; padding:0; background:none;">
+            <input type="hidden" id="edit-product-id">
+            <input type="text" id="new-name" placeholder="Product Name">
+
+            <div style="display:flex; gap:10px;">
+              <div style="flex:1;">
+                <label>Retail Price (₹):</label>
+                <input type="number" id="new-retail-price" placeholder="e.g. 599">
+              </div>
+              <div style="flex:1;">
+                <label>Wholesale Price (₹):</label>
+                <input type="number" id="new-wholesale-price" placeholder="e.g. 399">
+              </div>
+            </div>
+
+            <select id="new-category"></select>
+            <label>Upload Image from Computer:</label>
+            <input type="file" id="new-img-file" accept="image/*">
+            <label style="margin-top:5px;">Or Paste Image URL:</label>
+            <input type="text" id="new-img-url" placeholder="https://...">
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button class="action-btn" id="save-product-btn" style="flex:1; justify-content:center;" onclick="saveProduct()">+ Save Product</button>
+              <button class="action-btn" id="cancel-edit-btn" style="background:#444; display:none; justify-content:center;" onclick="resetProductForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Current Inventory</h3>
+          <div id="admin-product-list" style="max-height: 180px; overflow-y: auto;"></div>
+        </div>
+      </div>
+
+      <!-- TAB: CATEGORIES -->
+      <div id="admin-tab-categories" class="admin-tab">
+        <div class="admin-section">
+          <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Manage Categories</h3>
+          <div class="admin-form" style="margin-bottom:8px; padding:0; background:none;">
+            <input type="text" id="new-cat-name" placeholder="New Category Name">
+            <button class="action-btn" style="width:100%; justify-content:center;" onclick="addNewCategory()">+ Create Category</button>
+          </div>
+          <div id="admin-category-list" style="max-height: 260px; overflow-y: auto;"></div>
+        </div>
+      </div>
+
+      <!-- TAB: IMAGES -->
+      <div id="admin-tab-images" class="admin-tab">
+        <div class="admin-section">
+          <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">🖼️ Category & Fan-World Images</h3>
+          <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer, then click <b>Save</b>. Then open the <b>☁️ Publish tab</b> to make it live for everyone.</div>
+          <div id="admin-image-rows"></div>
+        </div>
+      </div>
+
+      <!-- TAB: EMAILS -->
+      <div id="admin-tab-emails" class="admin-tab">
+        <div class="admin-section">
+          <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">📧 Order Confirmation Emails</h3>
+          <div class="sync-note">The Orders Web App URL is already <b>built into the site</b>, so emails work even after clearing browser history. Paste a custom URL only to override it.</div>
+          <input type="text" id="orders-url-input" placeholder="https://script.google.com/macros/s/...">
           <div style="display:flex; gap:6px;">
-            <button class="action-btn" style="flex:1; justify-content:center;" onclick="saveGhToken()">Save Token</button>
-            <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="testGhToken()">Test</button>
-            <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="clearGhToken()">Clear</button>
+            <button class="action-btn" style="flex:1; justify-content:center;" onclick="saveOrdersUrl()">Save Orders URL</button>
+            <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="clearOrdersUrl()">Restore Default</button>
           </div>
-          <p id="token-status" class="sync-status"></p>
-        </details>
-
-        <button class="action-btn" id="publish-btn" style="width:100%; justify-content:center;" onclick="publishStore()">☁️ Publish to GitHub — Make It Live for Everyone</button>
-        <p id="publish-status" class="sync-status"></p>
-      </div>
-
-      <div class="admin-section">
-        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Manage Categories</h3>
-        <div class="admin-form" style="margin-bottom:8px; padding:0; background:none;">
-          <input type="text" id="new-cat-name" placeholder="New Category Name">
-          <button class="action-btn" style="width:100%; justify-content:center;" onclick="addNewCategory()">+ Create Category</button>
+          <p id="orders-url-status" class="sync-status"></p>
         </div>
-        <div id="admin-category-list" style="max-height: 100px; overflow-y: auto;"></div>
       </div>
 
-      <div class="admin-section">
-        <h3 id="form-title" style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Add New Product</h3>
-        <div class="admin-form" style="margin-bottom:0; padding:0; background:none;">
-          <input type="hidden" id="edit-product-id">
-          <input type="text" id="new-name" placeholder="Product Name">
+      <!-- TAB: PUBLISH -->
+      <div id="admin-tab-publish" class="admin-tab">
+        <div class="admin-section">
+          <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">☁️ Publish Catalog to GitHub</h3>
+          <div class="sync-note">Your edits (products, categories, images) are only on <b>your device</b> until you press <b>Publish</b>. Publishing saves the full catalog to your repo so every visitor sees it.</div>
 
-          <div style="display:flex; gap:10px;">
-            <div style="flex:1;">
-              <label>Retail Price (₹):</label>
-              <input type="number" id="new-retail-price" placeholder="e.g. 599">
+          <details style="margin-bottom:10px;">
+            <summary style="font-size:0.8rem; color:var(--muted); cursor:pointer; margin-bottom:8px;">🔑 Token Setup (one time)</summary>
+            <label>GitHub Access Token:</label>
+            <input type="password" id="gh-token-input" placeholder="github_pat_... or ghp_...">
+            <div style="display:flex; gap:6px;">
+              <button class="action-btn" style="flex:1; justify-content:center;" onclick="saveGhToken()">Save Token</button>
+              <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="testGhToken()">Test</button>
+              <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="clearGhToken()">Clear</button>
             </div>
-            <div style="flex:1;">
-              <label>Wholesale Price (₹):</label>
-              <input type="number" id="new-wholesale-price" placeholder="e.g. 399">
-            </div>
-          </div>
+            <p id="token-status" class="sync-status"></p>
+          </details>
 
-          <select id="new-category"></select>
-          <label>Upload Image from Computer:</label>
-          <input type="file" id="new-img-file" accept="image/*">
-          <label style="margin-top:5px;">Or Paste Image URL:</label>
-          <input type="text" id="new-img-url" placeholder="https://...">
-          <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="action-btn" id="save-product-btn" style="flex:1; justify-content:center;" onclick="saveProduct()">+ Save Product</button>
-            <button class="action-btn" id="cancel-edit-btn" style="background:#444; display:none; justify-content:center;" onclick="resetProductForm()">Cancel</button>
-          </div>
+          <button class="action-btn" id="publish-btn" style="width:100%; justify-content:center;" onclick="publishStore()">☁️ Publish to GitHub — Make It Live for Everyone</button>
+          <p id="publish-status" class="sync-status"></p>
         </div>
       </div>
-
-      <div class="admin-section">
-        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">🖼️ Category & Fan-World Images</h3>
-        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer, then click <b>Save</b>. Then press <b>Publish</b> at the top to make it live for everyone.</div>
-        <div id="admin-image-rows"></div>
-      </div>
-
-      <div class="admin-section">
-        <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">📧 Order Confirmation Emails</h3>
-        <div class="sync-note">Paste the <b>Orders Web App URL</b> from the one-time Google Apps Script setup (the code is in the setup chat). This saves every order to your "Ink &amp; Blink Orders" sheet and emails the confirmation.</div>
-        <input type="text" id="orders-url-input" placeholder="https://script.google.com/macros/s/...">
-        <div style="display:flex; gap:6px;">
-          <button class="action-btn" style="flex:1; justify-content:center;" onclick="saveOrdersUrl()">Save Orders URL</button>
-          <button class="action-btn" style="flex:1; justify-content:center; background:#444;" onclick="clearOrdersUrl()">Clear</button>
-        </div>
-        <p id="orders-url-status" class="sync-status"></p>
-      </div>
-
-      <h3 style="font-size:0.95rem; color:var(--purple-light); margin-bottom:8px;">Current Inventory</h3>
-      <div id="admin-product-list" style="max-height: 140px; overflow-y: auto; margin-bottom: 1rem;"></div>
 
       <button class="action-btn" style="background:#444; width:100%; justify-content:center;" onclick="closeAdminModal()">Close Admin</button>
     </div>
@@ -1213,6 +1244,11 @@
       } else {
         alert("Incorrect Admin Password!");
       }
+    }
+
+    function switchAdminTab(name) {
+      document.querySelectorAll(".admin-tab").forEach(t => t.classList.toggle("active", t.id === "admin-tab-" + name));
+      document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
     }
 
     function closeAdminModal() {
