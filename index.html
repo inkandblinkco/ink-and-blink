@@ -436,6 +436,154 @@
     .img-row input[type="text"] { flex: 1; min-width: 130px; padding: 7px; background: #07050d; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-family: inherit; font-size: 0.8rem; }
     .img-row input[type="file"] { max-width: 150px; font-size: 0.7rem; color: var(--muted); }
   </style>
+
+  <style id="snitch-theme">
+    /* ====== SNITCH-STYLE CLEAN LIGHT THEME — minimal, full-spacing, anime accents kept ====== */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap');
+
+    :root {
+      --bg: #ffffff;
+      --bg-solid: #ffffff;
+      --bg-card: #ffffff;
+      --card-shadow: 0 10px 30px rgba(20, 20, 40, 0.07);
+      --border: #e8e8ee;
+      --text: #17171d;
+      --muted: #6f6f7a;
+      --accent-gold: #c08800;
+    }
+    body { transition: none; }
+    .board-bg { background: radial-gradient(circle at 50% -10%, #f4eeff 0%, #ffffff 62%) !important; }
+
+    /* Typography: clean Poppins headings (anime personality stays in colors + emoji) */
+    h1, h2, h3, .hero h1, .grid-head h2, .testimonials h2, .nova-marquee-title h2, .worlds-title,
+    .brand-text span:first-child, .login-badge, .footer-brand {
+      font-family: 'Poppins', 'Plus Jakarta Sans', sans-serif !important;
+      letter-spacing: -0.2px !important;
+    }
+
+    /* Announcement ribbon: flat black band */
+    #promo-banner, .promo-banner { background: #14141a !important; animation: none !important; }
+    body.wholesale #promo-banner, body.wholesale .promo-banner { background: #0f1e3c !important; }
+    .banner-item { font-weight: 600; }
+
+    /* Header: clean white sticky bar */
+    header, body.wholesale header { background: #ffffff !important; border-bottom: 1px solid #ececef !important; }
+
+    /* Hero: big black headline on white */
+    .hero { max-width: 1100px; padding: 3.4rem 1.5rem 1rem; }
+    .hero h1 { background: none !important; -webkit-text-fill-color: #17171d !important; color: #17171d !important; font-weight: 800 !important; }
+    body.wholesale .hero h1 { background: none !important; -webkit-text-fill-color: #17171d !important; color: #17171d !important; }
+    .mode-selector { background: #f4f4f7 !important; box-shadow: none !important; border-color: #e8e8ee !important; }
+    .mode-selector button.active { background: #5a2ecc !important; box-shadow: none !important; }
+
+    /* Buttons: solid brand purple, squarer corners, no neon glow */
+    .btn-primary-big, .action-btn, .add-btn, .nova-item .n-btn, #sticky-bag button {
+      background: #5a2ecc !important;
+      border: none !important;
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      color: #fff !important;
+    }
+    .btn-primary-big:hover, .action-btn:hover, .add-btn:hover, .nova-item .n-btn:hover, #sticky-bag button:hover { background: #4a22ae !important; }
+
+    /* Product cards: white, crisp, soft hover */
+    .product-card { background: #fff !important; border: 1px solid #e8e8ee !important; border-radius: 14px !important; backdrop-filter: none !important; box-shadow: none !important; }
+    .product-card:hover { border-color: #cbb6f5 !important; box-shadow: 0 14px 34px rgba(90, 46, 204, 0.10) !important; backdrop-filter: none !important; }
+    .product-img-wrap { background: #f5f4f8 !important; }
+    .product-grid { gap: 22px; }
+    .wrap { max-width: 1500px; }
+    .qty-input { background: #fff !important; border: 1px solid #d9d9e0 !important; color: #17171d !important; }
+
+    /* Category circles: light grey discs, purple glow kept for focus */
+    .cat-circle { background: #f4f4f7 !important; border: 2px solid #e4e4ea !important; box-shadow: none !important; }
+    .cat-btn:hover .cat-circle { box-shadow: 0 8px 20px rgba(90, 46, 204, 0.15) !important; }
+    .cat-btn.active .cat-circle { border-color: #5a2ecc !important; box-shadow: 0 0 0 3px rgba(90, 46, 204, 0.14) !important; }
+    .cat-label { color: #43434d !important; }
+    .cat-btn.active .cat-label { color: #5a2ecc !important; }
+
+    /* Collection strip items */
+    .nova-item { background: #fff !important; border: 1px solid #e8e8ee !important; }
+
+    /* Trust strip + testimonials */
+    .trust-strip { background: #fafafb !important; border-color: #ececef !important; }
+    .rev-card, .review-card { background: #fff !important; border: 1px solid #e8e8ee !important; }
+    .cart-header h3 { color: #5a2ecc !important; }
+    #cart-drawer [style*="purple-light"], .ci-faint { color: #43434d !important; }
+    #cart-total-price { color: #5a2ecc !important; }
+
+    /* Cart drawer: white */
+    #cart-drawer { background: #ffffff !important; }
+    .cart-item { background: #fafafb !important; border-color: #ececef !important; }
+    .cart-footer { background: #fafafb !important; border-color: #ececef !important; }
+    #order-email { background: #fff !important; border: 1px solid #d9d9e0 !important; color: #17171d !important; }
+    .whatsapp-checkout-btn { border-radius: 8px !important; }
+
+    /* Focused readability: dark text where purple-light was too pale on white */
+    .grid-head h2, .testimonials h2, .nova-marquee-title h2, .worlds-title { color: #17171d !important; }
+    .brand-text span:first-child { color: #5a2ecc !important; }
+    .price { color: #17171d !important; }
+    body.wholesale .price, body.wholesale .stat b { color: #5a2ecc !important; }
+    .stat b { color: #5a2ecc !important; }
+    .rev-who b { color: #43434d !important; }
+    .rev-card p { color: #43434d !important; }
+
+    /* Order Placed page: white card */
+    #order-placed { background: rgba(250, 250, 252, 0.97) !important; }
+    .order-box { background: #fff !important; border: 1px solid #e8e8ee !important; box-shadow: 0 30px 70px rgba(20, 20, 40, 0.18) !important; }
+    .op-items { background: #fafafb !important; border-color: #ececef !important; }
+
+    /* Visitor login gate: white card on soft lavender */
+    .customer-login-box { background: #fff !important; border: 1px solid #ececef !important; box-shadow: 0 24px 70px rgba(20, 20, 40, 0.16) !important; backdrop-filter: none !important; }
+    .customer-login-box h2 { color: #5a2ecc !important; font-weight: 800; }
+    .login-badge { animation: none !important; }
+    .customer-login-box input { background: #f7f7f9 !important; border: 1px solid #e4e4ea !important; color: #17171d !important; }
+    .customer-login-box input::placeholder, #order-email::placeholder, .customer-login-box input::placeholder { color: #9a9aa4; }
+
+    /* Admin dashboard: light, clean, Snitch-like */
+    #admin-modal { background: rgba(24, 24, 30, 0.55) !important; backdrop-filter: blur(6px); }
+    .admin-box { background: #fff !important; border: 1px solid #e8e8ee !important; box-shadow: 0 30px 80px rgba(20, 20, 40, 0.28) !important; }
+    .admin-section { background: #fafafb !important; border: 1px solid #e8e8ee !important; }
+    #admin-modal h2, #admin-modal h3, .img-row-label { color: #5a2ecc !important; }
+    #admin-modal input, #admin-modal select { background: #fff !important; color: #17171d !important; border: 1px solid #dddde3 !important; border-radius: 8px !important; }
+    .admin-tab-btn { background: #f4f4f7 !important; color: #56565f !important; border: 1px solid #e8e8ee !important; }
+    .admin-tab-btn.active { background: #5a2ecc !important; color: #fff !important; border-color: transparent !important; }
+    .admin-close-x { background: #f4f4f7 !important; color: #56565f !important; border: 1px solid #e8e8ee !important; }
+    .admin-list-item { background: #fff !important; }
+    .img-row { background: #fff !important; }
+    .sync-note { background: #f4efff !important; border-color: #d9c8ff !important; color: #5b5b66 !important; }
+
+    /* Footer: stays black (Snitch-style), soften link copy */
+    .foot-col a, .foot-legal { color: #9a9aa4 !important; }
+
+    /* Wholesale mode: same clean light theme — blue B2B accent instead of purple */
+    body.wholesale {
+      --purple-glow: #2f6fd0;
+      --purple-light: #1d55b8;
+      --purple-mid: #2f6fd0;
+      --purple-deep: #123b82;
+      --accent-pink: #e88d00;
+      --bg: #ffffff;
+      --bg-card: #ffffff;
+      --bg-solid: #ffffff;
+      --border: #e8e8ee;
+      --card-shadow: 0 10px 30px rgba(20, 20, 40, 0.07);
+    }
+    body.wholesale .btn-primary-big, body.wholesale .action-btn, body.wholesale .add-btn,
+    body.wholesale .nova-item .n-btn, body.wholesale #sticky-bag button,
+    body.wholesale .mode-selector button.active, body.wholesale .admin-tab-btn.active {
+      background: #2f6fd0 !important;
+    }
+    body.wholesale .btn-primary-big:hover, body.wholesale .action-btn:hover,
+    body.wholesale .add-btn:hover, body.wholesale .nova-item .n-btn:hover { background: #123b82 !important; }
+    body.wholesale .cat-btn.active .cat-circle { border-color: #2f6fd0 !important; box-shadow: 0 0 0 3px rgba(47, 111, 208, 0.14) !important; }
+    body.wholesale .cat-btn.active .cat-label { color: #2f6fd0 !important; }
+    body.wholesale .price, body.wholesale .stat b, body.wholesale .brand-text span:first-child,
+    body.wholesale .grid-head h2, body.wholesale .testimonials h2,
+    body.wholesale .nova-marquee-title h2, body.wholesale .worlds-title {
+      color: #17171d !important;
+    }
+    body.wholesale .product-card:hover { border-color: #a8c9f0 !important; box-shadow: 0 14px 34px rgba(47, 111, 208, 0.10) !important; }
+  </style>
 </head>
 <body>
   <div class="board-bg"></div>
