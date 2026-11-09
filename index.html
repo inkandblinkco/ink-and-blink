@@ -2221,7 +2221,7 @@
 
     // Store opens directly for everyone — creating an account / signing in is optional
     revealStore();
-    if (customerInfo) refreshCatalogFromCloud();
+    refreshCatalogFromCloud();  // always fetch the live catalog (dashboard-published), for guests AND signed-in visitors
     updateWishUI();
     updateCartUI();  </script>
 </body>
