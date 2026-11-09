@@ -667,6 +667,55 @@
     .gate-skip { text-align: center; margin-top: 0.7rem; font-size: 0.78rem; color: #6f6f7a; background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: underline; }
     .gate-skip:hover { color: #17171d; }
 
+    /* ===== PRODUCT DETAIL PAGE ===== */
+    #pdp-view { position: fixed; inset: 0; z-index: 320; background: #fff; display: none; overflow-y: auto; }
+    #pdp-view.open { display: block; animation: fadeModal 0.25s ease; }
+    .pdp-topbar { position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.4rem; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(8px); border-bottom: 1px solid #ececef; }
+    .pdp-back { background: none; border: 1px solid #e4e4ea; border-radius: 8px; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #17171d; padding: 0.45rem 0.9rem; cursor: pointer; }
+    .pdp-back:hover { background: #f4f4f7; }
+    .pdp-body { max-width: 1400px; margin: 0 auto; padding: 1.6rem 2rem 3rem; }
+    .pdp-grid { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr); gap: 2.6rem; align-items: start; }
+    .pdp-main { position: relative; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; background: #f5f4f8; border: 1px solid #ececef; }
+    .pdp-main img, .pdp-main video, .pdp-main iframe { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border: none; }
+    .pdp-thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .pdp-thumbs button { width: 62px; height: 62px; border-radius: 10px; overflow: hidden; border: 2px solid #e8e8ee; background: #f5f4f8; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; color: #43434d; font-size: 1.1rem; transition: border-color 0.2s; }
+    .pdp-thumbs button img { width: 100%; height: 100%; object-fit: cover; }
+    .pdp-thumbs button.on { border-color: #5a2ecc; }
+    body.wholesale .pdp-thumbs button.on { border-color: #2f6fd0; }
+    .pdp-info h1 { font-family: 'Poppins', sans-serif; font-weight: 800; color: #17171d; font-size: 1.7rem; line-height: 1.2; margin: 0.45rem 0 0.6rem; }
+    .pdp-chip { display: inline-block; font-size: 0.72rem; font-weight: 700; color: #17171d; background: #f1ecff; border-radius: 6px; padding: 5px 10px; margin: 0 0 0.7rem; }
+    body.wholesale .pdp-chip { background: #eef4fd; }
+    .pdp-details { margin: 1.3rem 0; padding: 1rem 1.1rem; background: #fafafb; border: 1px solid #ececef; border-radius: 12px; }
+    .pdp-details h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; color: #43434d; margin-bottom: 0.5rem; }
+    .pdp-details p { font-size: 0.9rem; color: #43434d; line-height: 1.65; white-space: pre-line; }
+    .pdp-details p:empty { display: none; }
+    .pdp-buy { display: flex; gap: 10px; align-items: stretch; margin: 1rem 0 0.8rem; }
+    .pdp-buy .qty-input { width: 64px; text-align: center; }
+    .pdp-buy .add-btn { flex: 1; }
+    .pdp-wish-btn { width: 46px; height: 46px; flex: none; border-radius: 12px; border: 1px solid #e4e4ea; background: #fff; color: #17171d; font-size: 1.15rem; cursor: pointer; transition: all 0.18s; }
+    .pdp-wish-btn:hover { border-color: #cbb6f5; background: #fafafb; }
+    .pdp-wish-btn.active { color: #d24545; border-color: #d24545; }
+    .pdp-trust { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: #43434d; border-top: 1px solid #ececef; padding-top: 1rem; margin-top: 1rem; }
+    .pdp-wa { display: inline-block; margin-top: 0.9rem; font-size: 0.88rem; font-weight: 700; color: #17171d; text-decoration: underline; text-underline-offset: 3px; }
+
+    @media (max-width: 860px) {
+      .pdp-grid { grid-template-columns: 1fr; gap: 1.4rem; }
+      .pdp-body { padding: 1.2rem 1rem 2.4rem; }
+      .pdp-info h1 { font-size: 1.35rem; }
+    }
+
+    /* Related products on PDP */
+    .pdp-related { margin-top: 2.8rem; border-top: 1px solid #ececef; padding-top: 1.8rem; }
+    .pdp-related h2 { font-family: 'Poppins', sans-serif; text-transform: uppercase; font-weight: 800; font-size: 1.15rem; color: #17171d; margin-bottom: 1.1rem; }
+    .pdp-rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+    .pdp-rel-card { background: #fff; border: 1px solid #e8e8ee; border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+    .pdp-rel-card:hover { border-color: #cbb6f5; box-shadow: 0 10px 26px rgba(90, 46, 204, 0.09); }
+    body.wholesale .pdp-rel-card:hover { border-color: #a8c9f0; box-shadow: 0 10px 26px rgba(47, 111, 208, 0.09); }
+    .pdp-rel-img { aspect-ratio: 1 / 1; background: #f5f4f8; overflow: hidden; }
+    .pdp-rel-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pdp-rel-name { font-size: 0.82rem; font-weight: 700; color: #17171d; padding: 8px 10px 4px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pdp-rel-price { font-size: 0.9rem; font-weight: 800; color: #17171d; padding: 0 10px 11px; }
+
     .auth-tabs { display: flex; gap: 8px; margin: 1.2rem 0 1rem; background: #f4f4f7; border-radius: 10px; padding: 4px; }
     .auth-tab { flex: 1; border: none; background: transparent; font-family: inherit; font-weight: 700; font-size: 0.85rem; color: #6f6f7a; padding: 0.65rem 0.5rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
     .auth-tab.active { background: #5a2ecc; color: #fff; box-shadow: 0 4px 14px rgba(90, 46, 204, 0.25); }
@@ -1013,6 +1062,12 @@
             <input type="file" id="new-img-file" accept="image/*">
             <label style="margin-top:5px;">Or Paste Image URL:</label>
             <input type="text" id="new-img-url" placeholder="https://...">
+            <label style="margin-top:10px;">Extra Photos (one link per line — shown in product page gallery):</label>
+            <textarea id="new-images" rows="2" placeholder="https://photo-2.jpg&#10;https://photo-3.jpg"></textarea>
+            <label style="margin-top:10px;">Videos (YouTube / .mp4 links, one per line):</label>
+            <textarea id="new-videos" rows="2" placeholder="https://youtube.com/watch?v=...&#10;https://drivelink/clip.mp4"></textarea>
+            <label style="margin-top:10px;">Product Details (description customers see on the product page):</label>
+            <textarea id="new-desc" rows="3" placeholder="Material, size, what's inside the box, care instructions…"></textarea>
             <div style="display:flex; gap:10px; margin-top:10px;">
               <button class="action-btn" id="save-product-btn" style="flex:1; justify-content:center;" onclick="saveProduct()">+ Save Product</button>
               <button class="action-btn" id="cancel-edit-btn" style="background:#444; display:none; justify-content:center;" onclick="resetProductForm()">Cancel</button>
@@ -1138,6 +1193,15 @@
       <p class="wish-empty" id="wish-empty">No favourites yet — tap ♡ on any product to save it here.</p>
       <button class="whatsapp-checkout-btn" id="wish-add-all" onclick="wishAddAllToBag()">🛍️ Move All to Bag</button>
     </div>
+  </div>
+
+  <!-- PRODUCT DETAIL PAGE (fullscreen overlay) -->
+  <div id="pdp-view">
+    <div class="pdp-topbar">
+      <button class="pdp-back" onclick="closePDP()">‹ Back to Store</button>
+      <button class="gate-close" onclick="closePDP()" aria-label="Close details">&times;</button>
+    </div>
+    <div class="pdp-body" id="pdp-body"></div>
   </div>
 
   <!-- ORDER PLACED PAGE -->
@@ -1499,9 +1563,9 @@
       addAll.style.display = items.length ? "block" : "none";
       list.innerHTML = items.map(p => `
         <div class="cart-item">
-          <img src="${p.img}" alt="${p.name}" onerror="this.style.display='none'">
+          <img src="${p.img}" alt="${p.name}" style="cursor:pointer" onerror="this.style.display='none'" onclick="toggleWishDrawer(false); openPDP('${p.id}')">
           <div class="cart-item-info">
-            <div class="cart-item-name">${p.name}</div>
+            <div class="cart-item-name" style="cursor:pointer" onclick="toggleWishDrawer(false); openPDP('${p.id}')">${p.name}</div>
             <div style="font-size:0.85rem; font-weight:700; margin-top:3px;">₹${wishPrice(p)}</div>
           </div>
           <div style="display:flex; flex-direction:column; gap:6px; margin-left:auto;">
@@ -1539,6 +1603,148 @@
       toggleCart(true);
       snToast(added ? `🛍️ ${added} item${added > 1 ? "s" : ""} moved to Bag` : "Nothing to move");
     }
+
+    // ---------- Product Detail Page (PDP) ----------
+    let pdpProduct = null;
+    let pdpMedia = [];
+    let pdpMediaIdx = 0;
+
+    function openPDP(id) {
+      const p = products.find(x => x.id == id);
+      if (!p) return;
+      pdpProduct = p;
+      pdpMedia = [];
+      if (p.img) pdpMedia.push({ type: "image", src: p.img });
+      (p.images || []).forEach(u => { if (u) pdpMedia.push({ type: "image", src: u }); });
+      (p.videos || []).forEach(u => { if (u) pdpMedia.push({ type: "video", src: u }); });
+      pdpMediaIdx = 0;
+
+      const price = activePriceFor(p);
+      const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : Math.round(p.retailPrice * 1.18);
+      const savePct = Math.max(0, Math.round((comparePrice - price) / comparePrice * 100));
+      const wished = wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id));
+
+      // Related products: same category first, other products as backup
+      let related = products.filter(x => x.id != p.id && x.category === p.category);
+      if (related.length === 0) related = products.filter(x => x.id != p.id);
+      related = related.slice(0, 8);
+
+      document.getElementById("pdp-body").innerHTML = `
+        <div class="pdp-grid">
+          <div class="pdp-gallery">
+            <div class="pdp-main" id="pdp-main"></div>
+            ${pdpMedia.length > 1 ? `<div class="pdp-thumbs" id="pdp-thumbs"></div>` : ""}
+          </div>
+          <div class="pdp-info">
+            <div class="rating-row"><span class="stars">★★★★★</span><small>4.8 · verified buyers</small></div>
+            <h1>${p.name}</h1>
+            ${p.badge ? `<div class="pdp-chip">${p.badge}</div>` : ""}
+            <div class="price-row">
+              <span class="price">₹${price}</span>
+              ${currentMode === "Retail" ? `<span class="compare-price">₹${comparePrice}</span>` : ''}
+              ${savePct > 0 ? `<span class="save-chip">${currentMode === "Retail" ? "SAVE" : "MARGIN"} ${savePct}%</span>` : ""}
+            </div>
+            <div class="ship-hint">${currentMode === "Retail" ? "🚚 Free shipping above ₹999" : "📦 MOQ ₹5,000 per bulk order"}</div>
+
+            ${(p.description || "").trim() ? `
+            <div class="pdp-details">
+              <h3>Details</h3>
+              <p>${p.description}</p>
+            </div>` : `
+            <div class="pdp-details pdp-details-empty">
+              <p>Hand-checked piece by The Artesania Studio. For more details & live photos, message us on WhatsApp — we respond in minutes. 💬</p>
+            </div>`}
+
+            <div class="pdp-buy">
+              <input type="number" class="qty-input" id="pdp-qty" value="1" min="1" max="99">
+              <button class="add-btn" onclick="pdpAddToBag()">${currentMode === "Wholesale" ? "Add to Bulk Order" : "Add to Bag"}</button>
+              <button class="pdp-wish-btn ${wished ? "active" : ""}" onclick="toggleWish('${p.id}', event)" aria-label="Add to wishlist">${wished ? "♥" : "♡"}</button>
+            </div>
+
+            ${galleryHasVideo() ? `<div class="pdp-chip">🎬 Product video available — check the gallery</div>` : ""}
+            <div class="pdp-trust">
+              <div>✅ Hand-checked quality</div>
+              <div>📦 Bubble-wrapped packing</div>
+              <div>🚚 Fast India-wide dispatch</div>
+            </div>
+            <a class="pdp-wa" href="#" onclick="pdpWhatsApp(); return false;">💬 Ask about this on WhatsApp</a>
+          </div>
+        </div>
+
+        <section class="pdp-related">
+          <h2>${related[0] && related[0].category === p.category ? `More From ${p.category}` : "You May Also Like"}</h2>
+          <div class="pdp-rel-grid">
+            ${related.map(x => `
+              <div class="pdp-rel-card" onclick="openPDP('${x.id}')">
+                <div class="pdp-rel-img"><img src="${x.img}" alt="${x.name}" loading="lazy" onerror="this.style.display='none'"></div>
+                <div class="pdp-rel-name">${x.name}</div>
+                <div class="pdp-rel-price">₹${activePriceFor(x)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+
+      pdpRenderMain();
+      if (pdpMedia.length > 1) {
+        const thumbs = document.getElementById("pdp-thumbs");
+        thumbs.innerHTML = pdpMedia.map((m, i) => `
+          <button class="${i === 0 ? "on" : ""}" onclick="pdpSetMedia(${i})" aria-label="Media ${i + 1}">
+            ${m.type === "image" ? `<img src="${m.src}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='🖼'">` : `<span>▶</span>`}
+          </button>
+        `).join("");
+      }
+
+      const view = document.getElementById("pdp-view");
+      view.classList.add("open");
+      document.body.style.overflow = "hidden";
+      view.scrollTop = 0;
+      document.getAnimations && document.getAnimations().forEach(a => { try { a.finish(); } catch (e) {} });
+    }
+
+    function galleryHasVideo() { return pdpMedia.some(m => m.type === "video"); }
+
+    function pdpVideoEmbed(src) {
+      const yt = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+      if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}" title="Product video" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      return `<video src="${src}" controls playsinline preload="metadata"></video>`;
+    }
+
+    function pdpRenderMain() {
+      const m = pdpMedia[pdpMediaIdx];
+      const main = document.getElementById("pdp-main");
+      main.innerHTML = m.type === "image"
+        ? `<img src="${m.src}" alt="${pdpProduct.name}" onerror="this.style.display='none'">`
+        : pdpVideoEmbed(m.src);
+      const thumbs = document.getElementById("pdp-thumbs");
+      if (thumbs) thumbs.querySelectorAll("button").forEach((b, i) => b.classList.toggle("on", i === pdpMediaIdx));
+    }
+
+    function pdpSetMedia(i) { pdpMediaIdx = i; pdpRenderMain(); }
+
+    function pdpAddToBag() {
+      if (!pdpProduct) return;
+      const q = parseInt(document.getElementById("pdp-qty").value) || 1;
+      cart[pdpProduct.id] = (cart[pdpProduct.id] || 0) + q;
+      localStorage.setItem("ink_cart", JSON.stringify(cart));
+      updateCartUI();
+      snToast(`🛍️ ${q} × "${pdpProduct.name}" added to Bag`);
+    }
+
+    function pdpWhatsApp() {
+      if (!pdpProduct) return;
+      const msg = `Hi! I'm interested in "${pdpProduct.name}" (₹${activePriceFor(pdpProduct)}). Can you share more details/photos?`;
+      window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+    }
+
+    function closePDP() {
+      const main = document.querySelector("#pdp-main video");
+      if (main) { try { main.pause(); } catch (e) {} }
+      document.getElementById("pdp-view").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", e => { if (e.key === "Escape") { closePDP(); hideAccount(); toggleWishDrawer(false); toggleCart(false); } });
 
     // ---------- Search ----------
     let currentSearch = "";
@@ -1870,6 +2076,12 @@
             </div>
           </div>
         `;
+        card.style.cursor = "pointer";
+        card.title = "Click to view details";
+        card.onclick = (ev) => {
+          if (ev.target.closest(".add-btn, .wish-btn, .qty-input, .product-footer")) return;
+          openPDP(p.id);
+        };
         grid.appendChild(card);
       });
     }
@@ -2304,6 +2516,9 @@
       document.getElementById("new-wholesale-price").value = p.wholesalePrice || p.price;
       document.getElementById("new-category").value = p.category;
       document.getElementById("new-img-url").value = p.img.startsWith("data:") ? "" : p.img;
+      document.getElementById("new-images").value = (p.images || []).join("\n");
+      document.getElementById("new-videos").value = (p.videos || []).join("\n");
+      document.getElementById("new-desc").value = p.description || "";
 
       document.getElementById("form-title").textContent = "Edit Product";
       document.getElementById("save-product-btn").textContent = "Update Product";
@@ -2317,6 +2532,9 @@
       document.getElementById("new-wholesale-price").value = "";
       document.getElementById("new-img-file").value = "";
       document.getElementById("new-img-url").value = "";
+      document.getElementById("new-images").value = "";
+      document.getElementById("new-videos").value = "";
+      document.getElementById("new-desc").value = "";
 
       document.getElementById("form-title").textContent = "Add New Product";
       document.getElementById("save-product-btn").textContent = "+ Save Product";
@@ -2359,25 +2577,38 @@
       }
 
       const existingProduct = editId ? products.find(p => p.id == editId) : null;
+      const parseList = v => v.split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      const extras = {
+        description: document.getElementById("new-desc").value.trim(),
+        images: parseList(document.getElementById("new-images").value),
+        videos: parseList(document.getElementById("new-videos").value)
+      };
       let defaultImg = existingProduct ? existingProduct.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80";
 
       if (fileInput.files && fileInput.files[0]) {
         compressAndSaveImage(fileInput.files[0], function(optimizedImgUrl) {
-          commitProductData(editId, name, retailPrice, wholesalePrice, category, optimizedImgUrl);
+          commitProductData(editId, name, retailPrice, wholesalePrice, category, optimizedImgUrl, extras);
         });
       } else {
         const img = urlInput || defaultImg;
-        commitProductData(editId, name, retailPrice, wholesalePrice, category, img);
+        commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras);
       }
     }
 
-    function commitProductData(editId, name, retailPrice, wholesalePrice, category, img) {
+    function commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras) {
+      extras = extras || { description: "", images: [], videos: [] };
+      const keepOld = (p) => ({
+        ...p, name, retailPrice, wholesalePrice, category, img,
+        description: extras.description || p.description || "",
+        images: extras.images.length ? extras.images : (p.images || []),
+        videos: extras.videos.length ? extras.videos : (p.videos || [])
+      });
       if (editId) {
-        products = products.map(p => p.id == editId ? { ...p, name, retailPrice, wholesalePrice, category, img } : p);
+        products = products.map(p => p.id == editId ? keepOld(p) : p);
         alert("Product updated! Remember to Publish so visitors see it.");
       } else {
         const newId = Date.now();
-        products.push({ id: newId, name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival" });
+        products.push({ id: newId, name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos });
         alert("Product added! Remember to Publish so visitors see it.");
       }
 
