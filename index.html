@@ -657,8 +657,16 @@
     .snitch-eband button { background: #fff; color: #14141a; border: none; border-radius: 8px; padding: 0.95rem 2.2rem; font-weight: 800; font-size: 0.95rem; cursor: pointer; font-family: inherit; transition: background 0.2s; }
     .snitch-eband button:hover { background: #e8e6f5; }
 
-    /* ===== ACCOUNT / SEARCH / WISHLIST ===== */
-    /* Login gate: Create Account / Sign In tabs */
+    /* ===== LOGIN GATE → OPTIONAL ACCOUNT MODAL (store loads directly) ===== */
+    #customer-login-page { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 2rem; background: rgba(20, 20, 30, 0.55); backdrop-filter: blur(7px); }
+    #customer-login-page.open { display: flex; animation: fadeModal 0.25s ease; }
+    @keyframes fadeModal { from { opacity: 0; } to { opacity: 1; } }
+    #customer-login-page .customer-login-box { position: relative; }
+    .gate-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 1.3rem; color: #9a9aa4; cursor: pointer; line-height: 1; padding: 4px; }
+    .gate-close:hover { color: #17171d; }
+    .gate-skip { text-align: center; margin-top: 0.7rem; font-size: 0.78rem; color: #6f6f7a; background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: underline; }
+    .gate-skip:hover { color: #17171d; }
+
     .auth-tabs { display: flex; gap: 8px; margin: 1.2rem 0 1rem; background: #f4f4f7; border-radius: 10px; padding: 4px; }
     .auth-tab { flex: 1; border: none; background: transparent; font-family: inherit; font-weight: 700; font-size: 0.85rem; color: #6f6f7a; padding: 0.65rem 0.5rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
     .auth-tab.active { background: #5a2ecc; color: #fff; box-shadow: 0 4px 14px rgba(90, 46, 204, 0.25); }
@@ -675,11 +683,31 @@
     .sn-search::placeholder { color: #9a9aa4; }
     .sn-search-clear { border: none; background: #e6e6ec; color: #43434d; width: 20px; height: 20px; border-radius: 50%; font-size: 0.85rem; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 
-    /* Header buttons: wishlist + account as quiet outline pills */
-    .sn-ghost-btn { background: #fff !important; color: #17171d !important; border: 1px solid #e4e4ea !important; box-shadow: none !important; }
-    .sn-ghost-btn:hover { background: #fafafb !important; border-color: #cbb6f5 !important; transform: none !important; }
-    body.wholesale .sn-ghost-btn:hover { border-color: #a8c9f0 !important; }
-    body.wholesale .sn-ghost-btn { color: #17171d !important; }
+    /* Header buttons: minimal black-outline icons, same size, badge count top-right */
+    .nav-actions .action-btn, .sn-ghost-btn {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: #17171d !important;
+      border-radius: 10px !important;
+      padding: 0.45rem 0.55rem !important;
+    }
+    .sn-icon-btn { position: relative; }
+    .sn-count-hide { display: none !important; }
+    .sn-svg { width: 21px; height: 21px; display: block; fill: none; stroke: #17171d; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .sn-badge { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; border-radius: 999px; background: #17171d; color: #fff; font-size: 0.63rem; font-weight: 500; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0 4px; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .sn-badge.zero { display: none; }
+    .nav-actions .action-btn:hover, .sn-ghost-btn:hover {
+      background: #f4f4f7 !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    body.wholesale .nav-actions .action-btn, body.wholesale .sn-ghost-btn {
+      background: transparent !important;
+      color: #17171d !important;
+    }
+    body.wholesale .nav-actions .action-btn:hover, body.wholesale .sn-ghost-btn:hover { background: #f4f4f7 !important; }
+    #sticky-bag button { border-radius: 10px !important; }
     .hide-xs { display: inline; }
 
     /* Account dropdown */
@@ -742,8 +770,9 @@
   <div class="wave-overlay"></div>
 
   <!-- CUSTOMER LOGIN GATE -->
-  <div id="customer-login-page">
+  <div id="customer-login-page" onclick="if(event.target===this) closeAccountGate()">
     <div class="customer-login-box">
+      <button class="gate-close" onclick="closeAccountGate()" aria-label="Close">&times;</button>
       <div class="login-badge">
         <span class="logo-fallback">I&B</span>
         <img src="logo.png" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
@@ -770,6 +799,7 @@
       </div>
 
       <p class="auth-note" id="auth-hint">New here? Create an account to save your wishlist & order faster.</p>
+      <button class="gate-skip" onclick="closeAccountGate()">Skip for now →</button>
 
       <div class="login-perk">
         <span>✅ 100% Original</span>
@@ -800,9 +830,19 @@
         <button class="sn-search-clear" id="search-clear" style="display:none" onclick="clearSearch()" aria-label="Clear search">&times;</button>
       </div>
       <div class="nav-actions">
-        <button class="action-btn sn-ghost-btn" onclick="toggleWishDrawer(true)">♡ <span class="hide-xs">Wishlist</span> <span id="wish-count">(0)</span></button>
-        <button class="action-btn sn-ghost-btn" onclick="toggleAccount(event)">👤 <span class="hide-xs" id="ac-lbl">Account</span></button>
-        <button class="action-btn" onclick="toggleCart(true)">🛍️ Bag <span id="cart-count">(0)</span></button>
+        <button class="action-btn sn-ghost-btn sn-icon-btn" onclick="toggleWishDrawer(true)" title="Wishlist" aria-label="Wishlist">
+          <svg class="sn-svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="sn-badge" id="wish-badge">0</span>
+          <span id="wish-count" class="sn-count-hide">(0)</span>
+        </button>
+        <button class="action-btn sn-ghost-btn sn-icon-btn" onclick="toggleAccount(event)" title="Account" aria-label="Account">
+          <svg class="sn-svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+        <button class="action-btn sn-ghost-btn sn-icon-btn" onclick="toggleCart(true)" title="Bag" aria-label="Bag">
+          <svg class="sn-svg" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="sn-badge" id="cart-badge">0</span>
+          <span id="cart-count" class="sn-count-hide">(0)</span>
+        </button>
       </div>
     </header>
 
@@ -1301,7 +1341,19 @@
     // ---------- Accounts: create / sign in / sign out ----------
     let accounts = {};
     try { accounts = JSON.parse(localStorage.getItem("ink_accounts")) || {}; } catch (e) { accounts = {}; }
+    let pendingCheckoutAction = null;
     const normPhone = ph => String(ph || "").replace(/[^0-9]/g, "").slice(-10);
+
+    function openAccountGate(contextNote, action) {
+      pendingCheckoutAction = action || null;
+      authTab('create');
+      document.getElementById("auth-hint").textContent = contextNote || "Create a free account to save your wishlist & order faster.";
+      document.getElementById("customer-login-page").classList.add("open");
+    }
+
+    function closeAccountGate() {
+      document.getElementById("customer-login-page").classList.remove("open");
+    }
 
     function authTab(which) {
       const isCreate = which === "create";
@@ -1333,9 +1385,15 @@
     function startSession(rec) {
       customerInfo = rec;
       localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
+      closeAccountGate();
+      updateCartUI();
+      const action = pendingCheckoutAction;
+      pendingCheckoutAction = null;
+      snToast(rec.lastMode === "signin" ? `Welcome back, ${rec.name.split(" ")[0]}! 👋` : `Account created — welcome, ${rec.name.split(" ")[0]}! 🎉`);
+      if (action === "placeOrder") { placeOrder(); return; }
+      if (action === "whatsapp") { checkoutWhatsApp(); return; }
       revealStore();
       refreshCatalogFromCloud();
-      snToast(rec.lastMode === "signin" ? `Welcome back, ${rec.name.split(" ")[0]}! 👋` : `Account created — welcome, ${rec.name.split(" ")[0]}! 🎉`);
     }
 
     function createAccount() {
@@ -1384,15 +1442,12 @@
       hideAccount();
       localStorage.removeItem("ink_customer");
       customerInfo = null;
-      document.getElementById("customer-login-page").style.display = "flex";
-      document.getElementById("shop-page").classList.remove("active");
-      document.getElementById("signin-phone").value = "";
-      document.getElementById("signin-name").value = "";
-      window.scrollTo({ top: 0, behavior: "instant" });
+      snToast("You're signed out. Your bag & wishlist stay saved on this device.");
     }
 
     function toggleAccount(ev) {
       if (ev) ev.stopPropagation();
+      if (!customerInfo) { openAccountGate(); return; }
       const pop = document.getElementById("account-pop");
       const on = pop.classList.toggle("open");
       if (on) {
@@ -1426,6 +1481,8 @@
     function updateWishUI() {
       document.getElementById("wish-count").textContent = `(${wishlist.length})`;
       document.getElementById("ac-wish-count").textContent = `(${wishlist.length})`;
+      const wBadge = document.getElementById("wish-badge");
+      if (wBadge) { wBadge.textContent = wishlist.length; wBadge.classList.toggle("zero", wishlist.length === 0); }
       document.querySelectorAll(".wish-btn").forEach(b => {
         b.classList.toggle("active", wishlist.includes(Number(b.dataset.id)) || wishlist.includes(b.dataset.id));
       });
@@ -1534,7 +1591,7 @@
     }
 
     function revealStore() {
-      document.getElementById("customer-login-page").style.display = "none";
+      document.getElementById("customer-login-page").classList.remove("open");
       document.getElementById("shop-page").classList.add("active");
       renderCategories();
       renderProducts();
@@ -2403,6 +2460,8 @@
 
       if (!hasItems) { list.innerHTML = `<p style="color:var(--muted); text-align:center; margin-top:2rem;">Your bag is empty.</p>`; }
       document.getElementById("cart-count").textContent = `(${totalCount})`;
+      const cBadge = document.getElementById("cart-badge");
+      if (cBadge) { cBadge.textContent = totalCount; cBadge.classList.toggle("zero", totalCount === 0); }
       document.getElementById("cart-total-price").textContent = `₹${totalPrice.toLocaleString('en-IN')}.00`;
 
       const hint = document.getElementById("cart-hint");
@@ -2433,6 +2492,7 @@
 
     function checkoutWhatsApp() {
       if (Object.keys(cart).length === 0) { alert("Your bag is empty!"); return; }
+      if (!customerInfo) { openAccountGate("To send your order on WhatsApp we just need your name & WhatsApp number.", "whatsapp"); return; }
       toggleCart(false);
 
       let message = "New Order Inquiry - Ink & Blink\n";
@@ -2468,6 +2528,7 @@
 
     function placeOrder() {
       if (Object.keys(cart).length === 0) { alert("Your bag is empty!"); return; }
+      if (!customerInfo) { openAccountGate("To place your order we just need your name & WhatsApp number.", "placeOrder"); return; }
 
       const emailInput = document.getElementById("order-email");
       const email = emailInput && emailInput.value.trim();
@@ -2575,9 +2636,10 @@
     const footYear = document.getElementById("foot-year");
     if (footYear) footYear.textContent = new Date().getFullYear();
 
-    if (customerInfo) {
-      revealStore();
-      refreshCatalogFromCloud();
-    }  </script>
+    // Store opens directly for everyone — creating an account / signing in is optional
+    revealStore();
+    if (customerInfo) refreshCatalogFromCloud();
+    updateWishUI();
+    updateCartUI();  </script>
 </body>
 </html>
