@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Studio Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --border: #e8e8ee; --text: #17171d; --muted: #6f6f7a; --purple: #5a2ecc; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f6f6f8; color: var(--text); line-height: 1.55; min-height: 100vh; }
+    h1, h2, h3 { font-family: 'Poppins', sans-serif; }
+
+    /* Password gate */
+    #gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .gate-box { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 2.6rem 2.4rem; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 24px 70px rgba(20,20,40,0.10); }
+    .gate-box h1 { font-size: 1.25rem; margin-bottom: 0.3rem; }
+    .gate-box p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.4rem; }
+    .gate-box input { width: 100%; padding: 0.9rem 1rem; border: 1px solid #e4e4ea; border-radius: 10px; font-size: 1rem; margin-bottom: 1rem; outline: none; font-family: inherit; }
+    .gate-box input:focus { border-color: #b79bff; }
+    .gate-box button { width: 100%; padding: 0.95rem; background: var(--purple); color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; font-family: inherit; }
+    .gate-box button:hover { background: #4a22ae; }
+    #gate-status { margin-top: 0.8rem; font-size: 0.8rem; color: #d24545; min-height: 1.1em; }
+
+    /* Panel */
+    #panel { max-width: 1240px; margin: 0 auto; padding: 0 1rem 3rem; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 1.1rem 0.4rem; position: sticky; top: 0; z-index: 30; background: #f6f6f8; border-bottom: 1px solid var(--border); }
+    .topbar h1 { font-size: 1.15rem; }
+    .topbar .sub { font-size: 0.75rem; color: var(--muted); }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .pill { border: 1px solid var(--border); background: #fff; border-radius: 999px; padding: 0.45rem 0.95rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; text-decoration: none; color: var(--text); font-family: inherit; }
+    .pill:hover { background: #f4f4f7; }
+    .pill.primary { background: var(--purple); color: #fff; border-color: transparent; }
+    .staged-flag { font-size: 0.72rem; font-weight: 700; color: #b45309; background: #fef3c7; border-radius: 999px; padding: 4px 10px; display: none; }
+    .staged-flag.on { display: inline-block; }
+
+    .tabs { display: flex; gap: 6px; margin: 1.2rem 0; flex-wrap: wrap; }
+    .tab-btn { background: #fff; border: 1px solid var(--border); color: #56565f; padding: 0.6rem 1rem; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
+    .tab-btn.active { background: var(--purple); color: #fff; border-color: transparent; }
+
+    .tab-page { display: none; }
+    .tab-page.active { display: block; }
+
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.4rem; margin-bottom: 1.2rem; }
+    .card h3 { font-size: 0.95rem; margin-bottom: 0.7rem; }
+    .sync-note { font-size: 0.78rem; color: #5b5b66; background: #f4efff; border: 1px solid #d9c8ff; border-radius: 10px; padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; line-height: 1.5; }
+    .src-status { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.9rem; }
+
+    label { display: block; font-size: 0.78rem; font-weight: 700; color: #43434d; margin: 0.55rem 0 0.3rem; }
+    input[type="text"], input[type="number"], input[type="password"], select, textarea {
+      width: 100%; padding: 0.6rem 0.7rem; border: 1px solid #dddde3; border-radius: 8px; font-size: 0.86rem; font-family: inherit; background: #fff; color: var(--text);
+    }
+    textarea { resize: vertical; }
+    .row2 { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row2 > div { flex: 1; min-width: 150px; }
+
+    .btn { background: var(--purple); color: #fff; border: none; border-radius: 8px; padding: 0.65rem 1.1rem; font-weight: 700; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
+    .btn:hover { background: #4a22ae; }
+    .btn.grey { background: #43434d; }
+    .btn.grey:hover { background: #2b2b33; }
+    .btn-row { display: flex; gap: 8px; margin-top: 0.9rem; flex-wrap: wrap; }
+
+    .list-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: #fafafb; border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 7px; font-size: 0.84rem; }
+    .list-item .btns { display: flex; gap: 6px; }
+    .mini { border: 1px solid var(--border); background: #fff; border-radius: 7px; padding: 0.35rem 0.7rem; font-size: 0.74rem; font-weight: 700; cursor: pointer; font-family: inherit; color: var(--text); }
+    .mini:hover { background: #f4f4f7; }
+    .mini.danger { color: #d24545; border-color: #f3c3c3; }
+    .mini.danger:hover { background: #fdf1f1; }
+
+    .img-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fafafb; border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .img-row-label { min-width: 150px; font-size: 0.8rem; font-weight: 700; color: #5a2ecc; }
+    .img-row input[type="text"] { flex: 1; min-width: 180px; padding: 7px 9px; font-size: 0.8rem; }
+    .img-row input[type="file"] { max-width: 170px; font-size: 0.72rem; }
+    .status-line { font-size: 0.82rem; color: var(--muted); margin-top: 0.6rem; min-height: 1.2em; }
+
+    @media (max-width: 700px) { .img-row-label { min-width: 100%; } }
+  </style>
+</head>
+<body>
+
+  <!-- PASSWORD GATE -->
+  <div id="gate">
+    <div class="gate-box">
+      <h1>🛡️ Studio Dashboard</h1>
+      <p>Ink &amp; Blink — The Artesania Studio<br>Owner access only. Keep this address private.</p>
+      <input type="password" id="gate-pass" placeholder="Password" autocomplete="current-password">
+      <button onclick="tryUnlock()">Unlock Dashboard</button>
+      <p id="gate-status"></p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="panel" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Ink &amp; Blink — Studio Dashboard</h1>
+        <div class="sub" id="data-status">loading live catalog…</div>
+      </div>
+      <div class="topbar-actions">
+        <span class="staged-flag" id="staged-flag">✏️ changes not published yet</span>
+        <a class="pill" href="https://inkandblinkco.github.io/ink-and-blink/" target="_blank" rel="noopener">View Store ↗</a>
+        <button class="pill" onclick="reloadThisDeviceCatalog()">🔄 Reload catalog</button>
+        <button class="pill" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="products" onclick="switchTab('products')">📦 Products</button>
+      <button class="tab-btn" data-tab="categories" onclick="switchTab('categories')">🗂 Categories</button>
+      <button class="tab-btn" data-tab="images" onclick="switchTab('images')">🖼 Images</button>
+      <button class="tab-btn" data-tab="emails" onclick="switchTab('emails')">📧 Emails</button>
+      <button class="tab-btn" data-tab="publish" onclick="switchTab('publish')">☁️ Publish</button>
+      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div id="tab-products" class="tab-page active">
+      <div class="card">
+        <h3 id="form-title">Add New Product</h3>
+        <input type="hidden" id="edit-product-id">
+        <input type="text" id="new-name" placeholder="Product Name">
+        <div class="row2">
+          <div><label>Retail Price (₹):</label><input type="number" id="new-retail-price" placeholder="e.g. 599"></div>
+          <div><label>Wholesale Price (₹):</label><input type="number" id="new-wholesale-price" placeholder="e.g. 399"></div>
+          <div><label>Category:</label><select id="new-category"></select></div>
+        </div>
+        <label>Main Image — Upload from Computer:</label>
+        <input type="file" id="new-img-file" accept="image/*">
+        <label>Main Image — Or Paste Image URL:</label>
+        <input type="text" id="new-img-url" placeholder="https://...">
+        <label>Extra Photos (one link per line — product page gallery):</label>
+        <textarea id="new-images" rows="2" placeholder="https://photo-2.jpg&#10;https://photo-3.jpg"></textarea>
+        <label>Videos (YouTube / .mp4 links, one per line):</label>
+        <textarea id="new-videos" rows="2" placeholder="https://youtube.com/watch?v=..."></textarea>
+        <label>Product Details (shown on the product page):</label>
+        <textarea id="new-desc" rows="3" placeholder="Material, size, what's inside the box…"></textarea>
+        <div class="btn-row">
+          <button class="btn" id="save-product-btn" onclick="saveProduct()">+ Save Product</button>
+          <button class="btn grey" id="cancel-edit-btn" style="display:none" onclick="resetProductForm()">Cancel</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Current Inventory</h3>
+        <div id="admin-product-list" style="max-height: 60vh; overflow-y: auto;"></div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div id="tab-categories" class="tab-page">
+      <div class="card">
+        <h3>Manage Categories</h3>
+        <div class="sync-note">Deleting a category moves its products to “Gifts &amp; Stationery”. Renaming updates every product at once.</div>
+        <input type="text" id="new-cat-name" placeholder="New Category Name">
+        <div class="btn-row"><button class="btn" onclick="addNewCategory()">+ Create Category</button></div>
+      </div>
+      <div class="card">
+        <div id="admin-category-list" style="max-height: 420px; overflow-y: auto;"></div>
+      </div>
+    </div>
+
+    <!-- IMAGES -->
+    <div id="tab-images" class="tab-page">
+      <div class="card">
+        <h3>🖼️ Category Tiles &amp; Fan-World Cards</h3>
+        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer, then click <b>Save</b>. Changes show instantly on this device — use the ☁️ Publish tab to make them live for every visitor.</div>
+        <div id="admin-image-rows"></div>
+      </div>
+    </div>
+
+    <!-- EMAILS -->
+    <div id="tab-emails" class="tab-page">
+      <div class="card">
+        <h3>📧 Order Confirmation Emails</h3>
+        <div class="sync-note">The Orders Web App URL that sends your emails is already <b>built into the store</b> — no setup needed. Paste a custom URL only to override it.</div>
+        <input type="text" id="orders-url-input" placeholder="https://script.google.com/macros/s/...">
+        <div class="btn-row">
+          <button class="btn" onclick="saveOrdersUrl()">Save Orders URL</button>
+          <button class="btn grey" onclick="clearOrdersUrl()">Restore Built-in Default</button>
+        </div>
+        <p id="orders-url-status" class="status-line"></p>
+      </div>
+    </div>
+
+    <!-- PUBLISH -->
+    <div id="tab-publish" class="tab-page">
+      <div class="card">
+        <h3>☁️ Publish Catalog to GitHub</h3>
+        <div class="sync-note">Publishing saves the full catalog (products, categories, images + wholesale list) to your repo — every visitor sees it within ~1 minute.</div>
+        <button class="btn" id="publish-btn" style="width:100%;" onclick="publishStore()">☁️ Publish to GitHub — Make It Live for Everyone</button>
+        <p id="publish-status" class="status-line"></p>
+      </div>
+      <div class="card">
+        <h3>🔑 GitHub Token Setup (one time)</h3>
+        <div class="sync-note">Token is stored <b>only on this device</b> (never in the public store files). Create it on GitHub → Settings → Developer settings → Fine-grained tokens (repo <b>ink-and-blink</b>, Contents: Read and write).</div>
+        <label>GitHub Access Token:</label>
+        <input type="password" id="gh-token-input" placeholder="github_pat_...">
+        <div class="btn-row">
+          <button class="btn" onclick="saveGhToken()">Save Token</button>
+          <button class="btn grey" onclick="testGhToken()">Test Token</button>
+          <button class="btn grey" onclick="clearGhToken()">Remove</button>
+        </div>
+        <p id="token-status" class="status-line"></p>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab-page">
+      <div class="card">
+        <h3>🔑 Dashboard Password</h3>
+        <div class="sync-note">Stored only on this device as an irreversible hash. Leave blank fields = keep current password.</div>
+        <label>Current Password:</label>
+        <input type="password" id="old-pass" autocomplete="current-password">
+        <label>New Password:</label>
+        <input type="password" id="new-pass" autocomplete="new-password">
+        <label>Confirm New Password:</label>
+        <input type="password" id="new-pass2" autocomplete="new-password">
+        <div class="btn-row"><button class="btn" onclick="changeAdminPassword()">Update Password</button></div>
+        <p id="pass-status" class="status-line"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= Studio Dashboard (standalone admin) =================
+    const adminDefaultHashKey = "ink_admin_hash_override";
+    const DEFAULT_ADMIN_HASH = "1c77704525ebc9a473edab9c0538a29f5781062f165e8da9faa6cc930286c18d"; // default password set in chat
+    const GH_REPO = "https://api.github.com/repos/inkandblinkco/ink-and-blink/contents/";
+    const GH_STORE_FILE = "store-data.json";
+    const GH_WHOLESALE_FILE = "wholesale-data.json";
+    const RAW_STORE_URLS = [
+      "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_STORE_FILE,
+      "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_STORE_FILE
+    ];
+    const RAW_WHOLESALE_URLS = [
+      "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_WHOLESALE_FILE,
+      "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_WHOLESALE_FILE
+    ];
+
+    let products = [], categories = [], categoryImages = {}, worldImages = {}, wholesalePrices = {};
+    const adminCatIcons = { "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
+    const FAN_WORLDS = ["Demon Slayer", "One Piece", "Naruto", "Jujutsu Kaisen", "Attack on Titan", "Harry Potter"];
+
+    async function sha256Hex(text) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+    const adminHash = async () => localStorage.getItem(adminDefaultHashKey) || DEFAULT_ADMIN_HASH;
+
+    // ---------- Gate ----------
+    async function tryUnlock() {
+      const pass = document.getElementById("gate-pass").value;
+      const st = document.getElementById("gate-status");
+      if (!pass) { st.textContent = "Enter your password."; return; }
+      st.textContent = "Checking…";
+      const hash = await sha256Hex(pass);
+      if (hash === await adminHash()) {
+        localStorage.setItem("ink_dash_unlocked_at", Date.now());
+        document.getElementById("gate").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+        await bootPanel();
+      } else {
+        st.textContent = "Incorrect password.";
+        document.getElementById("gate-pass").value = "";
+      }
+    }
+    document.getElementById("gate-pass").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+    // stay unlocked for this page session
+    (async () => {
+      if (sessionStorage.getItem("ink_dash_session") === "open") {
+        document.getElementById("gate").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+        await bootPanel();
+      }
+    })();
+    function signOut() {
+      sessionStorage.removeItem("ink_dash_session");
+      location.reload();
+    }
+
+    // ---------- Boot: load live catalog (staging-aware) ----------
+    async function bootPanel() {
+      sessionStorage.setItem("ink_dash_session", "open");
+      switchTab("products");
+      const ds = document.getElementById("data-status");
+      ds.textContent = "Loading live catalog from GitHub…";
+      let cloud = null;
+      for (const url of RAW_STORE_URLS) {
+        try {
+          const res = await Promise.race([
+            fetch(url + "?t=" + Date.now(), { cache: "no-store" }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 6000))
+          ]);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (Array.isArray(data.products) && data.products.length) { cloud = data; break; }
+        } catch (e) {}
+      }
+
+      const lastCloudEdit = cloud ? Date.parse(cloud.exportedAt || 0) : 0;
+      const myLastEdit = Number(localStorage.getItem("ink_admin_last_edit") || 0);
+      const staged = localStorage.getItem("ink_products");
+
+      if (staged && myLastEdit >= lastCloudEdit) {
+        // this device has newer unsaved work — keep it
+        adoptLocal();
+        ds.textContent = "Using this device's staged edits (saved " + new Date(myLastEdit).toLocaleString() + ")";
+      } else if (cloud) {
+        adoptCloud(cloud);
+        ds.textContent = "✅ Live catalog loaded (" + products.length + " products, published " + (cloud.exportedAt ? new Date(cloud.exportedAt).toLocaleString() : "—") + ")";
+      } else if (staged) {
+        adoptLocal();
+        ds.textContent = "⚠️ Could not reach GitHub catalog — using this device's saved copy.";
+      } else {
+        ds.textContent = "⚠️ No catalog found anywhere. Add your first product, then Publish.";
+      }
+
+      // wholesale prices for display
+      for (const url of RAW_WHOLESALE_URLS) {
+        try {
+          const res = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data && data.wholesale) { wholesalePrices = data.wholesale; break; }
+        } catch (e) {}
+      }
+      products.forEach(p => {
+        if (wholesalePrices[p.id] !== undefined) p.wholesalePrice = wholesalePrices[p.id];
+        else if (p.wholesalePrice === undefined) p.wholesalePrice = p.retailPrice;
+      });
+
+      renderFormCategories();
+      renderAdminList();
+      renderAdminCategoryList();
+      renderAdminImageRows();
+      initOrdersUrlStatus();
+      initTokenStatus();
+      initStagedFlag();
+    }
+
+    function adoptCloud(cloud) {
+      products = cloud.products;
+      categories = Array.isArray(cloud.categories) ? cloud.categories.slice() : ["All"];
+      if (!categories.includes("All")) categories.unshift("All");
+      categoryImages = cloud.categoryImages || {};
+      worldImages = cloud.worldImages || {};
+      commitLocalCopy();
+    }
+    function commitLocalCopy() {
+      try {
+        localStorage.setItem("ink_products", JSON.stringify(products));
+        localStorage.setItem("ink_categories", JSON.stringify(categories));
+        localStorage.setItem("ink_cat_images", JSON.stringify(categoryImages));
+        localStorage.setItem("ink_world_images", JSON.stringify(worldImages));
+      } catch (e) {
+        alert("Storage full on this device! The change will still publish, but this device may not remember it.");
+      }
+    }
+    function adoptLocal() {
+      products = JSON.parse(localStorage.getItem("ink_products")) || [];
+      categories = JSON.parse(localStorage.getItem("ink_categories") || '["All"]');
+      if (!categories.includes("All")) categories.unshift("All");
+      categoryImages = JSON.parse(localStorage.getItem("ink_cat_images") || "{}");
+      worldImages = JSON.parse(localStorage.getItem("ink_world_images") || "{}");
+    }
+
+    function markStaged() {
+      commitLocalCopy();     // save the staged catalog FIRST (so a reload keeps it)
+      localStorage.setItem("ink_admin_last_edit", String(Date.now()));
+      initStagedFlag();
+    }
+    function initStagedFlag() {
+      document.getElementById("staged-flag").classList.toggle("on", !!localStorage.getItem("ink_admin_last_edit"));
+    }
+
+    // ---------- Tabs ----------
+    function switchTab(name) {
+      document.querySelectorAll(".tab-page").forEach(t => t.classList.toggle("active", t.id === "tab-" + name));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    }
+
+    // ---------- Products ----------
+    function renderFormCategories() {
+      const sel = document.getElementById("new-category");
+      sel.innerHTML = "";
+      categories.filter(c => c !== "All").forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c; opt.textContent = c;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderAdminList() {
+      const list = document.getElementById("admin-product-list");
+      list.innerHTML = "";
+      if (!products.length) { list.innerHTML = `<div class="list-item">No products yet — add your first one above.</div>`; return; }
+      products.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "list-item";
+        item.innerHTML = `
+          <span><b>${p.name}</b> [${p.category}] (R:₹${p.retailPrice} | W:₹${p.wholesalePrice})${(p.images && p.images.length) ? " 🖼" : ""}${(p.videos && p.videos.length) ? " 🎬" : ""}${p.description ? " 📝" : ""}</span>
+          <div class="btns">
+            <button class="mini" onclick="startEditProduct(${p.id})">Edit</button>
+            <button class="mini danger" onclick="deleteProduct(${p.id})">Delete</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function startEditProduct(id) {
+      const p = products.find(prod => prod.id == id);
+      if (!p) return;
+      document.getElementById("edit-product-id").value = p.id;
+      document.getElementById("new-name").value = p.name;
+      document.getElementById("new-retail-price").value = p.retailPrice || p.price;
+      document.getElementById("new-wholesale-price").value = p.wholesalePrice || p.price;
+      document.getElementById("new-category").value = p.category;
+      document.getElementById("new-img-url").value = (typeof p.img === "string" && p.img.startsWith("data:")) ? "" : p.img;
+      document.getElementById("new-images").value = (p.images || []).join("\n");
+      document.getElementById("new-videos").value = (p.videos || []).join("\n");
+      document.getElementById("new-desc").value = p.description || "";
+      document.getElementById("form-title").textContent = "Edit Product";
+      document.getElementById("save-product-btn").textContent = "Update Product";
+      document.getElementById("cancel-edit-btn").style.display = "inline-block";
+      switchTab("products");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function resetProductForm() {
+      document.getElementById("edit-product-id").value = "";
+      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc"].forEach(id => document.getElementById(id).value = "");
+      document.getElementById("new-img-file").value = "";
+      document.getElementById("form-title").textContent = "Add New Product";
+      document.getElementById("save-product-btn").textContent = "+ Save Product";
+      document.getElementById("cancel-edit-btn").style.display = "none";
+    }
+
+    function compressAndSaveImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX = 700;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+          else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveProduct() {
+      const editId = document.getElementById("edit-product-id").value;
+      const name = document.getElementById("new-name").value.trim();
+      const retailPrice = parseFloat(document.getElementById("new-retail-price").value);
+      const wholesalePrice = parseFloat(document.getElementById("new-wholesale-price").value);
+      const category = document.getElementById("new-category").value;
+      const fileInput = document.getElementById("new-img-file");
+      const urlInput = document.getElementById("new-img-url").value.trim();
+
+      if (!name || isNaN(retailPrice) || isNaN(wholesalePrice)) { alert("Please enter a valid name and both retail/wholesale prices."); return; }
+      if (!category) { alert("Create a category first (🗂 tab)."); return; }
+
+      const existing = editId ? products.find(p => p.id == editId) : null;
+      const parseList = v => v.split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      const extras = {
+        description: document.getElementById("new-desc").value.trim(),
+        images: parseList(document.getElementById("new-images").value),
+        videos: parseList(document.getElementById("new-videos").value)
+      };
+      let defaultImg = existing ? existing.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80";
+
+      if (fileInput.files && fileInput.files[0]) {
+        compressAndSaveImage(fileInput.files[0], function(imgData) {
+          commitProductData(editId, name, retailPrice, wholesalePrice, category, imgData, extras);
+        });
+      } else {
+        commitProductData(editId, name, retailPrice, wholesalePrice, category, urlInput || defaultImg, extras);
+      }
+    }
+
+    function commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras) {
+      const wh = wholesalePrices[editId] !== undefined ? wholesalePrices[editId] : undefined;
+      if (editId) {
+        const prev = products.find(p => p.id == editId) || {};
+        const merged = {
+          ...prev, name, retailPrice, wholesalePrice, category, img,
+          description: extras.description !== undefined ? extras.description : (prev.description || ""),
+          images: extras.images.length ? extras.images : (prev.images || []),
+          videos: extras.videos.length ? extras.videos : (prev.videos || [])
+        };
+        products = products.map(p => p.id == editId ? merged : p);
+        alert("Product updated! Remember to Publish so every device sees it.");
+      } else {
+        products.push({ id: Date.now(), name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos });
+        alert("Product added! Remember to Publish so every device sees it.");
+      }
+      if (wholesalePrice !== undefined && !isNaN(wholesalePrice)) { wholesalePrices[editId || products[products.length - 1].id] = wholesalePrice; }
+      markStaged();
+      resetProductForm();
+      renderAdminList();
+      renderFormCategories();
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Delete this product?")) {
+        products = products.filter(p => p.id != id);
+        delete wholesalePrices[id];
+        markStaged();
+        renderAdminList();
+      }
+    }
+
+    // ---------- Categories ----------
+    function addNewCategory() {
+      const newCat = document.getElementById("new-cat-name").value.trim();
+      if (!newCat) { alert("Enter a category name!"); return; }
+      if (categories.includes(newCat)) { alert("Category already exists!"); return; }
+      categories.push(newCat);
+      markStaged();
+      document.getElementById("new-cat-name").value = "";
+      renderFormCategories();
+      renderAdminCategoryList();
+      renderAdminImageRows();
+    }
+
+    function renderAdminCategoryList() {
+      const list = document.getElementById("admin-category-list");
+      list.innerHTML = "";
+      categories.filter(c => c !== "All").forEach(cat => {
+        const item = document.createElement("div");
+        item.className = "list-item";
+        item.innerHTML = `
+          <span><b>${cat}</b> · ${products.filter(p => p.category === cat).length} product(s)</span>
+          <div class="btns">
+            <button class="mini" onclick="editCategory('${cat}')">Rename</button>
+            <button class="mini danger" onclick="deleteCategory('${cat}')">Delete</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function editCategory(oldCat) {
+      const newCat = prompt(`Rename category "${oldCat}" to:`, oldCat);
+      if (!newCat || newCat.trim() === "" || newCat === oldCat) return;
+      const cleanNewCat = newCat.trim();
+      if (categories.includes(cleanNewCat)) { alert("Category name already exists!"); return; }
+      categories = categories.map(c => c === oldCat ? cleanNewCat : c);
+      products.forEach(p => { if (p.category === oldCat) p.category = cleanNewCat; });
+      if (categoryImages[oldCat] !== undefined) { categoryImages[cleanNewCat] = categoryImages[oldCat]; delete categoryImages[oldCat]; }
+      markStaged();
+      renderAdminList();
+      renderAdminCategoryList();
+      renderAdminImageRows();
+      renderFormCategories();
+    }
+
+    function deleteCategory(cat) {
+      if (confirm(`Delete category "${cat}"? Its products will move to "Gifts & Stationery".`)) {
+        categories = categories.filter(c => c !== cat);
+        products.forEach(p => { if (p.category === cat) p.category = "Gifts & Stationery"; });
+        delete categoryImages[cat];
+        markStaged();
+        renderAdminList();
+        renderAdminCategoryList();
+        renderAdminImageRows();
+        renderFormCategories();
+      }
+    }
+
+    // ---------- Images ----------
+    function safeId(str) { return String(str).replace(/[^A-Za-z0-9]/g, "_"); }
+
+    function imageRowHTML(type, name, icon) {
+      const saved = (type === "cat" ? categoryImages[name] : worldImages[name]) || "";
+      return `
+        <div class="img-row">
+          <span class="img-row-label">${icon} ${name}</span>
+          <input type="text" id="img-url-${type}-${safeId(name)}" placeholder="https:// image link" value="${saved.startsWith("data:") ? "" : saved}">
+          <input type="file" id="img-file-${type}-${safeId(name)}" accept="image/*">
+          <button class="mini" onclick="saveSingleImage('${type}','${name}')">Save</button>
+          <button class="mini danger" onclick="clearSingleImage('${type}','${name}')" title="Remove image">×</button>
+        </div>`;
+    }
+
+    function renderAdminImageRows() {
+      const box = document.getElementById("admin-image-rows");
+      const rows = [];
+      categories.filter(c => c !== "All").forEach(cat => rows.push(imageRowHTML("cat", cat, adminCatIcons[cat] || "⭐")));
+      FAN_WORLDS.forEach(w => rows.push(imageRowHTML("world", w, "🌍")));
+      box.innerHTML = rows.join("");
+    }
+
+    function saveSingleImage(type, name) {
+      const fid = safeId(name);
+      const fileInput = document.getElementById(`img-file-${type}-${fid}`);
+      const urlInput = document.getElementById(`img-url-${type}-${fid}`);
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      const url = urlInput ? urlInput.value.trim() : "";
+      const target = type === "cat" ? categoryImages : worldImages;
+      const commit = (src) => {
+        target[name] = src;
+        markStaged();
+        renderAdminImageRows();
+        alert(`Image set for "${name}". Use ☁️ Publish to make it live.`);
+      };
+      if (file) compressAndSaveImage(file, commit);
+      else if (url) commit(url);
+      else alert("Choose a photo OR paste an image link first.");
+    }
+
+    function clearSingleImage(type, name) {
+      const target = type === "cat" ? categoryImages : worldImages;
+      delete target[name];
+      markStaged();
+      renderAdminImageRows();
+    }
+
+    // ---------- Emails (orders URL override) ----------
+    function initOrdersUrlStatus() {
+      const st = document.getElementById("orders-url-status");
+      const built = localStorage.getItem("ink_orders_url");
+      st.textContent = built ? "⚠️ Override active — orders go to your pasted URL." : "✅ Using the built-in Orders URL (recommended)";
+      document.getElementById("orders-url-input").value = built || "";
+    }
+    function saveOrdersUrl() {
+      const val = document.getElementById("orders-url-input").value.trim();
+      const st = document.getElementById("orders-url-status");
+      if (!val.includes("script.google.com") && !val.includes("http")) { st.textContent = "That doesn't look like a web app URL."; return; }
+      localStorage.setItem("ink_orders_url", val);
+      st.textContent = "✅ Override saved for this device.";
+    }
+    function clearOrdersUrl() {
+      localStorage.removeItem("ink_orders_url");
+      initOrdersUrlStatus();
+    }
+
+    // ---------- GitHub token ----------
+    function initTokenStatus() {
+      const status = document.getElementById("token-status");
+      status.textContent = localStorage.getItem("ink_gh_token")
+        ? "✅ Token saved on this device. Ready to publish."
+        : "No token saved yet — see the guide in the Publish tab.";
+    }
+    function saveGhToken() {
+      const val = document.getElementById("gh-token-input").value.trim();
+      const status = document.getElementById("token-status");
+      if (!val) { status.textContent = "⚠️ Paste your token in the box first."; return; }
+      localStorage.setItem("ink_gh_token", val);
+      document.getElementById("gh-token-input").value = "";
+      status.textContent = "✅ Token saved on this device. Ready to publish.";
+    }
+    function clearGhToken() {
+      localStorage.removeItem("ink_gh_token");
+      document.getElementById("token-status").textContent = "Token removed from this device.";
+    }
+    async function testGhToken() {
+      const status = document.getElementById("token-status");
+      const token = localStorage.getItem("ink_gh_token");
+      if (!token) { status.textContent = "⚠️ Save a token first."; return; }
+      status.textContent = "Testing token…";
+      try {
+        const res = await fetch(GH_REPO + GH_STORE_FILE, { headers: { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" } });
+        if (res.status === 200) status.textContent = "✅ Token works and catalog file exists.";
+        else if (res.status === 404) status.textContent = "✅ Token works (catalog file will be created on first Publish).";
+        else if (res.status === 401) status.textContent = "❌ Token invalid or expired.";
+        else if (res.status === 403) status.textContent = "❌ Token lacks permission — set Contents to 'Read and write'.";
+        else status.textContent = "❌ GitHub replied " + res.status + ".";
+      } catch (e) {
+        status.textContent = "❌ Network error — check internet/VPN.";
+      }
+    }
+
+    // ---------- Publish ----------
+    async function putCatalogFile(existingSha, filePath, obj, message, token) {
+      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+      const apiUrl = GH_REPO + filePath;
+      const auth = { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" };
+      let sha = existingSha;
+      if (sha === undefined) {
+        const getRes = await fetch(apiUrl, { headers: auth });
+        if (getRes.status === 200) sha = (await getRes.json()).sha;
+        else if (getRes.status !== 404) throw new Error("Cannot read " + filePath + " (HTTP " + getRes.status + ").");
+      }
+      const put = await fetch(apiUrl, {
+        method: "PUT",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({ message, content: b64, branch: "main", ...(sha ? { sha } : {}) })
+      });
+      const pj = await put.json();
+      if (!put.ok) throw new Error(filePath + ": " + (pj.message || ("HTTP " + put.status)));
+    }
+
+    async function publishStore() {
+      const status = document.getElementById("publish-status");
+      const btn = document.getElementById("publish-btn");
+      const token = localStorage.getItem("ink_gh_token");
+      if (!token) { status.textContent = "⚠️ Add your GitHub token first (Token Setup)."; switchTab("publish"); return; }
+      btn.disabled = true;
+      status.textContent = "☁️ Uploading retail catalog…";
+      try {
+        const retailCatalog = {
+          exportedAt: new Date().toISOString(),
+          categories,
+          categoryImages,
+          worldImages,
+          products: products.map(p => { const { wholesalePrice, ...retail } = p; return retail; })
+        };
+        await putCatalogFile(undefined, GH_STORE_FILE, retailCatalog, "Update retail catalog (" + products.length + " products)", token);
+
+        status.textContent = "☁️ Uploading wholesale price list…";
+        const wholesaleMap = {};
+        products.forEach(p => { wholesaleMap[p.id] = p.wholesalePrice || p.retailPrice; });
+        try { localStorage.setItem("ink_wholesale", JSON.stringify(wholesaleMap)); } catch (e) {}
+        await putCatalogFile(undefined, GH_WHOLESALE_FILE, { exportedAt: new Date().toISOString(), wholesale: wholesaleMap }, "Update wholesale price list", token);
+
+        const now = Date.now();
+        localStorage.setItem("ink_last_publish", new Date(now).toISOString());
+        localStorage.setItem("ink_admin_last_edit", String(now)); // staged == published now
+        try { localStorage.setItem("ink_gh_last_publish_at", String(now)); } catch (e) {}
+        initStagedFlag();
+        status.textContent = "🎉 Published! Every visitor sees this within ~1 minute.";
+      } catch (e) {
+        status.textContent = "❌ Publish failed: " + e.message + (String(e.message).includes("401") ? " — token issue." : "");
+      }
+      btn.disabled = false;
+    }
+
+    async function reloadThisDeviceCatalog() {
+      localStorage.removeItem("ink_admin_last_edit");
+      location.reload();
+    }
+
+    // ---------- Change password ----------
+    async function changeAdminPassword() {
+      const st = document.getElementById("pass-status");
+      const oldP = document.getElementById("old-pass").value;
+      const newP = document.getElementById("new-pass").value;
+      const newP2 = document.getElementById("new-pass2").value;
+      if (newP && oldP !== undefined) {
+        if (await sha256Hex(oldP) !== await adminHash()) { st.textContent = "❌ Current password is wrong."; return; }
+      }
+      if (!newP) { st.textContent = "Enter a new password to change it."; return; }
+      if (newP.length < 8) { st.textContent = "Use at least 8 characters."; return; }
+      if (newP !== newP2) { st.textContent = "New passwords don't match."; return; }
+      localStorage.setItem(adminDefaultHashKey, await sha256Hex(newP));
+      document.getElementById("old-pass").value = document.getElementById("new-pass").value = document.getElementById("new-pass2").value = "";
+      st.textContent = "✅ Password updated on this device. Remember it!";
+    }
+  </script>
+</body>
+</html>
