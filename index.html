@@ -52,7 +52,7 @@
     #customer-login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; position: relative; z-index: 20; }
     .customer-login-box { background: var(--bg-card); border: 1px solid var(--border); padding: 3rem 2.5rem; border-radius: 24px; backdrop-filter: blur(14px); box-shadow: 0 30px 70px rgba(0,0,0,0.75), 0 0 40px rgba(134,68,237,0.18); width: 100%; max-width: 440px; text-align: center; animation: floatUp 0.7s ease; }
     @keyframes floatUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-    .login-badge { width: 84px; height: 84px; border-radius: 50%; background: #05030a; border: 2px solid var(--purple-mid); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; color: var(--purple-light); font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; box-shadow: 0 0 30px rgba(134,68,237,0.5); animation: pulseGlow 2.6s ease-in-out infinite; position: relative; overflow: hidden; }
+    .login-badge { width: 84px; height: 84px; border-radius: 14px; background: none; border: none; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; color: var(--purple-light); font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; box-shadow: none; animation: none; position: relative; overflow: hidden; }
     @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 18px rgba(134,68,237,0.4); } 50% { box-shadow: 0 0 42px rgba(193,92,255,0.7); } }
     .customer-login-box h2 { color: var(--purple-light); margin-bottom: 0.4rem; font-size: 1.8rem; letter-spacing: 1px; }
     .customer-login-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
@@ -67,8 +67,8 @@
     header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(8, 5, 18, 0.85); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: 0.7rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     body.wholesale header { background: rgba(5, 9, 18, 0.88); }
     .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
-    .brand-logo-circle { width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #1b1140, #050308); border: 2px solid var(--purple-mid); display: flex; align-items: center; justify-content: center; color: var(--purple-light); font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; user-select: none; box-shadow: 0 0 14px rgba(134,68,237,0.45); position: relative; overflow: hidden; }
-    .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .brand-logo-circle { width: 46px; height: 46px; border-radius: 8px; background: none; border: none; display: flex; align-items: center; justify-content: center; color: var(--purple-light); font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; user-select: none; box-shadow: none; position: relative; overflow: hidden; }
+    .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
     .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
     .brand-text span:first-child { font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: var(--purple-light); }
     .brand-text span:last-child { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--muted); }
@@ -834,7 +834,7 @@
       <button class="gate-close" onclick="closeAccountGate()" aria-label="Close">&times;</button>
       <div class="login-badge">
         <span class="logo-fallback">I&B</span>
-        <img src="logo.png" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
+        <img src="logo.png?v=2" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
       </div>
       <h2>Ink & Blink</h2>
       <p>By The Artesania Studio • Collectibles worth owning</p>
@@ -876,7 +876,7 @@
       <div class="brand">
         <div class="brand-logo-circle">
           <span class="logo-fallback">I&B</span>
-          <img src="logo.png" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
+          <img src="logo.png?v=2" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
         </div>
         <div class="brand-text">
           <span>Ink & Blink</span>
