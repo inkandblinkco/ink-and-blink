@@ -209,7 +209,7 @@
     <div id="tab-settings" class="tab-page">
       <div class="card">
         <h3>🔑 Dashboard Password</h3>
-        <div class="sync-note">Stored only on this device as an irreversible hash. Leave blank fields = keep current password.</div>
+        <div class="sync-note">The password is saved to your GitHub repo, so it works on every device and is never lost when browser data is cleared.<br><b>Requires your GitHub token</b> (set it once in the ☁️ Publish tab).</div>
         <label>Current Password:</label>
         <input type="password" id="old-pass" autocomplete="current-password">
         <label>New Password:</label>
@@ -237,6 +237,11 @@
       "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_WHOLESALE_FILE,
       "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_WHOLESALE_FILE
     ];
+    const GH_CONFIG_FILE = "admin-config.json";   // password hash saved in your repo (survives clearing history)
+    const RAW_CONFIG_URLS = [
+      "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_CONFIG_FILE,
+      "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_CONFIG_FILE
+    ];
 
     let products = [], categories = [], categoryImages = {}, worldImages = {}, wholesalePrices = {};
     const adminCatIcons = { "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
@@ -246,7 +251,36 @@
       const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
     }
-    const adminHash = async () => localStorage.getItem(adminDefaultHashKey) || DEFAULT_ADMIN_HASH;
+
+    // Password lookup order:
+    //  1. admin-config.json in your GitHub repo (survives clearing browser data — the real one)
+    //  2. this device's saved copy (offline / GitHub unreachable)
+    //  3. the built-in default password
+    async function resolveAdminHash() {
+      const localHash = localStorage.getItem(adminDefaultHashKey);
+      const localAt = Number(localStorage.getItem("ink_admin_hash_at") || 0);
+      for (const url of RAW_CONFIG_URLS) {
+        try {
+          const res = await Promise.race([
+            fetch(url + "?t=" + Date.now(), { cache: "no-store" }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 4000))
+          ]);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data && typeof data.adminHash === "string" && /^[a-f0-9]{64}$/.test(data.adminHash)) {
+            const cloudAt = Date.parse(data.updatedAt || 0) || 0;
+            if (!localHash || cloudAt >= localAt) {
+              localStorage.setItem(adminDefaultHashKey, data.adminHash);
+              if (cloudAt) localStorage.setItem("ink_admin_hash_at", String(cloudAt));
+              return data.adminHash;
+            }
+            return localHash; // this device holds a newer change that GitHub hasn't served yet
+          }
+        } catch (e) {}
+      }
+      return localHash || DEFAULT_ADMIN_HASH;
+    }
+    const adminHash = resolveAdminHash;
 
     // ---------- Gate ----------
     async function tryUnlock() {
@@ -745,15 +779,31 @@
       const oldP = document.getElementById("old-pass").value;
       const newP = document.getElementById("new-pass").value;
       const newP2 = document.getElementById("new-pass2").value;
-      if (newP && oldP !== undefined) {
-        if (await sha256Hex(oldP) !== await adminHash()) { st.textContent = "❌ Current password is wrong."; return; }
-      }
       if (!newP) { st.textContent = "Enter a new password to change it."; return; }
-      if (newP.length < 8) { st.textContent = "Use at least 8 characters."; return; }
+      if (newP.length < 8) { st.textContent = "Use at least 8 characters (12+ is safer)."; return; }
       if (newP !== newP2) { st.textContent = "New passwords don't match."; return; }
-      localStorage.setItem(adminDefaultHashKey, await sha256Hex(newP));
+      if (await sha256Hex(oldP) !== await adminHash()) { st.textContent = "❌ Current password is wrong."; return; }
+
+      const token = localStorage.getItem("ink_gh_token");
+      if (!token) {
+        st.textContent = "⚠️ Add your GitHub token first (☁️ Publish tab → Token Setup). The password must be saved to GitHub, otherwise it resets when you clear browsing data.";
+        return;
+      }
+
+      st.textContent = "☁️ Saving new password to GitHub…";
+      const newHash = await sha256Hex(newP);
+      const updatedAt = new Date().toISOString();
+      try {
+        await putCatalogFile(undefined, GH_CONFIG_FILE, { adminHash: newHash, updatedAt }, "Update dashboard password", token);
+      } catch (e) {
+        st.textContent = "❌ Could not save the new password to GitHub (" + e.message + "). Your old password is unchanged — please try again.";
+        return;
+      }
+      // only after GitHub accepted it: remember on this device too
+      localStorage.setItem(adminDefaultHashKey, newHash);
+      localStorage.setItem("ink_admin_hash_at", String(Date.parse(updatedAt)));
       document.getElementById("old-pass").value = document.getElementById("new-pass").value = document.getElementById("new-pass2").value = "";
-      st.textContent = "✅ Password updated on this device. Remember it!";
+      st.textContent = "✅ Password changed and saved to GitHub. It works on every device and survives clearing browser data. If GitHub's cache is slow, your new password may take up to 1 minute to be accepted after a sign-out.";
     }
   </script>
 </body>
