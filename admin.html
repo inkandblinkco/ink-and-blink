@@ -75,7 +75,29 @@
     .img-row input[type="file"] { max-width: 170px; font-size: 0.72rem; }
     .status-line { font-size: 0.82rem; color: var(--muted); margin-top: 0.6rem; min-height: 1.2em; }
 
-    @media (max-width: 700px) { .img-row-label { min-width: 100%; } }
+    /* Stats tab */
+    .stat-preview { display: flex; gap: 24px; flex-wrap: wrap; background: #fafafb; border: 1px dashed #dcdce4; border-radius: 10px; padding: 12px 16px; margin-top: 14px; font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .stat-preview b { display: block; font-size: 1.15rem; color: var(--purple); letter-spacing: 0; margin-bottom: 2px; }
+    .check-line { display: flex; align-items: flex-start; gap: 9px; font-size: 0.82rem; font-weight: 700; color: #43434d; margin: 0.9rem 0 0.2rem; cursor: pointer; }
+    .check-line input { width: auto; margin-top: 3px; }
+    .check-line small { display: block; font-weight: 500; color: var(--muted); font-size: 0.74rem; margin-top: 2px; }
+
+    /* Reviews tab */
+    .review-item { align-items: flex-start !important; }
+    .review-item .rev-main { flex: 1; min-width: 230px; }
+    .review-item .rev-main .rev-name { font-size: 0.86rem; }
+    .review-item .rev-meta { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .review-item .rev-text { font-size: 0.78rem; color: #4a4a55; margin-top: 5px; line-height: 1.5; }
+    .stars-static { color: #f2a900; letter-spacing: 1px; font-size: 0.85rem; }
+    .hidden-tag { font-size: 0.66rem; font-weight: 800; color: #b45309; background: #fef3c7; border-radius: 999px; padding: 2px 7px; margin-left: 6px; }
+    .pub-tag { font-size: 0.66rem; font-weight: 800; color: #0d7a3d; background: #e7f8ee; border-radius: 999px; padding: 2px 7px; margin-left: 6px; }
+    .code-box { background: #17171d; color: #eaeaf2; border-radius: 10px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 0.72rem; line-height: 1.55; overflow-x: auto; white-space: pre; margin-top: 10px; }
+    details summary { cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 4px; }
+
+    @media (max-width: 700px) {
+      .img-row-label { min-width: 100%; }
+      .stat-preview { gap: 14px; }
+    }
   </style>
 </head>
 <body>
@@ -110,6 +132,8 @@
       <button class="tab-btn active" data-tab="products" onclick="switchTab('products')">📦 Products</button>
       <button class="tab-btn" data-tab="categories" onclick="switchTab('categories')">🗂 Categories</button>
       <button class="tab-btn" data-tab="images" onclick="switchTab('images')">🖼 Images</button>
+      <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">📊 Stats</button>
+      <button class="tab-btn" data-tab="reviews" onclick="switchTab('reviews')">⭐ Reviews</button>
       <button class="tab-btn" data-tab="emails" onclick="switchTab('emails')">📧 Emails</button>
       <button class="tab-btn" data-tab="publish" onclick="switchTab('publish')">☁️ Publish</button>
       <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
@@ -171,6 +195,104 @@
         </div>
         <div id="admin-image-rows"></div>
         <p id="images-status" class="status-line"></p>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div id="tab-stats" class="tab-page">
+      <div class="card">
+        <h3>📊 Storefront Numbers</h3>
+        <div class="sync-note">These numbers appear under the homepage hero and in the footer. The order count can grow by itself — every order placed on the store is added automatically. Publish after saving.</div>
+        <div class="row2">
+          <div><label>Orders Delivered (base)</label><input type="number" id="stat-orders-base" min="0" step="1"></div>
+          <div><label>Extra offline orders (WhatsApp / DM)</label><input type="number" id="stat-orders-extra" min="0" step="1"></div>
+        </div>
+        <label class="check-line"><input type="checkbox" id="stat-orders-auto"> <span>Grow automatically with new orders<small>Uses a free public counter. If it is ever unreachable, base + extra is shown. Turn this off to freeze the number.</small></span></label>
+        <div class="row2">
+          <div><label>Average Rating (1 – 5)</label><input type="number" id="stat-rating" min="1" max="5" step="0.1"></div>
+          <div><label>Average Dispatch (hours)</label><input type="number" id="stat-dispatch" min="1" step="1"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="saveStats()">Save Numbers</button>
+          <button class="btn grey" onclick="bumpOfflineOrders()">+1 offline order</button>
+          <button class="btn grey" onclick="useReviewAverage()">Use review average</button>
+        </div>
+        <p class="status-line" id="stats-status"></p>
+        <div class="stat-preview">
+          <div><b id="preview-orders">4,800+</b>Orders Delivered</div>
+          <div><b id="preview-rating">4.8★</b>Average Rating</div>
+          <div><b id="preview-dispatch">72h</b>Avg. Dispatch</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div id="tab-reviews" class="tab-page">
+      <div class="card">
+        <h3>⭐ Add / Approve Reviews</h3>
+        <div class="sync-note">Reviews written on the store arrive on your WhatsApp (or your review webhook). Add them here, tick <b>Show Verified Buyer</b> where true, then Publish — they appear on the homepage and on the matching product page.</div>
+        <div class="row2">
+          <div><label>Customer name</label><input type="text" id="rev-admin-name" placeholder="e.g. Aarav S." maxlength="60"></div>
+          <div><label>City (optional)</label><input type="text" id="rev-admin-city" placeholder="e.g. Mumbai" maxlength="40"></div>
+        </div>
+        <div class="row2">
+          <div><label>Rating</label><select id="rev-admin-stars">
+            <option value="5">5 ★ — Excellent</option>
+            <option value="4">4 ★ — Good</option>
+            <option value="3">3 ★ — Okay</option>
+            <option value="2">2 ★ — Poor</option>
+            <option value="1">1 ★ — Bad</option>
+          </select></div>
+          <div><label>Product (optional)</label><select id="rev-admin-product"><option value="">Whole store / general</option></select></div>
+        </div>
+        <label>Review text</label>
+        <textarea id="rev-admin-text" rows="3" maxlength="700" placeholder="What did they say?"></textarea>
+        <label class="check-line"><input type="checkbox" id="rev-admin-verified" checked> <span>Show “Verified Buyer” badge</span></label>
+        <div class="btn-row">
+          <button class="btn" id="rev-save-btn" onclick="saveAdminReview()">+ Add Review</button>
+          <button class="btn grey" id="rev-cancel-btn" onclick="cancelEditReview()" style="display:none">Cancel edit</button>
+        </div>
+        <p class="status-line" id="reviews-status"></p>
+      </div>
+      <div class="card">
+        <h3>📋 All Reviews (<span id="review-count">0</span>)</h3>
+        <div id="admin-review-list" style="max-height: 520px; overflow-y: auto;"></div>
+      </div>
+      <div class="card">
+        <h3>📥 Direct Delivery (optional)</h3>
+        <div class="sync-note">Without this, reviews reach you on WhatsApp and you add them above. To receive them straight to your email instead, deploy the tiny script below once and paste its Web App URL here.</div>
+        <input type="text" id="reviews-url-input" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="btn-row">
+          <button class="btn" onclick="saveReviewsUrl()">Save Review URL</button>
+          <button class="btn grey" onclick="clearReviewsUrl()">Remove</button>
+        </div>
+        <p class="status-line" id="reviews-url-status"></p>
+        <details>
+          <summary>Show the one-time setup (copy &amp; paste)</summary>
+          <ol style="font-size:0.8rem;color:#4a4a55;margin:10px 0 0 18px;line-height:1.7;">
+            <li>Go to <b>script.google.com</b> → <b>New project</b>.</li>
+            <li>Delete the sample code, paste the script below, then click <b>Save</b>.</li>
+            <li>Click <b>Deploy → New deployment → Web app</b>. Set “Execute as” = <b>Me</b> and “Who has access” = <b>Anyone</b>. Deploy and approve permissions.</li>
+            <li>Copy the <b>Web App URL</b> and paste it in the box above, then click Save Review URL.</li>
+          </ol>
+          <div class="code-box">function doPost(e) {
+  try {
+    var d = JSON.parse(e.postData.contents);
+    if (d.type !== 'review') return ContentService.createTextOutput('ok');
+    var props = PropertiesService.getScriptProperties();
+    var all = JSON.parse(props.getProperty('reviews') || '[]');
+    all.unshift({ at: new Date().toISOString(), name: d.name, city: d.city,
+                  stars: d.stars, product: d.productName || '', text: d.text });
+    props.setProperty('reviews', JSON.stringify(all.slice(0, 500)));
+    MailApp.sendEmail(Session.getEffectiveUser().getEmail(),
+      'New ' + d.stars + '-star review from ' + d.name,
+      d.text + '\n\n' + (d.productName || 'General store review'));
+    return ContentService.createTextOutput('ok');
+  } catch (err) {
+    return ContentService.createTextOutput('error');
+  }
+}</div>
+        </details>
       </div>
     </div>
 
@@ -249,6 +371,32 @@
     ];
 
     let products = [], categories = [], categoryImages = {}, worldImages = {}, wholesalePrices = {};
+
+    // ---- Storefront numbers + reviews (published inside store-data.json) ----
+    const DEFAULT_STATS = { ordersBase: 4800, ordersExtra: 0, ordersAuto: true, rating: 4.8, dispatchHours: 72 };
+    let storeStats = { ...DEFAULT_STATS };
+    let storeReviews = [];
+    let storeReviewsUrl = "";
+    let editingReviewId = null;
+
+    // The testimonials the store launched with — imported once so you can edit/delete them.
+    const seedReviews = [
+      { id: "seed-1", name: "Aarav S.", city: "Mumbai", stars: 5, date: "2026-10-18", verified: true, published: true, text: "The Nichirin katana is genuinely display-worthy. Packaging was impeccable — arrived without a single scratch. Already ordered two more!" },
+      { id: "seed-2", name: "Priya K.", city: "Delhi", stars: 5, date: "2026-10-12", verified: true, published: true, text: "Ordered the midnight gift box for my brother's birthday. He hasn't stopped flexing it. Dispatch was within 48 hours!" },
+      { id: "seed-3", name: "Rohit M.", city: "Hyderabad", stars: 5, date: "2026-10-06", verified: true, published: true, text: "Finally a store that cares about anime merch seriously. The Gojo figure paint finish surprised me at this price." },
+      { id: "seed-4", name: "Sanya R.", city: "Pune", stars: 5, date: "2026-09-29", verified: true, published: true, text: "Third order from Ink & Blink. Their WhatsApp support replies within minutes. That alone keeps me coming back." },
+      { id: "seed-5", name: "Kumar A.", city: "Bengaluru", stars: 5, date: "2026-09-21", verified: true, published: true, text: "The wand set looks premium on my shelf. Friends literally asked me where I got it from." },
+      { id: "seed-6", name: "Naveen T.", city: "Chennai", stars: 5, date: "2026-09-14", verified: true, published: true, text: "Smart quality for the price. My wholesale order arrived neatly packed and items were all grade-A. Recommended for resale." }
+    ];
+
+    function escAdmin(str) {
+      return String(str == null ? "" : str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function starsText(n) {
+      n = Math.max(1, Math.min(5, Math.round(Number(n) || 5)));
+      return "★".repeat(n) + "☆".repeat(5 - n);
+    }
+
     const adminCatIcons = { "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
     const FAN_WORLDS = ["Demon Slayer", "One Piece", "Naruto", "Jujutsu Kaisen", "Attack on Titan", "Harry Potter"];
 
@@ -376,6 +524,9 @@
       initOrdersUrlStatus();
       initTokenStatus();
       initStagedFlag();
+      renderStatsAdmin();
+      fillAdminReviewProducts();
+      renderAdminReviews();
     }
 
     function adoptCloud(cloud) {
@@ -384,6 +535,9 @@
       if (!categories.includes("All")) categories.unshift("All");
       categoryImages = cloud.categoryImages || {};
       worldImages = cloud.worldImages || {};
+      storeStats = { ...DEFAULT_STATS, ...((cloud.stats && typeof cloud.stats === "object") ? cloud.stats : {}) };
+      storeReviews = Array.isArray(cloud.reviews) ? cloud.reviews.slice() : seedReviews.map(r => ({ ...r }));
+      storeReviewsUrl = (cloud.settings && cloud.settings.reviewsUrl) || "";
       commitLocalCopy();
     }
     function commitLocalCopy() {
@@ -392,6 +546,9 @@
         localStorage.setItem("ink_categories", JSON.stringify(categories));
         localStorage.setItem("ink_cat_images", JSON.stringify(categoryImages));
         localStorage.setItem("ink_world_images", JSON.stringify(worldImages));
+        localStorage.setItem("ink_stats", JSON.stringify(storeStats));
+        localStorage.setItem("ink_reviews", JSON.stringify(storeReviews));
+        localStorage.setItem("ink_reviews_url", storeReviewsUrl || "");
       } catch (e) {
         alert("Storage full on this device! The change will still publish, but this device may not remember it.");
       }
@@ -402,6 +559,15 @@
       if (!categories.includes("All")) categories.unshift("All");
       categoryImages = JSON.parse(localStorage.getItem("ink_cat_images") || "{}");
       worldImages = JSON.parse(localStorage.getItem("ink_world_images") || "{}");
+      try {
+        const s = JSON.parse(localStorage.getItem("ink_stats") || "null");
+        storeStats = s ? { ...DEFAULT_STATS, ...s } : { ...DEFAULT_STATS };
+      } catch (e) { storeStats = { ...DEFAULT_STATS }; }
+      try {
+        const r = JSON.parse(localStorage.getItem("ink_reviews") || "null");
+        storeReviews = Array.isArray(r) ? r : seedReviews.map(x => ({ ...x }));
+      } catch (e) { storeReviews = seedReviews.map(x => ({ ...x })); }
+      storeReviewsUrl = localStorage.getItem("ink_reviews_url") || "";
     }
 
     function markStaged() {
@@ -446,6 +612,7 @@
         `;
         list.appendChild(item);
       });
+      fillAdminReviewProducts();
     }
 
     function startEditProduct(id) {
@@ -783,7 +950,16 @@
           categories,
           categoryImages,
           worldImages,
-          products: products.map(p => { const { wholesalePrice, ...retail } = p; return retail; })
+          products: products.map(p => { const { wholesalePrice, ...retail } = p; return retail; }),
+          stats: {
+            ordersBase: Math.max(0, Math.floor(Number(storeStats.ordersBase) || 0)),
+            ordersExtra: Math.max(0, Math.floor(Number(storeStats.ordersExtra) || 0)),
+            ordersAuto: storeStats.ordersAuto !== false,
+            rating: Math.round(Math.min(5, Math.max(1, Number(storeStats.rating) || 4.8)) * 10) / 10,
+            dispatchHours: Math.max(1, Math.round(Number(storeStats.dispatchHours) || 72))
+          },
+          reviews: storeReviews,
+          settings: { reviewsUrl: storeReviewsUrl || "" }
         };
         await putCatalogFile(undefined, GH_STORE_FILE, retailCatalog, "Update retail catalog (" + products.length + " products)", token);
 
@@ -832,6 +1008,184 @@
     async function reloadThisDeviceCatalog() {
       localStorage.removeItem("ink_admin_last_edit");
       location.reload();
+    }
+
+    // ---------- Storefront stats ----------
+    function renderStatsAdmin() {
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal("stat-orders-base", Math.max(0, Number(storeStats.ordersBase) || 0));
+      setVal("stat-orders-extra", Math.max(0, Number(storeStats.ordersExtra) || 0));
+      setVal("stat-rating", Number(storeStats.rating) || 4.8);
+      setVal("stat-dispatch", Math.max(1, Number(storeStats.dispatchHours) || 72));
+      const auto = document.getElementById("stat-orders-auto");
+      if (auto) auto.checked = storeStats.ordersAuto !== false;
+      const url = document.getElementById("reviews-url-input");
+      if (url) url.value = storeReviewsUrl || "";
+      const urlStatus = document.getElementById("reviews-url-status");
+      if (urlStatus) urlStatus.textContent = storeReviewsUrl ? "✅ Direct review delivery is on. Publish to make it live for visitors." : "Off — customers send reviews to your WhatsApp.";
+      renderStatsPreview();
+    }
+    function renderStatsPreview() {
+      const baseEl = document.getElementById("stat-orders-base");
+      const extraEl = document.getElementById("stat-orders-extra");
+      const autoEl = document.getElementById("stat-orders-auto");
+      const ratingEl = document.getElementById("stat-rating");
+      const dispatchEl = document.getElementById("stat-dispatch");
+      if (!baseEl) return;
+      const total = Math.max(0, Number(baseEl.value) || 0) + Math.max(0, Number(extraEl.value) || 0);
+      const auto = !autoEl || autoEl.checked;
+      const po = document.getElementById("preview-orders");
+      const pr = document.getElementById("preview-rating");
+      const pd = document.getElementById("preview-dispatch");
+      if (po) po.textContent = total.toLocaleString("en-IN") + (auto ? "+" : "");
+      if (pr) pr.textContent = (Number(ratingEl.value) || 4.8).toFixed(1) + "★";
+      if (pd) pd.textContent = Math.max(1, Math.round(Number(dispatchEl.value) || 72)) + "h";
+    }
+    function saveStats() {
+      const base = Math.max(0, Math.floor(Number(document.getElementById("stat-orders-base").value) || 0));
+      const extra = Math.max(0, Math.floor(Number(document.getElementById("stat-orders-extra").value) || 0));
+      const ratingRaw = Number(document.getElementById("stat-rating").value) || 4.8;
+      const rating = Math.round(Math.min(5, Math.max(1, ratingRaw)) * 10) / 10;
+      const dispatch = Math.max(1, Math.round(Number(document.getElementById("stat-dispatch").value) || 72));
+      const auto = document.getElementById("stat-orders-auto").checked;
+      storeStats = { ordersBase: base, ordersExtra: extra, ordersAuto: auto, rating: rating, dispatchHours: dispatch };
+      document.getElementById("stat-rating").value = rating;
+      document.getElementById("stat-dispatch").value = dispatch;
+      markStaged();
+      renderStatsPreview();
+      document.getElementById("stats-status").textContent = "✅ Saved on this device. Click ☁️ Publish Live so visitors see the new numbers.";
+    }
+    function bumpOfflineOrders() {
+      const el = document.getElementById("stat-orders-extra");
+      const next = Math.max(0, Math.floor(Number(el.value) || 0)) + 1;
+      el.value = next;
+      storeStats.ordersExtra = next;
+      markStaged();
+      renderStatsPreview();
+      document.getElementById("stats-status").textContent = "✅ Added 1 offline order (offline total: " + next + "). Publish to update the store.";
+    }
+    function useReviewAverage() {
+      const list = storeReviews.filter(r => r && r.published !== false);
+      if (!list.length) { document.getElementById("stats-status").textContent = "⚠️ Add at least one published review first."; return; }
+      const avg = list.reduce((s, r) => s + (Number(r.stars) || 5), 0) / list.length;
+      document.getElementById("stat-rating").value = (Math.round(avg * 10) / 10).toFixed(1);
+      renderStatsPreview();
+      document.getElementById("stats-status").textContent = "Average of " + list.length + " published reviews: " + avg.toFixed(2) + "★. Click Save Numbers to apply.";
+    }
+
+    // ---------- Reviews ----------
+    function fillAdminReviewProducts() {
+      const sel = document.getElementById("rev-admin-product");
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = `<option value="">Whole store / general</option>` +
+        products.map(p => `<option value="${p.id}">${escAdmin(p.name)}</option>`).join("");
+      if (cur) sel.value = cur;
+    }
+    function renderAdminReviews() {
+      const box = document.getElementById("admin-review-list");
+      if (!box) return;
+      const countEl = document.getElementById("review-count");
+      if (countEl) countEl.textContent = storeReviews.length;
+      if (!storeReviews.length) { box.innerHTML = `<div class="list-item">No reviews yet — add the first one above.</div>`; return; }
+      box.innerHTML = storeReviews.map(r => {
+        const hidden = r.published === false;
+        const prod = r.productName || (r.productId != null ? ((products.find(p => p.id == r.productId) || {}).name || "") : "") || "General store";
+        const when = r.date ? new Date(r.date).toLocaleDateString("en-IN") : "";
+        return `<div class="list-item review-item">
+          <div class="rev-main">
+            <div class="rev-name"><b>${escAdmin(r.name || r.who || "Customer")}</b> <span class="stars-static">${starsText(r.stars || 5)}</span> ${hidden ? '<span class="hidden-tag">HIDDEN</span>' : '<span class="pub-tag">LIVE</span>'}</div>
+            <div class="rev-meta">${escAdmin(r.city || "")}${r.city ? " · " : ""}${escAdmin(prod)}${when ? " · " + when : ""}${r.verified !== false ? " · ✓ Verified" : ""}</div>
+            <div class="rev-text">${escAdmin((r.text || "").slice(0, 190))}${(r.text || "").length > 190 ? "…" : ""}</div>
+          </div>
+          <div class="btns">
+            <button class="mini" onclick="editAdminReview('${escAdmin(r.id)}')">Edit</button>
+            <button class="mini" onclick="toggleAdminReview('${escAdmin(r.id)}')">${hidden ? "Show" : "Hide"}</button>
+            <button class="mini danger" onclick="deleteAdminReview('${escAdmin(r.id)}')">Delete</button>
+          </div>
+        </div>`;
+      }).join("");
+    }
+    function editAdminReview(id) {
+      const r = storeReviews.find(x => String(x.id) === String(id));
+      if (!r) return;
+      editingReviewId = r.id;
+      document.getElementById("rev-admin-name").value = r.name || r.who || "";
+      document.getElementById("rev-admin-city").value = r.city || "";
+      document.getElementById("rev-admin-stars").value = String(r.stars || 5);
+      document.getElementById("rev-admin-verified").checked = r.verified !== false;
+      document.getElementById("rev-admin-text").value = r.text || "";
+      fillAdminReviewProducts();
+      const sel = document.getElementById("rev-admin-product");
+      sel.value = r.productId != null ? String(r.productId) : "";
+      document.getElementById("rev-save-btn").textContent = "💾 Update Review";
+      document.getElementById("rev-cancel-btn").style.display = "inline-block";
+      document.getElementById("reviews-status").textContent = "Editing “" + (r.name || "review") + "”. Change the fields, then click Update Review.";
+      switchTab("reviews");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function saveAdminReview() {
+      const name = document.getElementById("rev-admin-name").value.trim();
+      const city = document.getElementById("rev-admin-city").value.trim();
+      const text = document.getElementById("rev-admin-text").value.trim();
+      const stars = Math.max(1, Math.min(5, Math.round(Number(document.getElementById("rev-admin-stars").value) || 5)));
+      const verified = document.getElementById("rev-admin-verified").checked;
+      const pid = document.getElementById("rev-admin-product").value;
+      const prod = pid ? products.find(p => String(p.id) === String(pid)) : null;
+      if (!name) { document.getElementById("reviews-status").textContent = "⚠️ Add the customer's name first."; return; }
+      if (text.length < 8) { document.getElementById("reviews-status").textContent = "⚠️ Add the review text (at least a sentence)."; return; }
+      const base = {
+        name: name, city: city, stars: stars, text: text, verified: verified,
+        productId: prod ? prod.id : null,
+        productName: prod ? prod.name : ""
+      };
+      if (editingReviewId) {
+        storeReviews = storeReviews.map(r => String(r.id) === String(editingReviewId) ? { ...r, ...base } : r);
+      } else {
+        storeReviews.unshift({ id: "r-" + Date.now().toString(36), ...base, date: new Date().toISOString(), published: true });
+      }
+      markStaged();
+      renderAdminReviews();
+      cancelEditReview(true);
+      document.getElementById("reviews-status").textContent = "✅ Review saved. Click ☁️ Publish Live so visitors see it.";
+    }
+    function cancelEditReview(quiet) {
+      editingReviewId = null;
+      ["rev-admin-name", "rev-admin-city", "rev-admin-text"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+      const st = document.getElementById("rev-admin-stars"); if (st) st.value = "5";
+      const vf = document.getElementById("rev-admin-verified"); if (vf) vf.checked = true;
+      const pr = document.getElementById("rev-admin-product"); if (pr) pr.value = "";
+      const sb = document.getElementById("rev-save-btn"); if (sb) sb.textContent = "+ Add Review";
+      const cb = document.getElementById("rev-cancel-btn"); if (cb) cb.style.display = "none";
+      if (!quiet) { const s = document.getElementById("reviews-status"); if (s) s.textContent = ""; }
+    }
+    function toggleAdminReview(id) {
+      storeReviews = storeReviews.map(r => String(r.id) === String(id) ? { ...r, published: r.published === false } : r);
+      markStaged();
+      renderAdminReviews();
+      document.getElementById("reviews-status").textContent = "✅ Visibility changed. Publish to update the store.";
+    }
+    function deleteAdminReview(id) {
+      if (!confirm("Delete this review permanently?")) return;
+      storeReviews = storeReviews.filter(r => String(r.id) !== String(id));
+      markStaged();
+      renderAdminReviews();
+      document.getElementById("reviews-status").textContent = "🗑 Review deleted. Publish to update the store.";
+    }
+    function saveReviewsUrl() {
+      const val = document.getElementById("reviews-url-input").value.trim();
+      const st = document.getElementById("reviews-url-status");
+      if (!val) { st.textContent = "Paste the Web App URL first (or click Remove)."; return; }
+      if (!/^https:\/\//i.test(val)) { st.textContent = "The URL should start with https://"; return; }
+      storeReviewsUrl = val;
+      markStaged();
+      st.textContent = "✅ Saved. Publish to switch on direct review delivery for visitors.";
+    }
+    function clearReviewsUrl() {
+      storeReviewsUrl = "";
+      document.getElementById("reviews-url-input").value = "";
+      markStaged();
+      document.getElementById("reviews-url-status").textContent = "Removed. Customers will send reviews to your WhatsApp again.";
     }
 
     // ---------- Change password ----------
