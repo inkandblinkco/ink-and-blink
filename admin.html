@@ -91,7 +91,7 @@
     .stars-static { color: #f2a900; letter-spacing: 1px; font-size: 0.85rem; }
     .hidden-tag { font-size: 0.66rem; font-weight: 800; color: #b45309; background: #fef3c7; border-radius: 999px; padding: 2px 7px; margin-left: 6px; }
     .pub-tag { font-size: 0.66rem; font-weight: 800; color: #0d7a3d; background: #e7f8ee; border-radius: 999px; padding: 2px 7px; margin-left: 6px; }
-    .code-box { background: #17171d; color: #eaeaf2; border-radius: 10px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 0.72rem; line-height: 1.55; overflow-x: auto; white-space: pre; margin-top: 10px; }
+    .code-box { background: #17171d; color: #eaeaf2; border-radius: 10px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 0.72rem; line-height: 1.55; overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-word; margin-top: 10px; }
     details summary { cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 4px; }
 
     @media (max-width: 700px) {
@@ -229,8 +229,13 @@
     <!-- REVIEWS -->
     <div id="tab-reviews" class="tab-page">
       <div class="card">
-        <h3>⭐ Add / Approve Reviews</h3>
-        <div class="sync-note">Reviews written on the store arrive on your WhatsApp (or your review webhook). Add them here, tick <b>Show Verified Buyer</b> where true, then Publish — they appear on the homepage and on the matching product page.</div>
+        <h3>⭐ Reviews — publish instantly, no approval</h3>
+        <div class="sync-note">Customer reviews now go <b>live the moment they're submitted</b> — no approval queue. Your only job is to remove anything you don't want: use <b>Hide</b> (stays hidden forever, even after refresh) or <b>Delete</b>.</div>
+        <div class="sync-note" style="margin-top:-4px;">To make new customer reviews visible to <b>every</b> visitor (not just the one who wrote it), connect the free live-review script in the card below — one-time, about 3 minutes.</div>
+      </div>
+      <div class="card">
+        <h3>➕ Add a review yourself</h3>
+        <div class="sync-note">Useful for reviews you collected on WhatsApp or Instagram. Added reviews go live on Publish.</div>
         <div class="row2">
           <div><label>Customer name</label><input type="text" id="rev-admin-name" placeholder="e.g. Aarav S." maxlength="60"></div>
           <div><label>City (optional)</label><input type="text" id="rev-admin-city" placeholder="e.g. Mumbai" maxlength="40"></div>
@@ -259,38 +264,113 @@
         <div id="admin-review-list" style="max-height: 520px; overflow-y: auto;"></div>
       </div>
       <div class="card">
-        <h3>📥 Direct Delivery (optional)</h3>
-        <div class="sync-note">Without this, reviews reach you on WhatsApp and you add them above. To receive them straight to your email instead, deploy the tiny script below once and paste its Web App URL here.</div>
+        <h3>📡 Live Reviews Feed (one-time setup)</h3>
+        <div class="sync-note">This is what makes a customer's review appear for <b>everyone</b> instantly. The script stores reviews in a Google Sheet you control and serves them to the store. Free, no server, about 3 minutes once.</div>
         <input type="text" id="reviews-url-input" placeholder="https://script.google.com/macros/s/.../exec">
         <div class="btn-row">
-          <button class="btn" onclick="saveReviewsUrl()">Save Review URL</button>
-          <button class="btn grey" onclick="clearReviewsUrl()">Remove</button>
+          <button class="btn" onclick="saveReviewsUrl()">Save URL</button>
+          <button class="btn grey" onclick="testReviewsFeed()">Test connection</button>
+          <button class="btn grey" onclick="importReviewsFromFeed()">Import reviews now</button>
+          <button class="btn grey" onclick="clearReviewsUrl()">Turn off</button>
         </div>
         <p class="status-line" id="reviews-url-status"></p>
         <details>
           <summary>Show the one-time setup (copy &amp; paste)</summary>
           <ol style="font-size:0.8rem;color:#4a4a55;margin:10px 0 0 18px;line-height:1.7;">
             <li>Go to <b>script.google.com</b> → <b>New project</b>.</li>
-            <li>Delete the sample code, paste the script below, then click <b>Save</b>.</li>
-            <li>Click <b>Deploy → New deployment → Web app</b>. Set “Execute as” = <b>Me</b> and “Who has access” = <b>Anyone</b>. Deploy and approve permissions.</li>
-            <li>Copy the <b>Web App URL</b> and paste it in the box above, then click Save Review URL.</li>
+            <li>Delete the sample code, paste everything in the box below, then click <b>Save</b> (💾).</li>
+            <li>Click <b>Deploy → New deployment → Web app</b>. Set “Execute as” = <b>Me</b>, “Who has access” = <b>Anyone</b>. Click Deploy and allow the permissions (it creates a Sheet called <b>Ink &amp; Blink Reviews</b> automatically).</li>
+            <li>Copy the <b>Web App URL</b> (ends in <b>/exec</b>), paste it in the box above, click <b>Save URL</b>, then <b>Test connection</b>.</li>
+            <li>Finally click <b>☁️ Publish Live</b> once — the store needs the new setting.</li>
           </ol>
-          <div class="code-box">function doPost(e) {
-  try {
-    var d = JSON.parse(e.postData.contents);
-    if (d.type !== 'review') return ContentService.createTextOutput('ok');
-    var props = PropertiesService.getScriptProperties();
-    var all = JSON.parse(props.getProperty('reviews') || '[]');
-    all.unshift({ at: new Date().toISOString(), name: d.name, city: d.city,
-                  stars: d.stars, product: d.productName || '', text: d.text });
-    props.setProperty('reviews', JSON.stringify(all.slice(0, 500)));
-    MailApp.sendEmail(Session.getEffectiveUser().getEmail(),
-      'New ' + d.stars + '-star review from ' + d.name,
-      d.text + '\n\n' + (d.productName || 'General store review'));
-    return ContentService.createTextOutput('ok');
-  } catch (err) {
-    return ContentService.createTextOutput('error');
+          <div class="sync-note" style="margin:10px 0 0;font-size:0.78rem;">If you ever change the script, use <b>Deploy → Manage deployments → ✏️ → Version: New</b> so the URL keeps working.</div>
+          <div class="btn-row" style="margin-top:10px;"><button class="btn grey" onclick="copyReviewScript(this)">📋 Copy the script</button></div>
+          <div class="code-box">// Ink &amp; Blink — live reviews (Google Sheet + JSON feed)
+var SHEET_NAME = 'Reviews';
+var HEADERS = ['id','date','name','city','stars','text','productId','productName','verified'];
+
+function sheet_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('SHEET_ID');
+  var ss;
+  if (id) {
+    ss = SpreadsheetApp.openById(id);
+  } else {
+    ss = SpreadsheetApp.create('Ink &amp; Blink Reviews');
+    props.setProperty('SHEET_ID', ss.getId());
   }
+  var sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.appendRow(HEADERS);
+  }
+  return sh;
+}
+
+function doGet(e) {
+  var sh = sheet_();
+  var rows = sh.getDataRange().getValues();
+  var out = [];
+  for (var i = 1; i &lt; rows.length; i++) {
+    var r = rows[i];
+    if (!r[0]) continue;
+    out.push({
+      id: String(r[0]),
+      date: r[1] ? new Date(r[1]).toISOString() : '',
+      name: String(r[2] || ''),
+      city: String(r[3] || ''),
+      stars: Number(r[4]) || 5,
+      text: String(r[5] || ''),
+      productId: (r[6] === '' || r[6] === null) ? null : r[6],
+      productName: String(r[7] || ''),
+      verified: r[8] === true || String(r[8]).toLowerCase() === 'true',
+      published: true
+    });
+  }
+  var body = JSON.stringify(out);
+  var cb = (e &amp;&amp; e.parameter) ? e.parameter.callback : null;
+  if (cb) return ContentService.createTextOutput(cb + '(' + body + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    var d = JSON.parse(e.postData.contents);
+    if (!d || d.type !== 'review') return json_({ ok: false, error: 'ignored' });
+    var name = String(d.name || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    var text = String(d.text || '').replace(/\s+/g, ' ').trim().slice(0, 800);
+    if (name.length &lt; 2 || text.length &lt; 10) return json_({ ok: false, error: 'too short' });
+    if (/https?:\/\//i.test(text)) return json_({ ok: false, error: 'links not allowed' });
+    var sh = sheet_();
+    var last = sh.getLastRow();
+    var id = String(d.id || ('r-' + new Date().getTime().toString(36)));
+    if (last &gt; 1) {
+      var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+      for (var i = 0; i &lt; ids.length; i++) {
+        if (String(ids[i][0]) === id) return json_({ ok: true, id: id, duplicate: true });
+      }
+      var tail = Math.max(2, last - 40);
+      var recent = sh.getRange(tail, 6, last - tail + 1, 1).getValues();
+      for (var j = 0; j &lt; recent.length; j++) {
+        if (String(recent[j][0]).trim() === text) return json_({ ok: false, error: 'duplicate text' });
+      }
+    }
+    sh.appendRow([id, new Date(), name, String(d.city || '').slice(0, 40),
+      Math.max(1, Math.min(5, Math.round(Number(d.stars) || 5))), text,
+      (d.productId === null || d.productId === undefined) ? '' : d.productId,
+      String(d.productName || '').slice(0, 90), d.verified === true]);
+    return json_({ ok: true, id: id });
+  } catch (err) {
+    return json_({ ok: false, error: String(err) });
+  } finally {
+    try { lock.releaseLock(); } catch (e2) {}
+  }
+}
+
+function json_(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }</div>
         </details>
       </div>
@@ -376,6 +456,7 @@
     const DEFAULT_STATS = { ordersBase: 4800, ordersExtra: 0, ordersAuto: true, rating: 4.8, dispatchHours: 72 };
     let storeStats = { ...DEFAULT_STATS };
     let storeReviews = [];
+    let storeHiddenReviews = [];
     let storeReviewsUrl = "";
     let editingReviewId = null;
 
@@ -537,6 +618,7 @@
       worldImages = cloud.worldImages || {};
       storeStats = { ...DEFAULT_STATS, ...((cloud.stats && typeof cloud.stats === "object") ? cloud.stats : {}) };
       storeReviews = Array.isArray(cloud.reviews) ? cloud.reviews.slice() : seedReviews.map(r => ({ ...r }));
+      storeHiddenReviews = (cloud.settings && Array.isArray(cloud.settings.hiddenReviewIds)) ? cloud.settings.hiddenReviewIds.slice() : [];
       storeReviewsUrl = (cloud.settings && cloud.settings.reviewsUrl) || "";
       commitLocalCopy();
     }
@@ -548,6 +630,7 @@
         localStorage.setItem("ink_world_images", JSON.stringify(worldImages));
         localStorage.setItem("ink_stats", JSON.stringify(storeStats));
         localStorage.setItem("ink_reviews", JSON.stringify(storeReviews));
+        localStorage.setItem("ink_hidden_reviews", JSON.stringify(storeHiddenReviews));
         localStorage.setItem("ink_reviews_url", storeReviewsUrl || "");
       } catch (e) {
         alert("Storage full on this device! The change will still publish, but this device may not remember it.");
@@ -567,6 +650,10 @@
         const r = JSON.parse(localStorage.getItem("ink_reviews") || "null");
         storeReviews = Array.isArray(r) ? r : seedReviews.map(x => ({ ...x }));
       } catch (e) { storeReviews = seedReviews.map(x => ({ ...x })); }
+      try {
+        const h = JSON.parse(localStorage.getItem("ink_hidden_reviews") || "null");
+        storeHiddenReviews = Array.isArray(h) ? h : [];
+      } catch (e) { storeHiddenReviews = []; }
       storeReviewsUrl = localStorage.getItem("ink_reviews_url") || "";
     }
 
@@ -959,7 +1046,7 @@
             dispatchHours: Math.max(1, Math.round(Number(storeStats.dispatchHours) || 72))
           },
           reviews: storeReviews,
-          settings: { reviewsUrl: storeReviewsUrl || "" }
+          settings: { reviewsUrl: storeReviewsUrl || "", hiddenReviewIds: storeHiddenReviews.slice(0, 500) }
         };
         await putCatalogFile(undefined, GH_STORE_FILE, retailCatalog, "Update retail catalog (" + products.length + " products)", token);
 
@@ -1022,7 +1109,7 @@
       const url = document.getElementById("reviews-url-input");
       if (url) url.value = storeReviewsUrl || "";
       const urlStatus = document.getElementById("reviews-url-status");
-      if (urlStatus) urlStatus.textContent = storeReviewsUrl ? "✅ Direct review delivery is on. Publish to make it live for visitors." : "Off — customers send reviews to your WhatsApp.";
+      if (urlStatus) urlStatus.textContent = storeReviewsUrl ? "✅ Live review feed connected. Visitors see new reviews instantly." : "Not connected yet — new reviews show only on the device that wrote them.";
       renderStatsPreview();
     }
     function renderStatsPreview() {
@@ -1089,7 +1176,7 @@
       if (countEl) countEl.textContent = storeReviews.length;
       if (!storeReviews.length) { box.innerHTML = `<div class="list-item">No reviews yet — add the first one above.</div>`; return; }
       box.innerHTML = storeReviews.map(r => {
-        const hidden = r.published === false;
+        const hidden = r.published === false || storeHiddenReviews.map(String).includes(String(r.id));
         const prod = r.productName || (r.productId != null ? ((products.find(p => p.id == r.productId) || {}).name || "") : "") || "General store";
         const when = r.date ? new Date(r.date).toLocaleDateString("en-IN") : "";
         return `<div class="list-item review-item">
@@ -1159,33 +1246,127 @@
       const cb = document.getElementById("rev-cancel-btn"); if (cb) cb.style.display = "none";
       if (!quiet) { const s = document.getElementById("reviews-status"); if (s) s.textContent = ""; }
     }
+    function setHiddenReview(id, hidden) {
+      const key = String(id);
+      const set = new Set(storeHiddenReviews.map(String));
+      if (hidden) set.add(key); else set.delete(key);
+      storeHiddenReviews = Array.from(set);
+    }
     function toggleAdminReview(id) {
-      storeReviews = storeReviews.map(r => String(r.id) === String(id) ? { ...r, published: r.published === false } : r);
+      const r = storeReviews.find(x => String(x.id) === String(id));
+      if (!r) return;
+      const goingHidden = r.published !== false;
+      setHiddenReview(id, goingHidden);
+      storeReviews = storeReviews.map(x => String(x.id) === String(id) ? { ...x, published: !goingHidden } : x);
       markStaged();
       renderAdminReviews();
-      document.getElementById("reviews-status").textContent = "✅ Visibility changed. Publish to update the store.";
+      document.getElementById("reviews-status").textContent = goingHidden
+        ? "🙈 Hidden from the store (live reviews stay hidden even after a refresh). Publish to apply."
+        : "👁 Shown again. Publish to apply.";
     }
     function deleteAdminReview(id) {
       if (!confirm("Delete this review permanently?")) return;
+      setHiddenReview(id, true);
       storeReviews = storeReviews.filter(r => String(r.id) !== String(id));
       markStaged();
       renderAdminReviews();
-      document.getElementById("reviews-status").textContent = "🗑 Review deleted. Publish to update the store.";
+      document.getElementById("reviews-status").textContent = "🗑 Review deleted and blocked from coming back. Publish to update the store.";
+    }
+    function adminJsonp(url, onData, onFail) {
+      const cb = "__dashRevCb" + Math.random().toString(36).slice(2);
+      let done = false;
+      const cleanup = () => {
+        if (done) return;
+        done = true;
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        const el = document.getElementById(cb);
+        if (el) el.remove();
+      };
+      window[cb] = (data) => { cleanup(); onData(data); };
+      const s = document.createElement("script");
+      s.id = cb;
+      s.async = true;
+      s.src = url + (url.indexOf("?") >= 0 ? "&" : "?") + "callback=" + cb;
+      s.onerror = () => { cleanup(); onFail && onFail(); };
+      document.body.appendChild(s);
+      setTimeout(() => { if (!done) { cleanup(); onFail && onFail(); } }, 10000);
+    }
+    function feedUrlValue() {
+      const el = document.getElementById("reviews-url-input");
+      return (el && el.value.trim()) || storeReviewsUrl || "";
+    }
+    function copyReviewScript(btn) {
+      const box = document.querySelector(".code-box");
+      if (!box) return;
+      const text = box.textContent;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = "✅ Copied — paste it in Apps Script";
+        setTimeout(() => { btn.textContent = old; }, 2200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else {
+        fallbackCopy(text, done);
+      }
+    }
+    function fallbackCopy(text, done) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) { alert("Select the code and copy it manually."); }
+      ta.remove();
+    }
+    function testReviewsFeed() {
+      const st = document.getElementById("reviews-url-status");
+      const url = feedUrlValue();
+      if (!url) { st.textContent = "Paste the Web App URL first."; return; }
+      st.textContent = "⏳ Checking the review feed…";
+      adminJsonp(url, (data) => {
+        if (!Array.isArray(data)) { st.textContent = "⚠️ That URL answered, but not with a review list. Re-deploy the script using the code below."; return; }
+        st.textContent = "✅ Connected — " + data.length + " live review" + (data.length === 1 ? "" : "s") + " in the feed.";
+      }, () => { st.textContent = "❌ Could not reach that URL. Check “Who has access” is set to Anyone and that you pasted the /exec URL."; });
+    }
+    function importReviewsFromFeed() {
+      const st = document.getElementById("reviews-url-status");
+      const url = feedUrlValue();
+      if (!url) { st.textContent = "Paste the Web App URL first."; return; }
+      st.textContent = "⏳ Importing…";
+      adminJsonp(url, (data) => {
+        if (!Array.isArray(data)) { st.textContent = "⚠️ That URL did not return a review list."; return; }
+        const hidden = new Set(storeHiddenReviews.map(String));
+        const have = new Set(storeReviews.map(r => String(r.id)));
+        let added = 0;
+        data.forEach(r => {
+          if (!r || r.id == null) return;
+          const id = String(r.id);
+          if (hidden.has(id) || have.has(id)) return;
+          have.add(id);
+          storeReviews.unshift({ ...r, published: true });
+          added++;
+        });
+        markStaged();
+        renderAdminReviews();
+        st.textContent = added ? "✅ Imported " + added + " new review" + (added === 1 ? "" : "s") + ". Publish to keep a copy in the catalog." : "Nothing new — the feed matches what you already have.";
+      }, () => { st.textContent = "❌ Could not reach that URL."; });
     }
     function saveReviewsUrl() {
       const val = document.getElementById("reviews-url-input").value.trim();
       const st = document.getElementById("reviews-url-status");
-      if (!val) { st.textContent = "Paste the Web App URL first (or click Remove)."; return; }
+      if (!val) { st.textContent = "Paste the Web App URL first (or click Turn off)."; return; }
       if (!/^https:\/\//i.test(val)) { st.textContent = "The URL should start with https://"; return; }
       storeReviewsUrl = val;
       markStaged();
-      st.textContent = "✅ Saved. Publish to switch on direct review delivery for visitors.";
+      st.textContent = "✅ Saved. Click Test connection to confirm, then ☁️ Publish once.";
     }
     function clearReviewsUrl() {
       storeReviewsUrl = "";
       document.getElementById("reviews-url-input").value = "";
       markStaged();
-      document.getElementById("reviews-url-status").textContent = "Removed. Customers will send reviews to your WhatsApp again.";
+      document.getElementById("reviews-url-status").textContent = "Turned off. New reviews now show only on the device that wrote them.";
     }
 
     // ---------- Change password ----------

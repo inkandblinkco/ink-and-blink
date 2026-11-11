@@ -922,7 +922,7 @@
     <div class="review-modal-box">
       <button class="gate-close" onclick="closeReviewForm()" aria-label="Close">&times;</button>
       <h2>Write a Review</h2>
-      <p class="review-modal-sub">Ordered from us? Tell other collectors how it went. Reviews are checked by the studio before going live — usually within 24 hours.</p>
+      <p class="review-modal-sub">Ordered from us? Tell other collectors how it went. Your review appears on the site right away.</p>
 
       <div id="review-form-body">
         <label>Your rating</label>
@@ -1284,10 +1284,29 @@
       if (savedStats && typeof savedStats === "object") storeStats = { ...DEFAULT_STATS, ...savedStats };
     } catch (e) {}
     let storeReviews = [];
+    let storeHiddenReviews = [];
     try {
       const savedReviews = JSON.parse(localStorage.getItem("ink_reviews") || "null");
       if (Array.isArray(savedReviews)) storeReviews = savedReviews;
+      const savedHidden = JSON.parse(localStorage.getItem("ink_hidden_reviews") || "null");
+      if (Array.isArray(savedHidden)) storeHiddenReviews = savedHidden;
     } catch (e) {}
+
+    function mergeReviewLists(base, extra) {
+      const out = Array.isArray(base) ? base.slice() : [];
+      const seen = new Set(out.map(r => (r && r.id != null) ? String(r.id) : ""));
+      (extra || []).forEach(r => {
+        if (!r || r.id == null) return;
+        const id = String(r.id);
+        if (seen.has(id)) return;
+        seen.add(id);
+        out.push(r);
+      });
+      return out;
+    }
+    function hiddenReviewSet() {
+      return new Set((storeHiddenReviews || []).map(String));
+    }
 
     // Free public counter — makes "Orders Delivered" grow with every order placed on the store.
     // If the counter is unreachable, the base number from the dashboard is shown instead.
@@ -1391,8 +1410,12 @@
               localStorage.setItem("ink_stats", JSON.stringify(storeStats));
             }
             if (Array.isArray(data.reviews)) {
-              storeReviews = data.reviews;
+              storeReviews = mergeReviewLists(storeReviews, data.reviews);
               localStorage.setItem("ink_reviews", JSON.stringify(storeReviews));
+            }
+            if (data.settings && Array.isArray(data.settings.hiddenReviewIds)) {
+              storeHiddenReviews = data.settings.hiddenReviewIds.slice();
+              localStorage.setItem("ink_hidden_reviews", JSON.stringify(storeHiddenReviews));
             }
             if (data.settings && typeof data.settings.reviewsUrl === "string") {
               if (data.settings.reviewsUrl) localStorage.setItem("ink_reviews_url", data.settings.reviewsUrl);
@@ -1416,6 +1439,7 @@
             renderStats();
             updateCartUI();
             loadLiveOrderCount();
+            loadRemoteReviews();
             return; // success — stop trying sources
           }
         } catch (e) {
@@ -2167,11 +2191,62 @@
 
     // ---------- Reviews: display + submission ----------
     function publishedReviews() {
-      const live = (storeReviews || []).filter(r => r && r.published !== false);
+      const hidden = hiddenReviewSet();
+      const live = (storeReviews || [])
+        .filter(r => r && r.published !== false && !hidden.has(String(r.id)))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
       if (live.length) return live;
       return retailTestimonials.map((t, i) => ({
         id: "seed-" + i, name: t.who, city: t.city, stars: 5, text: t.text, verified: true, published: true
       }));
+    }
+    function reviewsEndpointUrl() {
+      try { return localStorage.getItem("ink_reviews_url") || ""; } catch (e) { return ""; }
+    }
+    // Live reviews come from the studio's review script (Google Sheet). JSONP = no CORS problems.
+    function loadRemoteReviews() {
+      const base = reviewsEndpointUrl();
+      if (!base) return;
+      const cb = "__inkRevCb" + Math.random().toString(36).slice(2);
+      let finished = false;
+      const cleanup = () => {
+        if (finished) return;
+        finished = true;
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        const el = document.getElementById(cb);
+        if (el) el.remove();
+      };
+      window[cb] = (data) => {
+        cleanup();
+        if (!Array.isArray(data) || !data.length) return;
+        const before = (storeReviews || []).map(r => String(r.id)).join("|");
+        storeReviews = mergeReviewLists(storeReviews, data.filter(r => r && r.id != null));
+        const after = (storeReviews || []).map(r => String(r.id)).join("|");
+        if (before === after) return;
+        try { localStorage.setItem("ink_reviews", JSON.stringify(storeReviews)); } catch (e) {}
+        renderReviews();
+        refreshPdpReviews();
+      };
+      const s = document.createElement("script");
+      s.id = cb;
+      s.async = true;
+      s.src = base + (base.indexOf("?") >= 0 ? "&" : "?") + "callback=" + cb;
+      s.onerror = cleanup;
+      document.body.appendChild(s);
+      setTimeout(cleanup, 9000);
+    }
+    function refreshPdpReviews() {
+      const pdp = document.getElementById("pdp-view");
+      if (!pdp || !pdp.classList.contains("open") || !pdpProduct) return;
+      const sec = pdp.querySelector(".pdp-reviews");
+      if (sec) {
+        const holder = document.createElement("div");
+        holder.innerHTML = pdpReviewsHtml(pdpProduct);
+        const fresh = holder.firstElementChild;
+        if (fresh) sec.replaceWith(fresh);
+      }
+      const row = pdp.querySelector(".pdp-info .rating-row");
+      if (row) row.innerHTML = pdpRatingRowHtml(pdpProduct);
     }
     function reviewsForProduct(id) {
       return publishedReviews().filter(r => r.productId != null && String(r.productId) === String(id));
@@ -2199,7 +2274,7 @@
         <div class="pdp-rev-head">
           <div>
             <h2>Customer Reviews</h2>
-            <div class="pdp-rev-sub">${count ? `<b>${avg.toFixed(1)}★</b> from ${count} verified review${count === 1 ? "" : "s"}` : "No reviews for this piece yet — be the first."}</div>
+            <div class="pdp-rev-sub">${count ? `<b>${avg.toFixed(1)}★</b> from ${count} review${count === 1 ? "" : "s"}` : "No reviews for this piece yet — be the first."}</div>
           </div>
           <button class="pdp-rev-write" onclick="openReviewForm(${p.id})">✍️ Write a Review</button>
         </div>
@@ -2252,23 +2327,31 @@
       const prod = pid ? products.find(x => String(x.id) === String(pid)) : null;
       if (!name) { alert("Please add your name (first name is enough)."); return; }
       if (text.length < 10) { alert("Please write at least a sentence so your review helps other collectors."); return; }
+      if (/https?:\/\/|www\./i.test(text)) { alert("Reviews can't contain links — please remove them and try again."); return; }
 
       const review = {
-        id: "r-" + Date.now().toString(36),
+        id: "r-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         name: name, city: city, stars: reviewStars, text: text,
         productId: prod ? prod.id : null,
         productName: prod ? prod.name : "",
         date: new Date().toISOString(),
         verified: false,
-        published: false
+        published: true
       };
+
+      // Reviews go live immediately — no approval step.
+      storeReviews = mergeReviewLists([review], storeReviews);
+      try { localStorage.setItem("ink_reviews", JSON.stringify(storeReviews)); } catch (e) {}
       try {
         const pending = JSON.parse(localStorage.getItem("ink_pending_reviews") || "[]");
         pending.unshift(review);
-        localStorage.setItem("ink_pending_reviews", JSON.stringify(pending.slice(0, 50)));
+        localStorage.setItem("ink_pending_reviews", JSON.stringify(pending.slice(0, 20)));
       } catch (e) {}
 
-      const reviewUrl = localStorage.getItem("ink_reviews_url") || "";
+      renderReviews();
+      refreshPdpReviews();
+
+      const reviewUrl = reviewsEndpointUrl();
       if (reviewUrl) {
         try {
           fetch(reviewUrl, {
@@ -2288,16 +2371,16 @@
       if (wa) wa.href = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(waText);
       const msg = document.getElementById("review-thanks-msg");
       if (reviewUrl) {
-        msg.textContent = "Your review has been sent to the studio. It will appear on the site once approved — usually within 24 hours.";
-        if (wa) wa.textContent = "📲 Also send a copy on WhatsApp (optional)";
+        msg.textContent = "Your review is live on the site — thank you! Other collectors can see it right now. 🎉";
+        if (wa) wa.textContent = "📲 Send a copy to the studio on WhatsApp (optional)";
       } else {
-        msg.textContent = "Your review is saved on this device. Tap below to send it to the studio on WhatsApp so it can be approved and published.";
-        if (wa) wa.textContent = "📲 Send it to the studio on WhatsApp";
+        msg.textContent = "Your review is showing on this device right away. Tap below to send it to the studio so it appears for every visitor too.";
+        if (wa) wa.textContent = "📲 Send it to the studio";
       }
       document.getElementById("review-form-body").style.display = "none";
       document.getElementById("review-thanks").style.display = "block";
       document.getElementById("review-modal").scrollTop = 0;
-      snToast("Thanks for the review! 🧡");
+      snToast("Review posted — thank you! 🧡");
     }
 
     function renderReviews() {
@@ -2609,6 +2692,7 @@
     revealStore();
     renderStats();
     loadLiveOrderCount();
+    loadRemoteReviews();
     refreshCatalogFromCloud();  // always fetch the live catalog (dashboard-published), for guests AND signed-in visitors
     updateWishUI();
     updateCartUI();  </script>
