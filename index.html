@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ink & Blink — Anime Figures, Katanas & Collectibles by Artesania Studio</title>
+  <link rel="icon" type="image/png" href="logo-original.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -67,8 +68,8 @@
     header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(8, 5, 18, 0.85); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: 0.7rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     body.wholesale header { background: rgba(5, 9, 18, 0.88); }
     .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
-    .brand-logo-circle { width: 46px; height: 46px; border-radius: 8px; background: none; border: none; display: flex; align-items: center; justify-content: center; color: var(--purple-light); font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; user-select: none; box-shadow: none; position: relative; overflow: hidden; }
-    .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+    .brand-logo-circle { width: 46px; height: 46px; border-radius: 10px; background: none; border: none; display: flex; align-items: center; justify-content: center; color: var(--purple-light); font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; user-select: none; box-shadow: 0 0 0 1px rgba(255,255,255,0.14), 0 6px 16px rgba(0,0,0,0.45); position: relative; overflow: hidden; }
+    .logo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
     .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
     .brand-text span:first-child { font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: var(--purple-light); }
     .brand-text span:last-child { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--muted); }
@@ -882,7 +883,7 @@
       <button class="gate-close" onclick="closeAccountGate()" aria-label="Close">&times;</button>
       <div class="login-badge">
         <span class="logo-fallback">I&B</span>
-        <img src="logo.png?v=2" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
+        <img src="logo-original.png?v=3" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
       </div>
       <h2>Ink & Blink</h2>
       <p>By The Artesania Studio • Collectibles worth owning</p>
@@ -967,7 +968,7 @@
       <div class="brand">
         <div class="brand-logo-circle">
           <span class="logo-fallback">I&B</span>
-          <img src="logo.png?v=2" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
+          <img src="logo-original.png?v=3" alt="Ink & Blink logo" class="logo-img" onerror="this.remove()" onload="this.parentElement.querySelector('.logo-fallback').style.display='none'">
         </div>
         <div class="brand-text">
           <span>Ink & Blink</span>
