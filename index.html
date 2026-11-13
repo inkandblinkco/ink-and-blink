@@ -257,7 +257,7 @@
 
     header { top: 40px; background: rgba(10, 10, 15, 0.92); border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
     body.wholesale header { background: rgba(5, 9, 18, 0.92); }
-    #shop-page { padding-top: 138px; }
+    #shop-page { padding-top: 118px; }
 
     .action-btn { background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid)); border: none; border-radius: 10px; box-shadow: 0 4px 16px rgba(134, 68, 237, 0.35); }
     .action-btn:hover { box-shadow: 0 7px 22px rgba(193, 92, 255, 0.5); }
@@ -610,12 +610,37 @@
     .sn-dots button.on { background: #fff; width: 22px; border-radius: 6px; }
 
     /* Snitch-style text nav row under header */
-    .sn-nav { display: flex; gap: 4px; justify-content: center; align-items: center; background: #fff; border-bottom: 1px solid #ececef; padding: 0 1.2rem; position: sticky; top: 104px; z-index: 98; overflow-x: auto; scrollbar-width: none; }
-    .sn-nav::-webkit-scrollbar { display: none; }
-    .sn-nav button { background: none; border: none; padding: 0.85rem 0.9rem; font-family: inherit; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #43434d; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.18s; }
-    .sn-nav button:hover { color: #14141a; }
-    .sn-nav button.active { color: #5a2ecc; border-color: #5a2ecc; }
-    body.wholesale .sn-nav button.active { color: #2f6fd0; border-color: #2f6fd0; }
+    /* ===== Hamburger + left category drawer ===== */
+    .sn-burger { display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; width: 40px; height: 40px; padding: 0; margin-right: 2px; flex: none; border: none; background: transparent; border-radius: 9px; cursor: pointer; }
+    .sn-burger span { display: block; width: 19px; height: 2px; border-radius: 2px; background: #17171d; transition: background 0.15s; }
+    .sn-burger:hover { background: #f4f4f7; }
+    .sn-burger:focus-visible { outline: 2px solid #5a2ecc; outline-offset: 2px; }
+
+    .cat-drawer-backdrop { position: fixed; inset: 0; background: rgba(12, 10, 24, 0.32); z-index: 240; opacity: 0; pointer-events: none; transition: opacity 0.28s ease; }
+    .cat-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .cat-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: min(310px, 78vw); max-width: 78vw; background: #fff; border-right: 1px solid #ececef; z-index: 250; display: flex; flex-direction: column; transform: translateX(-102%); transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.34s; box-shadow: 18px 0 50px rgba(20, 16, 40, 0.18); visibility: hidden; }
+    .cat-drawer.open { transform: none; visibility: visible; transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s; }
+    .cat-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 1.15rem 1.1rem 0.9rem; border-bottom: 1px solid #ececef; flex: none; }
+    .cat-drawer-eyebrow { display: block; font-size: 0.62rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #9a9aa4; }
+    .cat-drawer-head h3 { margin: 0.18rem 0 0; font-size: 1.05rem; font-weight: 800; color: #17171d; letter-spacing: -0.2px; }
+    .cat-drawer-close { border: none; background: #f4f4f7; color: #43434d; width: 32px; height: 32px; border-radius: 50%; font-size: 1.15rem; line-height: 1; cursor: pointer; flex: none; }
+    .cat-drawer-close:hover { background: #ececef; color: #17171d; }
+    .sn-nav { flex: 1 1 auto; display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 0.7rem 0.65rem; overflow-y: auto; overscroll-behavior: contain; }
+    .sn-nav button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: none; border: none; border-radius: 9px; padding: 0.72rem 0.7rem; font-family: inherit; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #43434d; cursor: pointer; white-space: nowrap; transition: background 0.16s, color 0.16s, box-shadow 0.16s; }
+    .sn-nav button .nav-ico { font-size: 1rem; line-height: 1; width: 20px; text-align: center; flex: none; }
+    .sn-nav button .nav-arrow { margin-left: auto; font-size: 0.9rem; color: #c3c3cc; }
+    .sn-nav button:hover { background: #f6f3ff; color: #14141a; }
+    .sn-nav button.active { background: #f1ebff; color: #5a2ecc; box-shadow: inset 3px 0 0 #5a2ecc; }
+    body.wholesale .sn-nav button.active { background: #eef5fd; color: #2f6fd0; box-shadow: inset 3px 0 0 #2f6fd0; }
+    .cat-drawer-foot { padding: 0.9rem 1rem 1.1rem; border-top: 1px solid #ececef; flex: none; }
+    .cat-drawer-all { width: 100%; border: none; background: #17171d; color: #fff; border-radius: 9px; padding: 0.8rem; font-family: inherit; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; cursor: pointer; }
+    .cat-drawer-all:hover { background: #000; }
+    body.wholesale .cat-drawer-all { background: #2f6fd0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cat-drawer, .cat-drawer-backdrop { transition: none; }
+    }
 
     /* Older hero CSS now replaced by slider; stats strip re-homed */
     .sn-stats-row { display: flex; justify-content: center; gap: clamp(1rem, 4vw, 3rem); padding: 1.6rem 1rem 0.6rem; flex-wrap: wrap; background: #fff; }
@@ -844,6 +869,8 @@
   <style id="mobile-polish">
     @media (max-width: 860px) {
       .nav-actions .sn-icon-btn { min-width: 38px; min-height: 38px; justify-content: center; }
+      .sn-burger { width: 36px; height: 36px; min-width: 36px; margin-right: 0; }
+      .sn-burger span { width: 17px; }
     }
     @media (max-width: 600px) {
       .product-grid { gap: 10px !important; }
@@ -867,8 +894,8 @@
       #customer-login-page { padding: 0.8rem; }
       #customer-login-page .customer-login-box { max-height: calc(100vh - 1.6rem); overflow-y: auto; }
     }
-    /* Small phones (≤375px): drop the wordmark so the search bar stays usable */
-    @media (max-width: 375px) {
+    /* Smaller phones (≤430px): drop the wordmark so the search bar stays usable */
+    @media (max-width: 430px) {
       .brand-text { display: none; }
     }
   </style>
@@ -965,6 +992,9 @@
     <div id="promo-banner" class="promo-banner">✨ Free shipping on retail orders above ₹999 — this week only!</div>
 
     <header>
+      <button class="sn-burger" id="sn-burger" onclick="openCatDrawer()" aria-label="Open category menu" aria-expanded="false" aria-controls="cat-drawer">
+        <span></span><span></span><span></span>
+      </button>
       <div class="brand">
         <div class="brand-logo-circle">
           <span class="logo-fallback">I&B</span>
@@ -997,7 +1027,21 @@
       </div>
     </header>
 
-    <nav class="sn-nav" id="sn-nav"></nav>
+    <!-- Left category drawer (never full width) -->
+    <div class="cat-drawer-backdrop" id="cat-drawer-backdrop" onclick="closeCatDrawer()"></div>
+    <aside class="cat-drawer" id="cat-drawer" aria-hidden="true" aria-label="Shop by category">
+      <div class="cat-drawer-head">
+        <div>
+          <span class="cat-drawer-eyebrow">Browse the store</span>
+          <h3>Shop by Category</h3>
+        </div>
+        <button class="cat-drawer-close" onclick="closeCatDrawer()" aria-label="Close category menu">&times;</button>
+      </div>
+      <nav class="sn-nav" id="sn-nav"></nav>
+      <div class="cat-drawer-foot">
+        <button class="cat-drawer-all" onclick="closeCatDrawer(); filterCategory('All'); scrollToGrid();">View everything &rarr;</button>
+      </div>
+    </aside>
 
     <!-- Snitch-style hero slider -->
     <section class="snitch-hero" id="snitch-hero">
@@ -1792,7 +1836,7 @@
       document.body.style.overflow = "";
     }
 
-    document.addEventListener("keydown", e => { if (e.key === "Escape") { closePDP(); hideAccount(); toggleWishDrawer(false); toggleCart(false); } });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") { closePDP(); hideAccount(); toggleWishDrawer(false); toggleCart(false); closeCatDrawer(); } });
 
     // ---------- Search ----------
     let currentSearch = "";
@@ -1928,17 +1972,48 @@
       if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    // ---------- Snitch-style category nav row ----------
+    // ---------- Snitch-style category drawer ----------
+    function openCatDrawer() {
+      const d = document.getElementById("cat-drawer");
+      const b = document.getElementById("cat-drawer-backdrop");
+      if (!d) return;
+      hideAccount();
+      toggleWishDrawer(false);
+      toggleCart(false);
+      d.classList.add("open");
+      d.setAttribute("aria-hidden", "false");
+      if (b) b.classList.add("open");
+      const burger = document.getElementById("sn-burger");
+      if (burger) burger.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    }
+    function closeCatDrawer() {
+      const d = document.getElementById("cat-drawer");
+      const b = document.getElementById("cat-drawer-backdrop");
+      if (!d) return;
+      d.classList.remove("open");
+      d.setAttribute("aria-hidden", "true");
+      if (b) b.classList.remove("open");
+      const burger = document.getElementById("sn-burger");
+      if (burger) burger.setAttribute("aria-expanded", "false");
+      const pdp = document.getElementById("pdp-view");
+      const modal = document.getElementById("review-modal");
+      const busy = (pdp && pdp.classList.contains("open")) || (modal && modal.classList.contains("open"));
+      document.body.style.overflow = busy ? "hidden" : "";
+    }
     function renderSnNav() {
       const nav = document.getElementById("sn-nav");
       if (!nav) return;
       nav.innerHTML = "";
       ["All"].concat(categories.filter(c => c !== "All")).forEach(cat => {
         const b = document.createElement("button");
-        b.textContent = cat === "All" ? "NEW IN" : cat;
+        const icon = catIcons[cat] || "⭐";
+        b.innerHTML = `<span class="nav-ico">${icon}</span><span>${cat === "All" ? "NEW IN" : escHtml(cat)}</span><span class="nav-arrow">›</span>`;
         b.className = currentCategory === cat ? "active" : "";
+        b.setAttribute("aria-label", cat === "All" ? "New in — all products" : cat);
         b.onclick = () => {
           filterCategory(cat);
+          closeCatDrawer();
           const grid = document.getElementById("product-grid");
           if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
         };
@@ -2049,6 +2124,7 @@
         btn.classList.toggle("active", btn.dataset.cat === cat);
       });
       renderProducts();
+      renderSnNav();
     }
 
     const catIcons = { "All": "🛍️", "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
