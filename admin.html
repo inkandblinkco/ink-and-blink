@@ -161,7 +161,8 @@
         <label>Main Image — Upload from Computer:</label>
         <input type="file" id="new-img-file" accept="image/*">
         <div class="sync-note" style="margin-top:0.35rem;">
-          An uploaded photo is shrunk to 700px and stored inside the catalog file. When you publish, the product's <b>previous</b> photo file is deleted from the repo automatically — unless another listing (such as its multi-pack) still uses it.
+          An uploaded photo is shrunk and saved as a real file in the <b>images</b> folder on GitHub, so the catalog stays small. When you publish, the product's <b>previous</b> photo file is deleted from the repo automatically — unless another listing (such as its multi-pack) still uses it.
+          <br><span id="photo-upload-mode" style="opacity:0.85;"></span>
         </div>
         <label>Main Image — Or Paste Image URL:</label>
         <input type="text" id="new-img-url" placeholder="https://… or images/photo.webp">
@@ -201,7 +202,7 @@
     <div id="tab-images" class="tab-page">
       <div class="card">
         <h3>🖼️ Category Tiles &amp; Fan-World Cards</h3>
-        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer. When you're done with as many rows as you like, click <b>💾 Save All Images</b> once — then publish.</div>
+        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer. Picked photos are saved as real files in the repo. When you're done with as many rows as you like, click <b>💾 Save All Images</b> once — then publish.</div>
         <div class="btn-row" style="margin-top:0; margin-bottom:1rem;">
           <button class="btn" id="save-all-images-btn" onclick="saveAllImages(this)">💾 Save All Images</button>
         </div>
@@ -214,6 +215,7 @@
         <div class="sync-note">
           When you change a product's photo (or delete the product) and click <b>Publish</b>, the old photo file is deleted from the repository automatically.
           A photo is only removed when <b>no other listing uses it</b> — multi-pack listings share the photo of their single version, so that is handled for you.
+          Photos you picked in the dashboard but then replaced or never published are cleaned up too. Photos you added to the repo by hand are never touched.
           Use the button below to clean up right now without publishing anything else.
         </div>
         <div class="btn-row" style="margin-top:0; margin-bottom:0.5rem;">
@@ -634,6 +636,7 @@ function json_(o) {
       renderAdminImageRows();
       initOrdersUrlStatus();
       initTokenStatus();
+      refreshPhotoUploadMode();
       initStagedFlag();
       renderStatsAdmin();
       fillAdminReviewProducts();
@@ -804,12 +807,12 @@ function json_(o) {
       document.getElementById("cancel-edit-btn").style.display = "none";
     }
 
-    function compressAndSaveImage(file, callback) {
-      compressImageToDataURL(file).then(callback);
-    }
-
-    // Returns a Promise<string> with the compressed JPEG data URL
-    function compressImageToDataURL(file) {
+    // ---------- Photo upload (saved as real files in images/) ----------
+    // Picks a photo, shrinks it (max 900px) and encodes it as WebP.
+    // Returns { dataUrl, ext, width, height }.
+    function compressPickedImage(file, maxDim, quality) {
+      maxDim = maxDim || 900;
+      quality = quality || 0.82;
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(new Error("Could not read that file."));
@@ -817,14 +820,20 @@ function json_(o) {
           const img = new Image();
           img.onerror = () => reject(new Error("That file is not a valid image."));
           img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const MAX = 700;
             let w = img.width, h = img.height;
-            if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
-            else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+            if (w >= h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
+            else { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
+            const canvas = document.createElement("canvas");
             canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL('image/jpeg', 0.75));
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            let dataUrl = canvas.toDataURL("image/webp", quality);
+            let ext = "webp";
+            // Very old browsers cannot encode WebP — use JPEG instead.
+            if (!dataUrl.startsWith("data:image/webp")) {
+              dataUrl = canvas.toDataURL("image/jpeg", quality);
+              ext = "jpg";
+            }
+            resolve({ dataUrl, ext, width: w, height: h });
           };
           img.src = event.target.result;
         };
@@ -832,7 +841,60 @@ function json_(o) {
       });
     }
 
-    function saveProduct() {
+    // Kept for older code paths: returns just the compressed data URL.
+    function compressImageToDataURL(file) {
+      return compressPickedImage(file, 700, 0.75).then(r => r.dataUrl);
+    }
+
+    // A unique, URL-safe filename for a dashboard upload.
+    function makeUploadPath(hint, ext) {
+      const slug = String(hint || "photo").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "photo";
+      const stamp = Date.now().toString(36);
+      const rand = Math.random().toString(36).slice(2, 6);
+      return "images/upload-" + slug + "-" + stamp + rand + "." + (ext || "webp");
+    }
+
+    // Upload a picked photo to GitHub as images/upload-….webp.
+    // Throws "NO_TOKEN" when there is no GitHub token saved.
+    async function uploadPickedImage(file, hint, token) {
+      if (!token) throw new Error("NO_TOKEN");
+      let shot = await compressPickedImage(file, 900, 0.82);
+      // Keep uploads lean: if it is still big, compress a bit harder.
+      if (shot.dataUrl.length > 400000) shot = await compressPickedImage(file, 700, 0.7);
+      const path = makeUploadPath(hint, shot.ext);
+      const b64 = shot.dataUrl.split(",")[1];
+      const res = await fetch(GH_REPO + path, {
+        method: "PUT",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Accept": "application/vnd.github+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: "Add photo " + path.split("/").pop(),
+          content: b64,
+          branch: "main"
+        })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.message || ("GitHub replied " + res.status));
+      return { path, bytes: Math.round(b64.length * 3 / 4), width: shot.width, height: shot.height };
+    }
+
+    // Tells the user, under the photo picker, where a picked photo will go.
+    function refreshPhotoUploadMode() {
+      const el = document.getElementById("photo-upload-mode");
+      if (!el) return;
+      el.textContent = localStorage.getItem("ink_gh_token")
+        ? "✅ GitHub token found — photos are saved as real files in images\\ and the old file is removed on publish."
+        : "⚠️ No GitHub token saved yet — photos will be stored inside the catalog until you add one in the ☁️ Publish tab.";
+    }
+
+    function compressAndSaveImage(file, callback) {
+      compressImageToDataURL(file).then(callback);
+    }
+
+    async function saveProduct() {
       const editId = document.getElementById("edit-product-id").value;
       const name = document.getElementById("new-name").value.trim();
       const retailPrice = parseFloat(document.getElementById("new-retail-price").value);
@@ -840,6 +902,8 @@ function json_(o) {
       const category = document.getElementById("new-category").value;
       const fileInput = document.getElementById("new-img-file");
       const urlInput = document.getElementById("new-img-url").value.trim();
+      const saveBtn = document.getElementById("save-product-btn");
+      const saveLabel = saveBtn ? saveBtn.textContent : "";
 
       if (!name || isNaN(retailPrice) || isNaN(wholesalePrice)) { alert("Please enter a valid name and both retail/wholesale prices."); return; }
       if (!category) { alert("Create a category first (🗂 tab)."); return; }
@@ -854,16 +918,39 @@ function json_(o) {
       };
       let defaultImg = existing ? existing.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80";
 
-      if (fileInput.files && fileInput.files[0]) {
-        compressAndSaveImage(fileInput.files[0], function(imgData) {
-          commitProductData(editId, name, retailPrice, wholesalePrice, category, imgData, extras);
-        });
-      } else {
-        commitProductData(editId, name, retailPrice, wholesalePrice, category, urlInput || defaultImg, extras);
+      let img = urlInput || defaultImg;
+      let note = "";
+      const file = fileInput.files && fileInput.files[0];
+
+      if (file) {
+        const token = localStorage.getItem("ink_gh_token");
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "⏳ Uploading photo…"; }
+        try {
+          const up = await uploadPickedImage(file, name, token);
+          img = up.path;
+          note = "Photo saved as " + up.path + " (" + Math.round(up.bytes / 1024) + " KB).";
+        } catch (e) {
+          // Never lose the photo: fall back to embedding it in the catalog.
+          let shot;
+          try {
+            shot = await compressPickedImage(file, 700, 0.78);
+          } catch (readErr) {
+            alert(readErr.message || "That photo could not be read — please pick a different file.");
+            return;
+          }
+          img = shot.dataUrl;
+          note = e.message === "NO_TOKEN"
+            ? "Photo stored inside the catalog for now. Add your GitHub token in the ☁️ Publish tab so future photos are saved as real files."
+            : "Could not upload the photo to GitHub (" + e.message + "). It was stored inside the catalog instead — check your token in the ☁️ Publish tab.";
+        } finally {
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveLabel; }
+        }
       }
+
+      commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras, note);
     }
 
-    function commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras) {
+    function commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras, note) {
       const wh = wholesalePrices[editId] !== undefined ? wholesalePrices[editId] : undefined;
       if (editId) {
         const prev = products.find(p => p.id == editId) || {};
@@ -875,12 +962,12 @@ function json_(o) {
           videos: extras.videos.length ? extras.videos : (prev.videos || [])
         };
         products = products.map(p => p.id == editId ? merged : p);
-        alert("Product updated! Remember to Publish so every device sees it.");
+        alert("Product updated! Remember to Publish so every device sees it." + (note ? "\n\n" + note : ""));
       } else {
         const fresh = { id: Date.now(), name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos };
         if (extras.world) fresh.world = extras.world;
         products.push(fresh);
-        alert("Product added! Remember to Publish so every device sees it.");
+        alert("Product added! Remember to Publish so every device sees it." + (note ? "\n\n" + note : ""));
       }
       if (wholesalePrice !== undefined && !isNaN(wholesalePrice)) { wholesalePrices[editId || products[products.length - 1].id] = wholesalePrice; }
       markStaged();
@@ -986,7 +1073,8 @@ function json_(o) {
       fanWorlds().forEach(w => targets.push({ type: "world", name: w }));
 
       if (btn) { btn.disabled = true; btn.textContent = "💾 Saving…"; }
-      let changed = 0, failed = 0;
+      const token = localStorage.getItem("ink_gh_token");
+      let changed = 0, failed = 0, uploaded = 0, embedded = 0;
       for (const t of targets) {
         const fid = safeId(t.name);
         const fileInput = document.getElementById(`img-file-${t.type}-${fid}`);
@@ -996,8 +1084,16 @@ function json_(o) {
         const target = t.type === "cat" ? categoryImages : worldImages;
         try {
           if (file) {
-            const data = await compressImageToDataURL(file);
-            if (data !== target[t.name]) { target[t.name] = data; changed++; }
+            let value;
+            try {
+              const up = await uploadPickedImage(file, t.name, token);
+              value = up.path;
+              uploaded++;
+            } catch (e) {
+              value = await compressImageToDataURL(file);
+              embedded++;
+            }
+            if (value !== target[t.name]) { target[t.name] = value; changed++; }
           } else if (url) {
             if (url !== target[t.name]) { target[t.name] = url; changed++; }
           }
@@ -1005,10 +1101,14 @@ function json_(o) {
       }
       if (btn) { btn.disabled = false; btn.textContent = "💾 Save All Images"; }
 
+      const fileNote = uploaded || embedded
+        ? ` ${uploaded} photo(s) saved as repo files${embedded ? `, ${embedded} stored inside the catalog (no token or upload failed)` : ""}.`
+        : "";
       if (changed) {
         markStaged();
         renderAdminImageRows();
         st.textContent = `✅ Saved ${changed} image change(s) on this device.` +
+          fileNote +
           (failed ? ` (${failed} file(s) could not be read.)` : "") +
           " Now click ☁️ Publish Live (top right) to make them live for visitors.";
       } else {
@@ -1058,10 +1158,12 @@ function json_(o) {
       localStorage.setItem("ink_gh_token", val);
       document.getElementById("gh-token-input").value = "";
       status.textContent = "✅ Token saved on this device. Ready to publish.";
+      refreshPhotoUploadMode();
     }
     function clearGhToken() {
       localStorage.removeItem("ink_gh_token");
       document.getElementById("token-status").textContent = "Token removed from this device.";
+      refreshPhotoUploadMode();
     }
     async function testGhToken() {
       const status = document.getElementById("token-status");
@@ -1130,33 +1232,67 @@ function json_(o) {
       return refs;
     }
 
-    // Read the catalog that is live on GitHub right now (blob API = never cached).
-    async function getRepoCatalog(token) {
+    // Read the catalog + the list of files inside images/ as they are on GitHub
+    // right now (blob/tree API = never cached).
+    async function getRepoSnapshot(token) {
       const refRes = await fetch(GH_API + "/git/ref/heads/main", { headers: ghHeaders(token), cache: "no-store" });
       if (!refRes.ok) throw new Error("GitHub replied " + refRes.status + " reading the branch.");
       const commitSha = (await refRes.json()).object.sha;
       const commit = await (await fetch(GH_API + "/git/commits/" + commitSha, { headers: ghHeaders(token), cache: "no-store" })).json();
       const tree = await (await fetch(GH_API + "/git/trees/" + commit.tree.sha, { headers: ghHeaders(token), cache: "no-store" })).json();
-      const entry = (tree.tree || []).find(x => x.path === GH_STORE_FILE);
-      if (!entry) return null;
-      const blob = await (await fetch(GH_API + "/git/blobs/" + entry.sha, { headers: ghHeaders(token), cache: "no-store" })).json();
-      if (!blob.content) throw new Error("GitHub did not return the catalog file.");
-      const bytes = Uint8Array.from(atob(blob.content.replace(/\s/g, "")), c => c.charCodeAt(0));
-      return JSON.parse(new TextDecoder("utf-8").decode(bytes));
+      const entries = tree.tree || [];
+
+      const imageFiles = new Set();
+      const imagesDir = entries.find(x => x.path === "images" && x.type === "tree");
+      if (imagesDir) {
+        const imgTree = await (await fetch(GH_API + "/git/trees/" + imagesDir.sha, { headers: ghHeaders(token), cache: "no-store" })).json();
+        (imgTree.tree || []).forEach(x => { if (x.type === "blob") imageFiles.add("images/" + x.path); });
+      }
+
+      let catalog = null;
+      const storeEntry = entries.find(x => x.path === GH_STORE_FILE);
+      if (storeEntry) {
+        const blob = await (await fetch(GH_API + "/git/blobs/" + storeEntry.sha, { headers: ghHeaders(token), cache: "no-store" })).json();
+        if (!blob.content) throw new Error("GitHub did not return the catalog file.");
+        const bytes = Uint8Array.from(atob(blob.content.replace(/\s/g, "")), c => c.charCodeAt(0));
+        catalog = JSON.parse(new TextDecoder("utf-8").decode(bytes));
+      }
+      return { catalog, imageFiles };
     }
 
-    async function planImageCleanup(token) {
-      const old = await getRepoCatalog(token);
-      if (!old) return { orphans: [], oldCount: 0, newCount: products.length };
-      const oldRefs = collectImageRefs(old);
+    async function getRepoCatalog(token) {
+      return (await getRepoSnapshot(token)).catalog;
+    }
+
+    async function planImageCleanup(token, safeOnly) {
+      const snap = await getRepoSnapshot(token);
+      const old = snap.catalog;
       const newRefs = collectImageRefs({ products, categoryImages, worldImages });
-      const oldCount = Array.isArray(old.products) ? old.products.length : 0;
+      const liveRefs = old ? collectImageRefs(old) : new Set();
+      const oldCount = old && Array.isArray(old.products) ? old.products.length : 0;
       // Safety: never clean up from a half-loaded dashboard.
       if (oldCount > 50 && products.length < oldCount * 0.5) {
         return { orphans: [], oldCount, newCount: products.length, error: "Only " + products.length + " of " + oldCount + " products are loaded here — reload the dashboard before cleaning up." };
       }
-      const orphans = [...oldRefs].filter(p => !newRefs.has(p)).sort();
-      return { orphans, oldCount, newCount: products.length };
+      const orphans = new Set();
+      // 1) Files the live catalog points at that nothing in the dashboard points
+      //    at any more. Only the Publish flow deletes these (after the new
+      //    catalog is live), so the live site never shows a missing photo.
+      if (!safeOnly) {
+        liveRefs.forEach(p => { if (!newRefs.has(p)) orphans.add(p); });
+      }
+      // 2) Photos uploaded from this dashboard that nothing uses
+      //    (you picked a photo and then replaced it again, or never published).
+      //    Only upload-… files are treated this way, so photos added to the
+      //    repo by hand are never removed. In safe mode a file still used by
+      //    the live catalog is left alone until the next Publish.
+      snap.imageFiles.forEach(p => {
+        if (!/^images\/upload-/i.test(p)) return;
+        if (newRefs.has(p)) return;
+        if (safeOnly && liveRefs.has(p)) return;
+        orphans.add(p);
+      });
+      return { orphans: [...orphans].sort(), oldCount, newCount: products.length };
     }
 
     // Removes every path in one commit (git tree API), so it is all-or-nothing.
@@ -1195,10 +1331,12 @@ function json_(o) {
       const token = localStorage.getItem("ink_gh_token");
       if (btn) { btn.disabled = true; btn.textContent = "🔍 Scanning…"; }
       try {
-        const plan = await planImageCleanup(token);
+        // safeOnly: only files that are not used by the live site either.
+        // Replaced photos are removed by Publish, after the new catalog is live.
+        const plan = await planImageCleanup(token, true);
         if (plan.error) { st.textContent = "⚠️ " + plan.error; return; }
         if (!plan.orphans.length) {
-          st.textContent = "✅ Nothing to delete — all " + (plan.oldCount || 0).toLocaleString("en-IN") + " listings' photos are in use.";
+          st.textContent = "✅ Nothing to delete — no abandoned dashboard uploads. (Photos you replace are removed automatically when you Publish.)";
           return;
         }
         if (!token) { st.textContent = "⚠️ " + plan.orphans.length + " unused photo(s) found. Add your GitHub token in the ☁️ Publish tab to delete them."; return; }
