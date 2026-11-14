@@ -305,16 +305,32 @@
     .nova-item .n-btn:active { transform: scale(0.97); }
     @keyframes novaScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-    /* Shop by fan world (hover-expand strip) */
+    /* Shop by fan world */
     .nova-worlds-section { max-width: 1300px; margin: 0 auto 1rem; padding: 0 2rem; }
-    .worlds-title { font-size: 1.55rem; color: #fff; margin-bottom: 1.1rem; position: relative; padding-left: 16px; }
+    .worlds-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.1rem; flex-wrap: wrap; }
+    .worlds-title { font-size: 1.55rem; color: #fff; margin-bottom: 0; position: relative; padding-left: 16px; }
     .worlds-title::before { content: ""; position: absolute; left: 0; top: 12%; bottom: 12%; width: 5px; border-radius: 3px; background: var(--purple-glow); }
-    .anime-strip { display: flex; gap: 12px; }
-    .anime-card { flex: 1; min-height: 104px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: flex 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s; overflow: hidden; position: relative; }
-    .anime-card:hover { flex: 2.4; filter: brightness(1.15); }
-    .anime-card > span { font-weight: 800; font-size: 1rem; color: #fff; text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); padding: 0 10px; }
-    .anime-card .w-arrow { font-size: 1.2rem; color: #fff; opacity: 0; transition: opacity 0.3s; }
-    .anime-card:hover .w-arrow { opacity: 1; }
+    .worlds-clear { display: none; align-items: center; gap: 6px; border: 1px solid #d9d9e0; background: #fff; color: #43434d; font-weight: 700; font-size: 0.78rem; padding: 8px 14px; border-radius: 30px; cursor: pointer; }
+    .worlds-clear:hover { border-color: var(--purple-glow); color: var(--purple-glow); }
+    .anime-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 9px; }
+    .anime-card { min-height: 64px; border: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.25s, filter 0.3s, box-shadow 0.25s; overflow: hidden; position: relative; padding: 8px 9px; }
+    .anime-card:hover { transform: translateY(-3px); filter: brightness(1.12); box-shadow: 0 12px 26px rgba(20, 20, 40, 0.16); }
+    .anime-card.active { outline: 3px solid var(--purple-glow); outline-offset: 2px; }
+    .anime-card > .w-name { font-weight: 800; font-size: 0.79rem; color: #fff; text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); line-height: 1.22; }
+    .anime-card .w-count { position: absolute; top: 4px; right: 5px; font-size: 0.55rem; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.42); border-radius: 20px; padding: 1px 5px; backdrop-filter: blur(3px); }
+    .anime-card .w-arrow { display: none; }
+    .world-subfilters { display: none; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid #ececef; }
+    .world-subfilters.on { display: flex; }
+    .wf-chip { border: 1px solid #e0e0e7; background: #fff; color: #43434d; font-size: 0.78rem; font-weight: 700; padding: 7px 13px; border-radius: 30px; cursor: pointer; transition: all 0.18s; }
+    .wf-chip small { color: #8b8b96; font-weight: 700; margin-left: 4px; }
+    .wf-chip:hover { border-color: var(--purple-glow); color: var(--purple-glow); }
+    .wf-chip.active { background: var(--purple-glow); border-color: var(--purple-glow); color: #fff; }
+    .wf-chip.active small { color: rgba(255, 255, 255, 0.8); }
+    .load-more-wrap { display: none; justify-content: center; margin-top: 2.2rem; }
+    .load-more-wrap.on { display: flex; }
+    .load-more-btn { border: 1px solid #d9d9e0; background: #fff; color: #17171d; font-weight: 800; font-size: 0.88rem; padding: 13px 28px; border-radius: 40px; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 22px rgba(20, 20, 40, 0.06); }
+    .load-more-btn:hover { border-color: var(--purple-glow); color: var(--purple-glow); transform: translateY(-2px); }
+    .grid-empty-reset { display: inline-flex; margin-top: 12px; }
 
     /* Trust icons: purple glow passes through from base stylesheet */
 
@@ -394,9 +410,9 @@
       #shop-page { padding-top: 106px; padding-bottom: 76px; }
       .nova-marquee-section, .nova-worlds-section { padding-left: 1rem; padding-right: 1rem; }
       .nova-item img { height: 170px; }
-      .anime-strip { overflow-x: auto; scrollbar-width: none; gap: 10px; padding-bottom: 4px; }
+      .anime-strip { display: flex; overflow-x: auto; scrollbar-width: none; gap: 10px; padding-bottom: 4px; }
       .anime-strip::-webkit-scrollbar { display: none; }
-      .anime-card { flex: none; min-width: 150px; min-height: 88px; }
+      .anime-card { flex: none; min-width: 140px; min-height: 72px; }
       .anime-card .w-arrow { display: none; }
       .rev-slide { flex: 0 0 100%; padding: 0; }
       .rev-nav.prev { left: 2px; }
@@ -683,6 +699,12 @@
     .pdp-info h1 { font-family: 'Poppins', sans-serif; font-weight: 800; color: #17171d; font-size: 1.7rem; line-height: 1.2; margin: 0.45rem 0 0.6rem; }
     .pdp-chip { display: inline-block; font-size: 0.72rem; font-weight: 700; color: #17171d; background: #f1ecff; border-radius: 6px; padding: 5px 10px; margin: 0 0 0.7rem; }
     body.wholesale .pdp-chip { background: #eef4fd; }
+    .pdp-chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 0.7rem; }
+    .pdp-chips .pdp-chip { margin: 0; }
+    .pdp-chip-link { border: 1px solid transparent; cursor: pointer; transition: all 0.18s; }
+    .pdp-chip-link:hover { border-color: #cbb6f5; background: #e8dfff; }
+    .pdp-pack-link { display: block; width: 100%; text-align: left; border: 1px dashed #d4c6f5; background: #faf7ff; color: #5a2ecc; font-weight: 700; font-size: 0.84rem; padding: 11px 14px; border-radius: 10px; margin: 0 0 1rem; cursor: pointer; transition: all 0.18s; }
+    .pdp-pack-link:hover { background: #f1ecff; border-color: #b79cf0; }
     .pdp-details { margin: 1.3rem 0; padding: 1rem 1.1rem; background: #fafafb; border: 1px solid #ececef; border-radius: 12px; }
     .pdp-details h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.2px; color: #43434d; margin-bottom: 0.5rem; }
     .pdp-details p { font-size: 0.9rem; color: #43434d; line-height: 1.65; white-space: pre-line; }
@@ -1073,21 +1095,28 @@
       </div>
     </section>
 
+    <section class="nova-worlds-section" id="worlds-section">
+      <div class="worlds-head">
+        <h2 class="worlds-title">Shop By Fan World</h2>
+        <button class="worlds-clear" id="worlds-clear" onclick="resetFilters()">✕ Clear filters</button>
+      </div>
+      <div class="anime-strip" id="anime-strip"></div>
+      <div class="world-subfilters" id="world-subfilters"></div>
+    </section>
+
     <div class="wrap">
       <div class="grid-head">
         <h2 id="grid-title">Trending This Week 🔥</h2>
         <div style="display:flex; align-items:center; gap:12px;">
           <span class="live-dot" id="grid-live">● restocked regularly</span>
-          <button class="view-all" onclick="filterCategory('All')">View All →</button>
+          <button class="view-all" onclick="resetFilters()">View All →</button>
         </div>
       </div>
       <div class="product-grid" id="product-grid"></div>
+      <div class="load-more-wrap" id="load-more-wrap">
+        <button class="load-more-btn" id="load-more-btn" onclick="loadMoreProducts()">Load more products</button>
+      </div>
     </div>
-
-    <section class="nova-worlds-section">
-      <h2 class="worlds-title">Shop By Fan World</h2>
-      <div class="anime-strip" id="anime-strip"></div>
-    </section>
 
     <div class="trust-strip">
       <div class="trust-item"><span class="tk">🛡️</span> Original & Quality-Checked</div>
@@ -1314,6 +1343,9 @@
     let cart = JSON.parse(localStorage.getItem("ink_cart")) || {};
     let currentMode = "Retail";
     let currentCategory = "All";
+    let currentWorld = "";
+    let visibleCount = 36;
+    const PRODUCTS_PER_PAGE = 36;
     let customerInfo = JSON.parse(localStorage.getItem("ink_customer")) || null;
     let wholesalePrices = {}; // id -> wholesale price; only populated after wholesale unlock
     // Images for category circles & fan-world cards (published inside store-data.json)
@@ -1367,30 +1399,37 @@
       return "★".repeat(n) + "☆".repeat(5 - n);
     }
 
-    const FAN_WORLDS = [
-      { name: "Demon Slayer", grad: "linear-gradient(135deg,#7f0a1f,#3a0715)" },
-      { name: "One Piece", grad: "linear-gradient(135deg,#0b3d5c,#072233)" },
-      { name: "Naruto", grad: "linear-gradient(135deg,#c2410c,#7c2d12)" },
-      { name: "Jujutsu Kaisen", grad: "linear-gradient(135deg,#4c1d95,#1e1b4b)" },
-      { name: "Attack on Titan", grad: "linear-gradient(135deg,#14532d,#052e16)" },
-      { name: "Harry Potter", grad: "linear-gradient(135deg,#713f12,#3b2506)" }
-    ];
+    function worldGradient(name) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+      const hue = h % 360;
+      return `linear-gradient(135deg, hsl(${hue} 55% 30%), hsl(${(hue + 35) % 360} 60% 14%))`;
+    }
+
+    function worldList() {
+      const counts = {};
+      products.forEach(p => { if (p.world) counts[p.world] = (counts[p.world] || 0) + 1; });
+      return Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    }
 
     function renderWorlds() {
       const strip = document.getElementById("anime-strip");
       if (!strip) return;
       strip.innerHTML = "";
-      FAN_WORLDS.forEach(w => {
-        const card = document.createElement("div");
-        card.className = "anime-card";
-        const u = worldImages[w.name];
+      worldList().forEach(([name, count]) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "anime-card" + (currentWorld === name ? " active" : "");
+        const u = worldImages[name];
         card.style.background = u
-          ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)), url("${u}") center/cover`
-          : w.grad;
-        card.innerHTML = `<span>${w.name}</span><span class="w-arrow">→</span>`;
-        card.onclick = () => openWorldChat(w.name);
+          ? `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.35)), url("${u}") center/cover`
+          : worldGradient(name);
+        card.innerHTML = `<span class="w-name">${escHtml(name)}</span><span class="w-count">${count}</span>`;
+        card.setAttribute("aria-pressed", currentWorld === name ? "true" : "false");
+        card.onclick = () => filterWorld(name);
         strip.appendChild(card);
       });
+      updateClearButton();
     }
 
     function activePriceFor(p) {
@@ -1402,6 +1441,7 @@
     async function loadWholesalePrices() {
       if (Object.keys(wholesalePrices).length) return true;
       const urls = [
+        ...(isLocalPreview() ? [GH_WHOLESALE_FILE + "?t=" + Date.now()] : []),
         "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_WHOLESALE_FILE + "?t=" + Date.now(),
         "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_WHOLESALE_FILE + "?t=" + Date.now()
       ];
@@ -1422,9 +1462,14 @@
       return false;
     }
 
+    function isLocalPreview() {
+      return location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    }
+
     // ---------- Cloud catalog loading ----------
     async function refreshCatalogFromCloud() {
       const sources = [
+        ...(isLocalPreview() ? [GH_STORE_FILE + "?t=" + Date.now()] : []),
         GH_RAW_URL + "?t=" + Date.now(),
         "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_STORE_FILE + "?t=" + Date.now()
       ];
@@ -1474,12 +1519,20 @@
             if (currentMode === "Wholesale") {
               await loadWholesalePrices();
             }
-            localStorage.setItem("ink_products", JSON.stringify(products));
-            localStorage.setItem("ink_categories", JSON.stringify(categories));
+            try {
+              const cachedProducts = JSON.stringify(products);
+              // keep the offline cache light — a 2,000+ product catalog is too big for localStorage
+              if (cachedProducts.length < 1200000) localStorage.setItem("ink_products", cachedProducts);
+              else localStorage.removeItem("ink_products");
+              localStorage.setItem("ink_categories", JSON.stringify(categories));
+            } catch (e) { /* storage full — the store still works from the cloud copy */ }
             renderCategories();
             renderProducts();
             renderReviews();
             renderWorlds();
+            renderSnNav();
+            renderHeroSlider();
+            renderImageMarquee();
             renderStats();
             updateCartUI();
             loadLiveOrderCount();
@@ -1713,6 +1766,9 @@
       const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : Math.round(p.retailPrice * 1.18);
       const savePct = Math.max(0, Math.round((comparePrice - price) / comparePrice * 100));
       const wished = wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id));
+      const linked = p.packOf
+        ? products.find(x => String(x.id) === String(p.packOf))
+        : (p.singleOf ? products.find(x => String(x.id) === String(p.singleOf)) : null);
 
       // Related products: same category first, other products as backup
       let related = products.filter(x => x.id != p.id && x.category === p.category);
@@ -1728,6 +1784,11 @@
           <div class="pdp-info">
             <div class="rating-row">${pdpRatingRowHtml(p)}</div>
             <h1>${p.name}</h1>
+            <div class="pdp-chips">
+              ${p.world ? `<button class="pdp-chip pdp-chip-link" onclick="pdpFilterWorld()">🌍 ${escHtml(p.world)}</button>` : ""}
+              <button class="pdp-chip pdp-chip-link" onclick="pdpFilterCategory()">${escHtml(p.category)}</button>
+              ${p.packQty && p.singleOf ? `<span class="pdp-chip">📦 Pack of ${p.packQty}</span>` : ""}
+            </div>
             ${p.badge ? `<div class="pdp-chip">${p.badge}</div>` : ""}
             <div class="price-row">
               <span class="price">₹${price}</span>
@@ -1735,6 +1796,7 @@
               ${savePct > 0 ? `<span class="save-chip">${currentMode === "Retail" ? "SAVE" : "MARGIN"} ${savePct}%</span>` : ""}
             </div>
             <div class="ship-hint">${currentMode === "Retail" ? "🚚 Free shipping above ₹999" : "📦 MOQ ₹5,000 per bulk order"}</div>
+            ${linked ? `<button class="pdp-pack-link" onclick="openPDP('${linked.id}')">${p.packOf ? `🛍️ Want more? Get the ${p.packQty}-piece pack — ₹${activePriceFor(linked)}` : `🔹 Just need one? Shop the single piece — ₹${activePriceFor(linked)}`}</button>` : ""}
 
             ${(p.description || "").trim() ? `
             <div class="pdp-details">
@@ -1829,6 +1891,20 @@
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
     }
 
+    function pdpFilterWorld() {
+      if (!pdpProduct || !pdpProduct.world) return;
+      const w = pdpProduct.world;
+      closePDP();
+      filterWorld(w);
+    }
+
+    function pdpFilterCategory() {
+      if (!pdpProduct || !pdpProduct.category) return;
+      const c = pdpProduct.category;
+      closePDP();
+      filterCategory(c);
+    }
+
     function closePDP() {
       const main = document.querySelector("#pdp-main video");
       if (main) { try { main.pause(); } catch (e) {} }
@@ -1845,12 +1921,15 @@
     function onSearchInput(v) {
       currentSearch = v.trim();
       document.getElementById("search-clear").style.display = currentSearch ? "inline-flex" : "none";
-      renderProducts();
       if (currentSearch) {
-        const title = document.getElementById("grid-title");
-        title.textContent = `Search: “${currentSearch}”`;
-        document.getElementById("grid-live").textContent = `${(currentSearch ? searchFilter(products) : []).length} result${(searchFilter(products)).length === 1 ? "" : "s"} · tap ✕ to clear`;
+        currentWorld = "";
+        currentCategory = "All";
+        visibleCount = PRODUCTS_PER_PAGE;
+        renderWorlds();
+        renderSubfilters();
+        renderSnNav();
       }
+      renderProducts();
     }
 
     function onSearchEnter() {
@@ -1862,8 +1941,7 @@
       const si = document.getElementById("search-input");
       if (si) si.value = "";
       document.getElementById("search-clear").style.display = "none";
-      document.getElementById("grid-title").textContent = savedGridTitle;
-      document.getElementById("grid-live").textContent = "● restocked regularly";
+      visibleCount = PRODUCTS_PER_PAGE;
       renderProducts();
     }
 
@@ -1872,6 +1950,7 @@
       return list.filter(p =>
         (p.name || "").toLowerCase().includes(q) ||
         (p.category || "").toLowerCase().includes(q) ||
+        (p.world || "").toLowerCase().includes(q) ||
         (p.description || p.desc || "").toLowerCase().includes(q) ||
         (p.tags || []).join(" ").toLowerCase().includes(q)
       );
@@ -1909,18 +1988,31 @@
       { eyebrow: "🔥 New Drops Every Friday", title: "FRIDAY 6 PM.<br>DROP DAY.", sub: "Fresh collectibles land every week — the best pieces go within hours. Keep your notifications on.", tag: "All", label: "SHOP NEW DROPS" },
       { eyebrow: "🎁 The Gift Edit", title: "THE GIFT<br>WORTH FLEXING", sub: "Gift boxes, keychains and stationery curated for the fan who already has everything.", tag: "gift", label: "EXPLORE GIFTS" }
     ];
+    const SN_SLIDES_WHOLESALE = [
+      { eyebrow: "💼 Artesania Wholesale Portal", title: "SCALE YOUR STORE.<br>WITH STUDIO SUPPLY.", sub: "Verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks — built for resellers who reorder.", tag: "All", label: "BROWSE WHOLESALE" },
+      { eyebrow: "📦 B2B Pricing Active", title: "MARGINS THAT<br>MAKE SENSE.", sub: "Every listing carries a reseller price at 1.5× supplier cost. Mix worlds, mix categories, reorder any time.", tag: "All", label: "SHOP THE CATALOG" },
+      { eyebrow: "🤝 Dedicated Support", title: "ONE PARTNER.<br>EVERY FANDOM.", sub: "47 fan worlds, 22 product types, GST invoice and pallet-grade packing on request.", tag: "All", label: "TALK TO US" }
+    ];
     let snSlideIdx = 0, snSlideTimer = null;
 
     function renderHeroSlider() {
       const box = document.getElementById("sn-slides");
       const dots = document.getElementById("sn-dots");
       if (!box || !dots) return;
-      const usable = products.filter(p => typeof p.img === "string" && p.img.startsWith("http"));
-      box.innerHTML = SN_SLIDES.map((s, i) => {
-        const product = usable.length ? usable[(i * 3) % usable.length] : null;
+      const slides = currentMode === "Wholesale" ? SN_SLIDES_WHOLESALE : SN_SLIDES;
+      const httpImgs = products.filter(p => typeof p.img === "string" && p.img.startsWith("http"));
+      const usable = httpImgs.length ? httpImgs : products.filter(p => typeof p.img === "string" && p.img.trim());
+      const pick = (i) => {
+        if (!usable.length) return null;
+        const step = Math.max(1, Math.floor(usable.length / (slides.length + 1)));
+        return usable[(step * (i + 1) + i) % usable.length];
+      };
+      box.innerHTML = slides.map((s, i) => {
+        const product = pick(i);
+        const src = product ? String(product.img).replace(/([?&])w=\d+/, "$1w=1600") : "";
         return '<div class="sn-slide' + (i === 0 ? " on" : "") + '">' +
           '<div class="sn-slide-bg" style="background: linear-gradient(120deg, #2b1c52, #120b26);"></div>' +
-          (product ? '<img src="' + product.img + '" alt="" onerror="this.remove()">' : "") +
+          (product ? '<img src="' + src + '" alt="" onerror="this.remove()">' : "") +
           '<div class="sn-shade"></div>' +
           '<div class="sn-slide-copy">' +
             '<span class="sn-eyebrow">' + s.eyebrow + '</span>' +
@@ -1930,7 +2022,8 @@
           '</div>' +
         '</div>';
       }).join("");
-      dots.innerHTML = SN_SLIDES.map((s, i) =>
+      snSlideIdx = 0;
+      dots.innerHTML = slides.map((s, i) =>
         '<button class="' + (i === 0 ? "on" : "") + '" onclick="snGo(' + i + ')" aria-label="Slide ' + (i + 1) + '"></button>'
       ).join("");
       startSnSlideTimer();
@@ -2009,7 +2102,8 @@
         const b = document.createElement("button");
         const icon = catIcons[cat] || "⭐";
         b.innerHTML = `<span class="nav-ico">${icon}</span><span>${cat === "All" ? "NEW IN" : escHtml(cat)}</span><span class="nav-arrow">›</span>`;
-        b.className = currentCategory === cat ? "active" : "";
+        b.className = currentCategory === cat && !currentWorld && !currentSearch ? "active" : "";
+        b.dataset.cat = cat;
         b.setAttribute("aria-label", cat === "All" ? "New in — all products" : cat);
         b.onclick = () => {
           filterCategory(cat);
@@ -2086,23 +2180,22 @@
         wholesalePrices = {}; // hide wholesale pricing again
       }
 
+      const gridTitle = document.getElementById("grid-title");
+      savedGridTitle = mode === "Wholesale" ? "Wholesale Catalog 💼" : "Trending This Week 🔥";
+      if (gridTitle) gridTitle.textContent = savedGridTitle;
+      visibleCount = PRODUCTS_PER_PAGE;
+
+      // legacy hero elements (older layout) — guarded so mode switch never breaks
       const title = document.getElementById("hero-title");
       const sub = document.getElementById("hero-sub");
       const eyebrow = document.getElementById("hero-eyebrow");
-      const gridTitle = document.getElementById("grid-title");
+      if (title) title.innerHTML = mode === "Wholesale" ? "Scale Your Store.<br>With Studio Supply." : "Own Your Fandom.<br>Not Just Watch It.";
+      if (sub) sub.textContent = mode === "Wholesale"
+        ? "B2B sourcing for anime & gift retail: verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks. Built for resellers who reorder."
+        : "From display-grade katanas to studio-quality figures — every piece is hand-checked, safely packed and shipped with obsession. New drops every Friday.";
+      if (eyebrow) eyebrow.textContent = mode === "Wholesale" ? "💼 Artesania Wholesale Portal" : "✦ Premium Anime Collectibles & Gifts";
 
-      if (mode === "Wholesale") {
-        title.innerHTML = "Scale Your Store.<br>With Studio Supply.";
-        sub.textContent = "B2B sourcing for anime & gift retail: verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks. Built for resellers who reorder.";
-        eyebrow.textContent = "💼 Artesania Wholesale Portal";
-        gridTitle.textContent = "Wholesale Catalog 💼";
-      } else {
-        title.innerHTML = "Own Your Fandom.<br>Not Just Watch It.";
-        sub.textContent = "From display-grade katanas to studio-quality figures — every piece is hand-checked, safely packed and shipped with obsession. New drops every Friday.";
-        eyebrow.textContent = "✦ Premium Anime Collectibles & Gifts";
-        gridTitle.textContent = "Trending This Week 🔥";
-      }
-
+      renderHeroSlider();
       renderProducts();
       renderImageMarquee();
       renderHeroCTAs();
@@ -2111,20 +2204,122 @@
       updateCartUI();
     }
 
-    function filterCategory(cat) {
+    function clearSearchBox() {
       currentSearch = "";
       const si = document.getElementById("search-input");
       if (si) si.value = "";
       const sc = document.getElementById("search-clear");
       if (sc) sc.style.display = "none";
-      document.getElementById("grid-title").textContent = savedGridTitle;
-      document.getElementById("grid-live").textContent = "● restocked regularly";
+    }
+
+    function updateClearButton() {
+      const btn = document.getElementById("worlds-clear");
+      if (!btn) return;
+      const on = !!(currentWorld || currentSearch || currentCategory !== "All");
+      btn.style.display = on ? "inline-flex" : "none";
+    }
+
+    function filterWorld(name) {
+      clearSearchBox();
+      currentWorld = currentWorld === name ? "" : name;
+      currentCategory = "All";
+      visibleCount = PRODUCTS_PER_PAGE;
+      renderWorlds();
+      renderSubfilters();
+      renderSnNav();
+      renderProducts();
+      scrollToGrid();
+    }
+
+    function filterCategory(cat) {
+      clearSearchBox();
+      currentWorld = "";
       currentCategory = cat;
+      visibleCount = PRODUCTS_PER_PAGE;
       document.querySelectorAll(".cat-btn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.cat === cat);
       });
-      renderProducts();
+      renderWorlds();
+      renderSubfilters();
       renderSnNav();
+      renderProducts();
+    }
+
+    function resetFilters() {
+      clearSearchBox();
+      currentWorld = "";
+      currentCategory = "All";
+      visibleCount = PRODUCTS_PER_PAGE;
+      document.querySelectorAll(".cat-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.cat === "All");
+      });
+      renderWorlds();
+      renderSubfilters();
+      renderSnNav();
+      renderProducts();
+      scrollToGrid();
+    }
+
+    function loadMoreProducts() {
+      visibleCount += PRODUCTS_PER_PAGE;
+      renderProducts();
+    }
+
+    function renderSubfilters() {
+      const box = document.getElementById("world-subfilters");
+      if (!box) return;
+      if (!currentWorld) {
+        box.classList.remove("on");
+        box.innerHTML = "";
+        return;
+      }
+      const inWorld = products.filter(p => p.world === currentWorld);
+      const counts = {};
+      inWorld.forEach(p => { counts[p.category] = (counts[p.category] || 0) + 1; });
+      const chips = [["All", inWorld.length]].concat(Object.entries(counts).sort((a, b) => b[1] - a[1]));
+      box.innerHTML = chips.map(([cat, n]) =>
+        `<button class="wf-chip ${currentCategory === cat ? "active" : ""}" data-cat="${escHtml(cat)}">${escHtml(cat === "All" ? "All types" : cat)}<small>${n}</small></button>`
+      ).join("");
+      box.querySelectorAll(".wf-chip").forEach(b => {
+        b.onclick = () => {
+          currentCategory = b.dataset.cat;
+          visibleCount = PRODUCTS_PER_PAGE;
+          renderSubfilters();
+          renderProducts();
+        };
+      });
+      box.classList.add("on");
+    }
+
+    function filteredProducts() {
+      let list = products;
+      if (currentSearch) list = searchFilter(list);
+      if (currentWorld) list = list.filter(p => p.world === currentWorld);
+      if (currentCategory !== "All") list = list.filter(p => p.category === currentCategory);
+      return list;
+    }
+
+    function updateGridHead(filtered) {
+      const title = document.getElementById("grid-title");
+      const live = document.getElementById("grid-live");
+      if (currentSearch) title.textContent = `Search: “${currentSearch}”`;
+      else if (currentWorld && currentCategory !== "All") title.textContent = `${currentCategory} · ${currentWorld}`;
+      else if (currentWorld) title.textContent = `${currentWorld} Collection`;
+      else if (currentCategory !== "All") title.textContent = currentCategory;
+      else title.textContent = savedGridTitle;
+      if (live) live.textContent = `${filtered.length.toLocaleString("en-IN")} product${filtered.length === 1 ? "" : "s"}`;
+    }
+
+    function toggleLoadMore(total, shown) {
+      const wrap = document.getElementById("load-more-wrap");
+      const btn = document.getElementById("load-more-btn");
+      if (!wrap || !btn) return;
+      if (shown > 0 && shown < total) {
+        wrap.classList.add("on");
+        btn.textContent = `Load more · ${(total - shown).toLocaleString("en-IN")} remaining`;
+      } else {
+        wrap.classList.remove("on");
+      }
     }
 
     const catIcons = { "All": "🛍️", "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
@@ -2158,20 +2353,27 @@
     function renderProducts() {
       const grid = document.getElementById("product-grid");
       grid.innerHTML = "";
-      const filtered = currentSearch ? searchFilter(products) : (currentCategory === "All" ? products : products.filter(p => p.category === currentCategory));
+      const filtered = filteredProducts();
+      updateGridHead(filtered);
+      renderSubfilters();
+      updateClearButton();
 
-      // keep the sn-nav highlight on "NEW IN" cleared-out during a search
+      // keep the sn-nav highlight in sync with the active filters
       document.querySelectorAll("#sn-nav button").forEach(b => {
-        if (currentSearch) b.classList.remove("active");
-        else b.classList.toggle("active", b.textContent.trim().toUpperCase() === (currentCategory === "All" ? "NEW IN" : String(currentCategory).toUpperCase()));
+        b.classList.toggle("active", !currentSearch && !currentWorld && b.dataset.cat === currentCategory);
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column: 1/-1;">${currentSearch ? `Nothing found for “${currentSearch}” — try “katana”, “figure” or “gift”.` : "No products in this category yet."}</p>`;
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:1.6rem 0;">
+          <p>${currentSearch ? `Nothing found for “${escHtml(currentSearch)}” — try “katana”, “figure” or “gift”.` : "No products here yet."}</p>
+          <button class="load-more-btn grid-empty-reset" onclick="resetFilters()">Show all products</button>
+        </div>`;
+        toggleLoadMore(0, 0);
         return;
       }
 
-      filtered.forEach((p, i) => {
+      const shown = filtered.slice(0, visibleCount);
+      shown.forEach((p, i) => {
         const activePrice = activePriceFor(p);
         const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : Math.round(p.retailPrice * 1.18);
         const savePct = Math.max(0, Math.round((comparePrice - activePrice) / comparePrice * 100));
@@ -2180,7 +2382,7 @@
         card.style.animationDelay = (i % 8) * 0.06 + "s";
         card.innerHTML = `
           <div class="product-img-wrap">
-            <span class="product-tag">${p.category}</span>
+            <span class="product-tag">${p.packQty && p.singleOf ? "Pack of " + p.packQty : p.category}</span>
             ${p.badge ? `<span class="urgency-badge">${p.badge}</span>` : '<span style="position:absolute; top:12px; right:12px; font-size:0.95rem; filter:drop-shadow(0 0 6px rgba(255,183,3,0.6));">⭐</span>'}
             <button class="wish-btn ${wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id)) ? "active" : ""}" data-id="${p.id}" onclick="toggleWish('${p.id}', event)" aria-label="Add to wishlist">${wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id)) ? "♥" : "♡"}</button>
             <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
@@ -2208,6 +2410,7 @@
         };
         grid.appendChild(card);
       });
+      toggleLoadMore(filtered.length, shown.length);
     }
 
     // ---------- Storefront numbers + live order counter ----------
@@ -2522,7 +2725,14 @@
     function renderImageMarquee() {
       const track = document.getElementById("nova-track");
       if (!track) return;
-      const items = products.map(p => `
+      // sample a spread of the catalog instead of every product (keeps the page fast)
+      const pool = products.filter(p => typeof p.img === "string" && p.img.trim() && !p.singleOf);
+      const wanted = 22;
+      const step = Math.max(1, Math.floor(pool.length / wanted));
+      const picked = [];
+      for (let i = 0; i < pool.length && picked.length < wanted; i += step) picked.push(pool[i]);
+      if (!picked.length) picked.push(...products.slice(0, wanted));
+      const items = picked.map(p => `
         <div class="nova-item">
           <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
           <div class="n-name">${p.name}</div>

@@ -151,6 +151,13 @@
           <div><label>Wholesale Price (₹):</label><input type="number" id="new-wholesale-price" placeholder="e.g. 399"></div>
           <div><label>Category:</label><select id="new-category"></select></div>
         </div>
+        <div class="row2">
+          <div>
+            <label>Fan World (optional):</label>
+            <input type="text" id="new-world" list="world-options" placeholder="e.g. Naruto, Marvel, Harry Potter">
+            <datalist id="world-options"></datalist>
+          </div>
+        </div>
         <label>Main Image — Upload from Computer:</label>
         <input type="file" id="new-img-file" accept="image/*">
         <label>Main Image — Or Paste Image URL:</label>
@@ -168,6 +175,8 @@
       </div>
       <div class="card">
         <h3>Current Inventory</h3>
+        <input type="text" id="admin-product-search" placeholder="🔎 Search by name, world, category or ID…" oninput="onAdminSearch(this.value)">
+        <div id="admin-list-meta" class="sync-note" style="margin: 8px 0 10px;"></div>
         <div id="admin-product-list" style="max-height: 60vh; overflow-y: auto;"></div>
       </div>
     </div>
@@ -479,7 +488,12 @@ function json_(o) {
     }
 
     const adminCatIcons = { "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
-    const FAN_WORLDS = ["Demon Slayer", "One Piece", "Naruto", "Jujutsu Kaisen", "Attack on Titan", "Harry Potter"];
+    function fanWorlds() {
+      const counts = {};
+      products.forEach(p => { if (p.world) counts[p.world] = (counts[p.world] || 0) + 1; });
+      Object.keys(worldImages || {}).forEach(w => { if (!(w in counts)) counts[w] = 0; });
+      return Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(x => x[0]);
+    }
 
     async function sha256Hex(text) {
       const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -681,17 +695,43 @@ function json_(o) {
         opt.value = c; opt.textContent = c;
         sel.appendChild(opt);
       });
+      const dl = document.getElementById("world-options");
+      if (dl) {
+        dl.innerHTML = fanWorlds().map(w => `<option value="${escAdmin(w)}"></option>`).join("");
+      }
+    }
+
+    let adminQuery = "";
+    let adminLimit = 60;
+    const ADMIN_PAGE = 60;
+
+    function onAdminSearch(v) {
+      adminQuery = String(v || "").trim().toLowerCase();
+      adminLimit = ADMIN_PAGE;
+      renderAdminList();
     }
 
     function renderAdminList() {
       const list = document.getElementById("admin-product-list");
+      const meta = document.getElementById("admin-list-meta");
       list.innerHTML = "";
-      if (!products.length) { list.innerHTML = `<div class="list-item">No products yet — add your first one above.</div>`; return; }
-      products.forEach(p => {
+      if (!products.length) { list.innerHTML = `<div class="list-item">No products yet — add your first one above.</div>`; if (meta) meta.textContent = ""; return; }
+      let filtered = products;
+      if (adminQuery) {
+        filtered = products.filter(p =>
+          String(p.name || "").toLowerCase().includes(adminQuery) ||
+          String(p.world || "").toLowerCase().includes(adminQuery) ||
+          String(p.category || "").toLowerCase().includes(adminQuery) ||
+          String(p.id) === adminQuery ||
+          String(p.sourceHandle || "").toLowerCase().includes(adminQuery)
+        );
+      }
+      const shown = filtered.slice(0, adminLimit);
+      shown.forEach(p => {
         const item = document.createElement("div");
         item.className = "list-item";
         item.innerHTML = `
-          <span><b>${p.name}</b> [${p.category}] (R:₹${p.retailPrice} | W:₹${p.wholesalePrice})${(p.images && p.images.length) ? " 🖼" : ""}${(p.videos && p.videos.length) ? " 🎬" : ""}${p.description ? " 📝" : ""}</span>
+          <span><b>${escAdmin(p.name)}</b> [${escAdmin(p.category)}]${p.world ? " · 🌍 " + escAdmin(p.world) : ""}${p.packQty && p.singleOf ? " · 📦 Pack of " + p.packQty : ""} (R:₹${p.retailPrice} | W:₹${p.wholesalePrice})${(p.images && p.images.length) ? " 🖼" : ""}${(p.videos && p.videos.length) ? " 🎬" : ""}${p.description ? " 📝" : ""}</span>
           <div class="btns">
             <button class="mini" onclick="startEditProduct(${p.id})">Edit</button>
             <button class="mini danger" onclick="deleteProduct(${p.id})">Delete</button>
@@ -699,7 +739,24 @@ function json_(o) {
         `;
         list.appendChild(item);
       });
+      if (shown.length < filtered.length) {
+        const more = document.createElement("div");
+        more.className = "list-item";
+        more.style.justifyContent = "center";
+        more.innerHTML = `<button class="mini" onclick="adminLoadMore()">Show more (${(filtered.length - shown.length).toLocaleString("en-IN")} remaining)</button>`;
+        list.appendChild(more);
+      }
+      if (meta) {
+        meta.textContent = filtered.length === products.length
+          ? `Showing ${shown.length.toLocaleString("en-IN")} of ${products.length.toLocaleString("en-IN")} products`
+          : `${filtered.length.toLocaleString("en-IN")} match${filtered.length === 1 ? "" : "es"} · showing ${shown.length.toLocaleString("en-IN")}`;
+      }
       fillAdminReviewProducts();
+    }
+
+    function adminLoadMore() {
+      adminLimit += ADMIN_PAGE;
+      renderAdminList();
     }
 
     function startEditProduct(id) {
@@ -710,6 +767,7 @@ function json_(o) {
       document.getElementById("new-retail-price").value = p.retailPrice || p.price;
       document.getElementById("new-wholesale-price").value = p.wholesalePrice || p.price;
       document.getElementById("new-category").value = p.category;
+      document.getElementById("new-world").value = p.world || "";
       document.getElementById("new-img-url").value = (typeof p.img === "string" && p.img.startsWith("data:")) ? "" : p.img;
       document.getElementById("new-images").value = (p.images || []).join("\n");
       document.getElementById("new-videos").value = (p.videos || []).join("\n");
@@ -723,7 +781,7 @@ function json_(o) {
 
     function resetProductForm() {
       document.getElementById("edit-product-id").value = "";
-      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc"].forEach(id => document.getElementById(id).value = "");
+      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc", "new-world"].forEach(id => document.getElementById(id).value = "");
       document.getElementById("new-img-file").value = "";
       document.getElementById("form-title").textContent = "Add New Product";
       document.getElementById("save-product-btn").textContent = "+ Save Product";
@@ -775,7 +833,8 @@ function json_(o) {
       const extras = {
         description: document.getElementById("new-desc").value.trim(),
         images: parseList(document.getElementById("new-images").value),
-        videos: parseList(document.getElementById("new-videos").value)
+        videos: parseList(document.getElementById("new-videos").value),
+        world: document.getElementById("new-world").value.trim()
       };
       let defaultImg = existing ? existing.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80";
 
@@ -794,6 +853,7 @@ function json_(o) {
         const prev = products.find(p => p.id == editId) || {};
         const merged = {
           ...prev, name, retailPrice, wholesalePrice, category, img,
+          world: extras.world !== undefined ? extras.world : (prev.world || ""),
           description: extras.description !== undefined ? extras.description : (prev.description || ""),
           images: extras.images.length ? extras.images : (prev.images || []),
           videos: extras.videos.length ? extras.videos : (prev.videos || [])
@@ -801,7 +861,9 @@ function json_(o) {
         products = products.map(p => p.id == editId ? merged : p);
         alert("Product updated! Remember to Publish so every device sees it.");
       } else {
-        products.push({ id: Date.now(), name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos });
+        const fresh = { id: Date.now(), name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos };
+        if (extras.world) fresh.world = extras.world;
+        products.push(fresh);
         alert("Product added! Remember to Publish so every device sees it.");
       }
       if (wholesalePrice !== undefined && !isNaN(wholesalePrice)) { wholesalePrices[editId || products[products.length - 1].id] = wholesalePrice; }
@@ -896,7 +958,7 @@ function json_(o) {
       const box = document.getElementById("admin-image-rows");
       const rows = [];
       categories.filter(c => c !== "All").forEach(cat => rows.push(imageRowHTML("cat", cat, adminCatIcons[cat] || "⭐")));
-      FAN_WORLDS.forEach(w => rows.push(imageRowHTML("world", w, "🌍")));
+      fanWorlds().forEach(w => rows.push(imageRowHTML("world", w, "🌍")));
       box.innerHTML = rows.join("");
     }
 
@@ -905,7 +967,7 @@ function json_(o) {
       const st = document.getElementById("images-status");
       const targets = [];
       categories.filter(c => c !== "All").forEach(c => targets.push({ type: "cat", name: c }));
-      FAN_WORLDS.forEach(w => targets.push({ type: "world", name: w }));
+      fanWorlds().forEach(w => targets.push({ type: "world", name: w }));
 
       if (btn) { btn.disabled = true; btn.textContent = "💾 Saving…"; }
       let changed = 0, failed = 0;
