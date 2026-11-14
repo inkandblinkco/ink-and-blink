@@ -160,8 +160,11 @@
         </div>
         <label>Main Image — Upload from Computer:</label>
         <input type="file" id="new-img-file" accept="image/*">
+        <div class="sync-note" style="margin-top:0.35rem;">
+          An uploaded photo is shrunk to 700px and stored inside the catalog file. When you publish, the product's <b>previous</b> photo file is deleted from the repo automatically — unless another listing (such as its multi-pack) still uses it.
+        </div>
         <label>Main Image — Or Paste Image URL:</label>
-        <input type="text" id="new-img-url" placeholder="https://...">
+        <input type="text" id="new-img-url" placeholder="https://… or images/photo.webp">
         <label>Extra Photos (one link per line — product page gallery):</label>
         <textarea id="new-images" rows="2" placeholder="https://photo-2.jpg&#10;https://photo-3.jpg"></textarea>
         <label>Videos (YouTube / .mp4 links, one per line):</label>
@@ -204,6 +207,19 @@
         </div>
         <div id="admin-image-rows"></div>
         <p id="images-status" class="status-line"></p>
+      </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <h3>🧹 Replaced Product Photos</h3>
+        <div class="sync-note">
+          When you change a product's photo (or delete the product) and click <b>Publish</b>, the old photo file is deleted from the repository automatically.
+          A photo is only removed when <b>no other listing uses it</b> — multi-pack listings share the photo of their single version, so that is handled for you.
+          Use the button below to clean up right now without publishing anything else.
+        </div>
+        <div class="btn-row" style="margin-top:0; margin-bottom:0.5rem;">
+          <button class="btn grey" id="cleanup-images-btn" onclick="runImageCleanup(this)">🧹 Find &amp; delete unused photos</button>
+        </div>
+        <p id="cleanup-images-status" class="status-line"></p>
       </div>
     </div>
 
@@ -1084,6 +1100,120 @@ function json_(o) {
       if (!put.ok) throw new Error(filePath + ": " + (pj.message || ("HTTP " + put.status)));
     }
 
+    // ---------- Unused photo cleanup ----------
+    // When a product's photo is replaced (or the product removed) and you publish,
+    // the old file in images/ is deleted from GitHub — but only if no other listing
+    // still uses it (multi-pack listings share the photo of their single version).
+    const GH_API = "https://api.github.com/repos/inkandblinkco/ink-and-blink";
+    const IMG_PATH_RE = /^images\/[^/?#]+\.(webp|jpg|jpeg|png|avif|gif)$/i;
+
+    function ghHeaders(token) {
+      const h = { "Accept": "application/vnd.github+json" };
+      if (token) h.Authorization = "Bearer " + token;
+      return h;
+    }
+
+    function collectImageRefs(cat) {
+      const refs = new Set();
+      const add = (v) => {
+        if (typeof v !== "string") return;
+        const s = v.trim();
+        if (IMG_PATH_RE.test(s)) refs.add(s);
+      };
+      (cat.products || []).forEach(p => {
+        if (!p) return;
+        add(p.img);
+        (Array.isArray(p.images) ? p.images : []).forEach(add);
+      });
+      Object.values(cat.categoryImages || {}).forEach(add);
+      Object.values(cat.worldImages || {}).forEach(add);
+      return refs;
+    }
+
+    // Read the catalog that is live on GitHub right now (blob API = never cached).
+    async function getRepoCatalog(token) {
+      const refRes = await fetch(GH_API + "/git/ref/heads/main", { headers: ghHeaders(token), cache: "no-store" });
+      if (!refRes.ok) throw new Error("GitHub replied " + refRes.status + " reading the branch.");
+      const commitSha = (await refRes.json()).object.sha;
+      const commit = await (await fetch(GH_API + "/git/commits/" + commitSha, { headers: ghHeaders(token), cache: "no-store" })).json();
+      const tree = await (await fetch(GH_API + "/git/trees/" + commit.tree.sha, { headers: ghHeaders(token), cache: "no-store" })).json();
+      const entry = (tree.tree || []).find(x => x.path === GH_STORE_FILE);
+      if (!entry) return null;
+      const blob = await (await fetch(GH_API + "/git/blobs/" + entry.sha, { headers: ghHeaders(token), cache: "no-store" })).json();
+      if (!blob.content) throw new Error("GitHub did not return the catalog file.");
+      const bytes = Uint8Array.from(atob(blob.content.replace(/\s/g, "")), c => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder("utf-8").decode(bytes));
+    }
+
+    async function planImageCleanup(token) {
+      const old = await getRepoCatalog(token);
+      if (!old) return { orphans: [], oldCount: 0, newCount: products.length };
+      const oldRefs = collectImageRefs(old);
+      const newRefs = collectImageRefs({ products, categoryImages, worldImages });
+      const oldCount = Array.isArray(old.products) ? old.products.length : 0;
+      // Safety: never clean up from a half-loaded dashboard.
+      if (oldCount > 50 && products.length < oldCount * 0.5) {
+        return { orphans: [], oldCount, newCount: products.length, error: "Only " + products.length + " of " + oldCount + " products are loaded here — reload the dashboard before cleaning up." };
+      }
+      const orphans = [...oldRefs].filter(p => !newRefs.has(p)).sort();
+      return { orphans, oldCount, newCount: products.length };
+    }
+
+    // Removes every path in one commit (git tree API), so it is all-or-nothing.
+    async function deleteImagesBatch(paths, token) {
+      if (!paths.length) return null;
+      const auth = { ...ghHeaders(token), "Content-Type": "application/json" };
+      const refRes = await fetch(GH_API + "/git/ref/heads/main", { headers: auth, cache: "no-store" });
+      if (!refRes.ok) throw new Error("Cannot read branch (" + refRes.status + ").");
+      const commitSha = (await refRes.json()).object.sha;
+      const commit = await (await fetch(GH_API + "/git/commits/" + commitSha, { headers: auth, cache: "no-store" })).json();
+      const treeRes = await fetch(GH_API + "/git/trees", {
+        method: "POST", headers: auth,
+        body: JSON.stringify({
+          base_tree: commit.tree.sha,
+          tree: paths.map(p => ({ path: p, mode: "100644", type: "blob", sha: null }))
+        })
+      });
+      if (!treeRes.ok) throw new Error("Cannot prepare cleanup (" + treeRes.status + ").");
+      const newTree = await treeRes.json();
+      const cRes = await fetch(GH_API + "/git/commits", {
+        method: "POST", headers: auth,
+        body: JSON.stringify({ message: "Remove " + paths.length + " unused product photo(s)", tree: newTree.sha, parents: [commitSha] })
+      });
+      if (!cRes.ok) throw new Error("Cannot create cleanup commit (" + cRes.status + ").");
+      const newCommit = await cRes.json();
+      const pRes = await fetch(GH_API + "/git/refs/heads/main", {
+        method: "PATCH", headers: auth,
+        body: JSON.stringify({ sha: newCommit.sha })
+      });
+      if (!pRes.ok) throw new Error("Cannot update branch (" + pRes.status + ").");
+      return newCommit.sha;
+    }
+
+    async function runImageCleanup(btn) {
+      const st = document.getElementById("cleanup-images-status");
+      const token = localStorage.getItem("ink_gh_token");
+      if (btn) { btn.disabled = true; btn.textContent = "🔍 Scanning…"; }
+      try {
+        const plan = await planImageCleanup(token);
+        if (plan.error) { st.textContent = "⚠️ " + plan.error; return; }
+        if (!plan.orphans.length) {
+          st.textContent = "✅ Nothing to delete — all " + (plan.oldCount || 0).toLocaleString("en-IN") + " listings' photos are in use.";
+          return;
+        }
+        if (!token) { st.textContent = "⚠️ " + plan.orphans.length + " unused photo(s) found. Add your GitHub token in the ☁️ Publish tab to delete them."; return; }
+        const preview = plan.orphans.slice(0, 8).map(p => "• " + p.replace("images/", "")).join("\n");
+        if (!confirm(plan.orphans.length + " unused photo(s) found:\n\n" + preview + (plan.orphans.length > 8 ? "\n…" : "") + "\n\nDelete them from the repository?")) return;
+        st.textContent = "🧹 Deleting " + plan.orphans.length + " photo(s)…";
+        await deleteImagesBatch(plan.orphans.slice(0, 200), token);
+        st.textContent = "✅ Deleted " + Math.min(200, plan.orphans.length) + " unused photo(s). Live site updates in ~1 minute.";
+      } catch (e) {
+        st.textContent = "❌ " + e.message;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "🧹 Find & delete unused photos"; }
+      }
+    }
+
     async function publishStore() {
       const status = document.getElementById("publish-status");
       const btn = document.getElementById("publish-btn");
@@ -1092,6 +1222,12 @@ function json_(o) {
       btn.disabled = true;
       const quick = document.getElementById("quick-publish-btn");
       if (quick) quick.disabled = true;
+
+      // Find photos that will become unused BEFORE the catalog is overwritten.
+      let cleanupPlan = null;
+      status.textContent = "🔍 Checking for replaced photos…";
+      try { cleanupPlan = await planImageCleanup(token); } catch (e) { cleanupPlan = null; }
+
       status.textContent = "☁️ Uploading retail catalog…";
       try {
         const retailCatalog = {
@@ -1118,12 +1254,24 @@ function json_(o) {
         try { localStorage.setItem("ink_wholesale", JSON.stringify(wholesaleMap)); } catch (e) {}
         await putCatalogFile(undefined, GH_WHOLESALE_FILE, { exportedAt: new Date().toISOString(), wholesale: wholesaleMap }, "Update wholesale price list", token);
 
+        // Delete replaced photos that no listing uses any more (single + pack safe).
+        let cleanupNote = "";
+        if (cleanupPlan && cleanupPlan.orphans.length) {
+          status.textContent = "🧹 Removing " + cleanupPlan.orphans.length + " replaced photo(s)…";
+          try {
+            await deleteImagesBatch(cleanupPlan.orphans.slice(0, 200), token);
+            cleanupNote = " 🧹 Removed " + Math.min(200, cleanupPlan.orphans.length) + " replaced photo(s).";
+          } catch (e) {
+            cleanupNote = " ⚠️ Photo cleanup skipped: " + e.message;
+          }
+        }
+
         const now = Date.now();
         localStorage.setItem("ink_last_publish", new Date(now).toISOString());
         localStorage.setItem("ink_admin_last_edit", String(now)); // staged == published now
         try { localStorage.setItem("ink_gh_last_publish_at", String(now)); } catch (e) {}
         initStagedFlag();
-        status.textContent = "🎉 Published! Every visitor sees this within ~1 minute.";
+        status.textContent = "🎉 Published! Every visitor sees this within ~1 minute." + cleanupNote;
         btn.disabled = false;
         if (quick) quick.disabled = false;
         return true;
