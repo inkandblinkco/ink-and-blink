@@ -319,6 +319,24 @@
     .anime-card > .w-name { font-weight: 800; font-size: 0.79rem; color: #fff; text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); line-height: 1.22; }
     .anime-card .w-count { position: absolute; top: 4px; right: 5px; font-size: 0.55rem; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.42); border-radius: 20px; padding: 1px 5px; backdrop-filter: blur(3px); }
     .anime-card .w-arrow { display: none; }
+    .worlds-more-wrap { display: none; justify-content: center; margin-top: 12px; }
+    .worlds-more-wrap.on { display: flex; }
+    .worlds-more-btn { display: inline-flex; align-items: center; gap: 7px; border: 1px dashed #cfcfd8; background: #fff; color: #43434d; font-weight: 800; font-size: 0.8rem; padding: 9px 20px; border-radius: 30px; cursor: pointer; font-family: inherit; transition: all 0.18s; }
+    .worlds-more-btn:hover { border-color: var(--purple-glow); color: var(--purple-glow); }
+    .worlds-more-btn .chev { font-size: 0.68rem; transition: transform 0.2s; }
+    .worlds-more-btn.open .chev { transform: rotate(180deg); }
+    .worlds-all-panel { display: none; margin-top: 12px; padding: 14px; border: 1px solid #ececf2; border-radius: 16px; background: #fbfbfd; }
+    .worlds-all-panel.on { display: block; }
+    .worlds-search { width: 100%; border: 1px solid #dcdce4; border-radius: 30px; padding: 10px 16px; font-family: inherit; font-size: 0.84rem; font-weight: 600; color: #17171d; background: #fff; margin-bottom: 12px; box-sizing: border-box; }
+    .worlds-search:focus { outline: none; border-color: var(--purple-glow); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12); }
+    .world-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 7px; }
+    .world-chip { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #e3e3ea; background: #fff; color: #2b2b33; font-weight: 700; font-size: 0.76rem; padding: 8px 11px; border-radius: 10px; cursor: pointer; font-family: inherit; text-align: left; transition: all 0.15s; min-width: 0; }
+    .world-chip:hover { border-color: var(--purple-glow); color: var(--purple-glow); }
+    .world-chip.active { background: var(--purple-glow); border-color: var(--purple-glow); color: #fff; }
+    .world-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .world-chip small { color: #8b8b96; font-weight: 800; font-size: 0.68rem; flex-shrink: 0; }
+    .world-chip.active small { color: rgba(255, 255, 255, 0.85); }
+    .worlds-empty { display: none; margin: 8px 2px 0; font-size: 0.8rem; color: var(--muted); }
     .world-subfilters { display: none; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid #ececef; }
     .world-subfilters.on { display: flex; }
     .wf-chip { border: 1px solid #e0e0e7; background: #fff; color: #43434d; font-size: 0.78rem; font-weight: 700; padding: 7px 13px; border-radius: 30px; cursor: pointer; transition: all 0.18s; }
@@ -423,6 +441,8 @@
       .anime-strip::-webkit-scrollbar { display: none; }
       .anime-card { flex: none; min-width: 140px; min-height: 72px; }
       .anime-card .w-arrow { display: none; }
+      .worlds-all-panel { padding: 11px; }
+      .world-chips { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); max-height: 46vh; overflow-y: auto; padding-right: 2px; }
       .rev-slide { flex: 0 0 100%; padding: 0; }
       .rev-nav.prev { left: 2px; }
       .rev-nav.next { right: 2px; }
@@ -1110,6 +1130,14 @@
         <button class="worlds-clear" id="worlds-clear" onclick="resetFilters()">✕ Clear filters</button>
       </div>
       <div class="anime-strip" id="anime-strip"></div>
+      <div class="worlds-more-wrap" id="worlds-more-wrap">
+        <button class="worlds-more-btn" id="worlds-more-btn" type="button" aria-expanded="false" aria-controls="worlds-all-panel" onclick="toggleWorldsPanel()">Show all fan worlds <span class="chev">▾</span></button>
+      </div>
+      <div class="worlds-all-panel" id="worlds-all-panel">
+        <input class="worlds-search" id="worlds-search" type="search" placeholder="Search fan worlds — e.g. Naruto, Demon Slayer…" oninput="onWorldSearchInput()" aria-label="Search fan worlds">
+        <div class="world-chips" id="world-chips"></div>
+        <p class="worlds-empty" id="worlds-empty">No fan world matches that name.</p>
+      </div>
       <div class="world-subfilters" id="world-subfilters"></div>
     </section>
 
@@ -1419,11 +1447,20 @@
       return Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     }
 
+    let worldsPanelOpen = false;
+    const WORLDS_PINNED = 18;
+
     function renderWorlds() {
       const strip = document.getElementById("anime-strip");
       if (!strip) return;
+      const list = worldList();
+      let top = list.slice(0, WORLDS_PINNED);
+      if (currentWorld && !top.some(([n]) => n === currentWorld)) {
+        const picked = list.find(([n]) => n === currentWorld);
+        if (picked) top = [picked, ...top];
+      }
       strip.innerHTML = "";
-      worldList().forEach(([name, count]) => {
+      top.forEach(([name, count]) => {
         const card = document.createElement("button");
         card.type = "button";
         card.className = "anime-card" + (currentWorld === name ? " active" : "");
@@ -1436,7 +1473,64 @@
         card.onclick = () => filterWorld(name);
         strip.appendChild(card);
       });
+      renderWorldChips(list);
+      applyWorldsPanelState(list.length);
       updateClearButton();
+    }
+
+    function applyWorldsPanelState(totalWorlds) {
+      const panel = document.getElementById("worlds-all-panel");
+      const moreWrap = document.getElementById("worlds-more-wrap");
+      const btn = document.getElementById("worlds-more-btn");
+      const total = totalWorlds || worldList().length;
+      if (!panel || !moreWrap || !btn) return;
+      const hasMore = total > WORLDS_PINNED;
+      moreWrap.classList.toggle("on", hasMore);
+      panel.classList.toggle("on", hasMore && worldsPanelOpen);
+      btn.classList.toggle("open", worldsPanelOpen);
+      btn.setAttribute("aria-expanded", worldsPanelOpen ? "true" : "false");
+      btn.innerHTML = (worldsPanelOpen ? "Hide fan world list" : `Show all ${total} fan worlds`) + ' <span class="chev">▾</span>';
+    }
+
+    function renderWorldChips(list) {
+      const box = document.getElementById("world-chips");
+      if (!box) return;
+      const q = (document.getElementById("worlds-search")?.value || "").trim().toLowerCase();
+      const worlds = (list || worldList()).filter(([n]) => !q || n.toLowerCase().includes(q));
+      box.innerHTML = "";
+      worlds.forEach(([name, count]) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "world-chip" + (currentWorld === name ? " active" : "");
+        chip.setAttribute("aria-pressed", currentWorld === name ? "true" : "false");
+        const label = document.createElement("span");
+        label.textContent = name;
+        const num = document.createElement("small");
+        num.textContent = count;
+        chip.append(label, num);
+        chip.onclick = () => selectWorldFromPanel(name);
+        box.appendChild(chip);
+      });
+      const empty = document.getElementById("worlds-empty");
+      if (empty) empty.style.display = worlds.length ? "none" : "block";
+    }
+
+    function onWorldSearchInput() {
+      renderWorldChips();
+    }
+
+    function toggleWorldsPanel() {
+      worldsPanelOpen = !worldsPanelOpen;
+      applyWorldsPanelState();
+      if (worldsPanelOpen) {
+        const search = document.getElementById("worlds-search");
+        if (search && window.innerWidth > 600) setTimeout(() => search.focus(), 60);
+      }
+    }
+
+    function selectWorldFromPanel(name) {
+      worldsPanelOpen = false;
+      filterWorld(name);
     }
 
     function activePriceFor(p) {
@@ -2228,6 +2322,7 @@
 
     function filterWorld(name) {
       clearSearchBox();
+      worldsPanelOpen = false;
       currentWorld = currentWorld === name ? "" : name;
       currentCategory = "All";
       currentPage = 1;
