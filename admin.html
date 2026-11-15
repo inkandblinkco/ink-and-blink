@@ -56,6 +56,10 @@
     .row2 { display: flex; gap: 10px; flex-wrap: wrap; }
     .row2 > div { flex: 1; min-width: 150px; }
 
+    /* Products tab: form left, inventory right */
+    .two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+    .two-col > .card { margin-bottom: 0; }
+
     .btn { background: var(--purple); color: #fff; border: none; border-radius: 8px; padding: 0.65rem 1.1rem; font-weight: 700; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
     .btn:hover { background: #4a22ae; }
     .btn.grey { background: #43434d; }
@@ -94,6 +98,10 @@
     .code-box { background: #17171d; color: #eaeaf2; border-radius: 10px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 0.72rem; line-height: 1.55; overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-word; margin-top: 10px; }
     details summary { cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 4px; }
 
+    @media (max-width: 1100px) {
+      .two-col { grid-template-columns: 1fr; gap: 0; }
+      .two-col > .card { margin-bottom: 1.2rem; }
+    }
     @media (max-width: 700px) {
       .img-row-label { min-width: 100%; }
       .stat-preview { gap: 14px; }
@@ -142,6 +150,7 @@
 
     <!-- PRODUCTS -->
     <div id="tab-products" class="tab-page active">
+      <div class="two-col">
       <div class="card">
         <h3 id="form-title">Add New Product</h3>
         <input type="hidden" id="edit-product-id">
@@ -149,14 +158,10 @@
         <div class="row2">
           <div><label>Retail Price (₹):</label><input type="number" id="new-retail-price" placeholder="e.g. 599"></div>
           <div><label>Wholesale Price (₹):</label><input type="number" id="new-wholesale-price" placeholder="e.g. 399"></div>
-          <div><label>Category:</label><select id="new-category"></select></div>
         </div>
         <div class="row2">
-          <div>
-            <label>Fan World (optional):</label>
-            <input type="text" id="new-world" list="world-options" placeholder="e.g. Naruto, Marvel, Harry Potter">
-            <datalist id="world-options"></datalist>
-          </div>
+          <div><label>Category:</label><select id="new-category"></select></div>
+          <div><label>Fan World (optional):</label><select id="new-world" onchange="onWorldSelectChange()"></select></div>
         </div>
         <label>Main Image — Upload from Computer:</label>
         <input type="file" id="new-img-file" accept="image/*">
@@ -181,7 +186,8 @@
         <h3>Current Inventory</h3>
         <input type="text" id="admin-product-search" placeholder="🔎 Search by name, world, category or ID…" oninput="onAdminSearch(this.value)">
         <div id="admin-list-meta" class="sync-note" style="margin: 8px 0 10px;"></div>
-        <div id="admin-product-list" style="max-height: 60vh; overflow-y: auto;"></div>
+        <div id="admin-product-list" style="max-height: 70vh; overflow-y: auto;"></div>
+      </div>
       </div>
     </div>
 
@@ -194,7 +200,9 @@
         <div class="btn-row"><button class="btn" onclick="addNewCategory()">+ Create Category</button></div>
       </div>
       <div class="card">
-        <div id="admin-category-list" style="max-height: 420px; overflow-y: auto;"></div>
+        <h3>All Categories</h3>
+        <input type="text" id="admin-cat-search" placeholder="🔎 Search categories…" oninput="renderAdminCategoryList(this.value)">
+        <div id="admin-category-list" style="max-height: 70vh; overflow-y: auto; margin-top: 10px;"></div>
       </div>
     </div>
 
@@ -206,6 +214,8 @@
         <div class="btn-row" style="margin-top:0; margin-bottom:1rem;">
           <button class="btn" id="save-all-images-btn" onclick="saveAllImages(this)">💾 Save All Images</button>
         </div>
+        <input type="text" id="admin-image-search" placeholder="🔎 Search categories and fan worlds…" oninput="filterAdminImageRows(this.value)" style="margin-bottom: 6px;">
+        <p id="images-filter-status" class="status-line" style="margin-top: 0;"></p>
         <div id="admin-image-rows"></div>
         <p id="images-status" class="status-line"></p>
       </div>
@@ -706,18 +716,57 @@ function json_(o) {
     }
 
     // ---------- Products ----------
+    let pendingWorlds = [];
+
+    function formWorldNames() {
+      return Array.from(new Set(fanWorlds().concat(pendingWorlds).filter(Boolean)));
+    }
+
     function renderFormCategories() {
       const sel = document.getElementById("new-category");
+      const previous = sel.value;
       sel.innerHTML = "";
       categories.filter(c => c !== "All").forEach(c => {
         const opt = document.createElement("option");
         opt.value = c; opt.textContent = c;
         sel.appendChild(opt);
       });
-      const dl = document.getElementById("world-options");
-      if (dl) {
-        dl.innerHTML = fanWorlds().map(w => `<option value="${escAdmin(w)}"></option>`).join("");
-      }
+      if (previous && categories.includes(previous)) sel.value = previous;
+
+      renderFormWorlds();
+    }
+
+    function renderFormWorlds() {
+      const sel = document.getElementById("new-world");
+      if (!sel) return;
+      const previous = sel.value;
+      const worlds = formWorldNames();
+      sel.innerHTML = `<option value="">— No fan world —</option>` +
+        worlds.map(w => `<option value="${escAdmin(w)}">${escAdmin(w)}</option>`).join("") +
+        `<option value="__new__">➕ New fan world…</option>`;
+      if (previous && previous !== "__new__" && worlds.includes(previous)) sel.value = previous;
+    }
+
+    function setWorldSelect(world) {
+      const sel = document.getElementById("new-world");
+      if (!sel) return;
+      const w = String(world || "");
+      if (w && !formWorldNames().includes(w)) pendingWorlds.push(w);
+      renderFormWorlds();
+      sel.value = w;
+    }
+
+    function onWorldSelectChange() {
+      const sel = document.getElementById("new-world");
+      if (!sel || sel.value !== "__new__") return;
+      const entered = prompt("New fan world name (for example: Naruto, Marvel, Harry Potter):");
+      const clean = String(entered || "").trim();
+      if (!clean) { sel.value = ""; return; }
+      const existing = formWorldNames().find(w => w.toLowerCase() === clean.toLowerCase());
+      const world = existing || clean;
+      if (!existing) pendingWorlds.push(world);
+      renderFormWorlds();
+      sel.value = world;
     }
 
     let adminQuery = "";
@@ -786,7 +835,7 @@ function json_(o) {
       document.getElementById("new-retail-price").value = p.retailPrice || p.price;
       document.getElementById("new-wholesale-price").value = p.wholesalePrice || p.price;
       document.getElementById("new-category").value = p.category;
-      document.getElementById("new-world").value = p.world || "";
+      setWorldSelect(p.world || "");
       document.getElementById("new-img-url").value = (typeof p.img === "string" && p.img.startsWith("data:")) ? "" : p.img;
       document.getElementById("new-images").value = (p.images || []).join("\n");
       document.getElementById("new-videos").value = (p.videos || []).join("\n");
@@ -800,7 +849,8 @@ function json_(o) {
 
     function resetProductForm() {
       document.getElementById("edit-product-id").value = "";
-      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc", "new-world"].forEach(id => document.getElementById(id).value = "");
+      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc"].forEach(id => document.getElementById(id).value = "");
+      setWorldSelect("");
       document.getElementById("new-img-file").value = "";
       document.getElementById("form-title").textContent = "Add New Product";
       document.getElementById("save-product-btn").textContent = "+ Save Product";
@@ -910,11 +960,12 @@ function json_(o) {
 
       const existing = editId ? products.find(p => p.id == editId) : null;
       const parseList = v => v.split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      const worldValue = document.getElementById("new-world").value;
       const extras = {
         description: document.getElementById("new-desc").value.trim(),
         images: parseList(document.getElementById("new-images").value),
         videos: parseList(document.getElementById("new-videos").value),
-        world: document.getElementById("new-world").value.trim()
+        world: worldValue === "__new__" ? "" : worldValue.trim()
       };
       let defaultImg = existing ? existing.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80";
 
@@ -993,19 +1044,30 @@ function json_(o) {
       categories.push(newCat);
       markStaged();
       document.getElementById("new-cat-name").value = "";
+      const catSearch = document.getElementById("admin-cat-search");
+      if (catSearch) catSearch.value = "";
       renderFormCategories();
       renderAdminCategoryList();
       renderAdminImageRows();
     }
 
-    function renderAdminCategoryList() {
+    function renderAdminCategoryList(query) {
       const list = document.getElementById("admin-category-list");
+      const input = document.getElementById("admin-cat-search");
+      if (query === undefined) query = input ? input.value : "";
+      const q = String(query || "").trim().toLowerCase();
+      const allCats = categories.filter(c => c !== "All");
+      const shownCats = q ? allCats.filter(c => c.toLowerCase().includes(q)) : allCats;
       list.innerHTML = "";
-      categories.filter(c => c !== "All").forEach(cat => {
+      if (!shownCats.length) {
+        list.innerHTML = `<div class="list-item">${allCats.length ? "No category matches “" + escAdmin(q) + "”." : "No categories yet — create one above."}</div>`;
+        return;
+      }
+      shownCats.forEach(cat => {
         const item = document.createElement("div");
         item.className = "list-item";
         item.innerHTML = `
-          <span><b>${cat}</b> · ${products.filter(p => p.category === cat).length} product(s)</span>
+          <span><b>${escAdmin(cat)}</b> · ${products.filter(p => p.category === cat).length} product(s)</span>
           <div class="btns">
             <button class="mini" onclick="editCategory('${cat}')">Rename</button>
             <button class="mini danger" onclick="deleteCategory('${cat}')">Delete</button>
@@ -1057,12 +1119,28 @@ function json_(o) {
         </div>`;
     }
 
+    function filterAdminImageRows(value) {
+      const q = String(value || "").trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll("#admin-image-rows .img-row").forEach(row => {
+        const labelNode = row.querySelector(".img-row-label");
+        const label = labelNode ? labelNode.textContent.toLowerCase() : "";
+        const show = !q || label.includes(q);
+        row.style.display = show ? "" : "none";
+        if (show) visible++;
+      });
+      const status = document.getElementById("images-filter-status");
+      if (status) status.textContent = q ? `${visible} row(s) match “${value.trim()}”.` : "";
+    }
+
     function renderAdminImageRows() {
       const box = document.getElementById("admin-image-rows");
       const rows = [];
       categories.filter(c => c !== "All").forEach(cat => rows.push(imageRowHTML("cat", cat, adminCatIcons[cat] || "⭐")));
       fanWorlds().forEach(w => rows.push(imageRowHTML("world", w, "🌍")));
       box.innerHTML = rows.join("");
+      const search = document.getElementById("admin-image-search");
+      filterAdminImageRows(search ? search.value : "");
     }
 
     // One button saves every row at once: picked photo wins over pasted link
