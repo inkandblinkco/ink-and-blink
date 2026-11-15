@@ -330,6 +330,15 @@
     .load-more-wrap.on { display: flex; }
     .load-more-btn { border: 1px solid #d9d9e0; background: #fff; color: #17171d; font-weight: 800; font-size: 0.88rem; padding: 13px 28px; border-radius: 40px; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 22px rgba(20, 20, 40, 0.06); }
     .load-more-btn:hover { border-color: var(--purple-glow); color: var(--purple-glow); transform: translateY(-2px); }
+    .pagination { display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 2.2rem; }
+    .pagination.on { display: flex; }
+    .page-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; }
+    .page-btn { min-width: 40px; padding: 9px 12px; border-radius: 10px; border: 1px solid #d9d9e0; background: #fff; color: #17171d; font-weight: 800; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.18s; }
+    .page-btn:hover:not(:disabled) { border-color: var(--purple-glow); color: var(--purple-glow); transform: translateY(-1px); }
+    .page-btn.active { background: var(--purple-glow); border-color: var(--purple-glow); color: #fff; }
+    .page-btn:disabled { opacity: 0.38; cursor: default; }
+    .page-gap { padding: 0 3px; color: var(--muted); font-weight: 800; }
+    .page-meta { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
     .grid-empty-reset { display: inline-flex; margin-top: 12px; }
 
     /* Trust icons: purple glow passes through from base stylesheet */
@@ -1113,9 +1122,7 @@
         </div>
       </div>
       <div class="product-grid" id="product-grid"></div>
-      <div class="load-more-wrap" id="load-more-wrap">
-        <button class="load-more-btn" id="load-more-btn" onclick="loadMoreProducts()">Load more products</button>
-      </div>
+      <div class="pagination" id="pagination"></div>
     </div>
 
     <div class="trust-strip">
@@ -1344,8 +1351,8 @@
     let currentMode = "Retail";
     let currentCategory = "All";
     let currentWorld = "";
-    let visibleCount = 36;
-    const PRODUCTS_PER_PAGE = 36;
+    let currentPage = 1;
+    const PRODUCTS_PER_PAGE = 40;
     let customerInfo = JSON.parse(localStorage.getItem("ink_customer")) || null;
     let wholesalePrices = {}; // id -> wholesale price; only populated after wholesale unlock
     // Images for category circles & fan-world cards (published inside store-data.json)
@@ -1924,7 +1931,7 @@
       if (currentSearch) {
         currentWorld = "";
         currentCategory = "All";
-        visibleCount = PRODUCTS_PER_PAGE;
+        currentPage = 1;
         renderWorlds();
         renderSubfilters();
         renderSnNav();
@@ -1941,7 +1948,7 @@
       const si = document.getElementById("search-input");
       if (si) si.value = "";
       document.getElementById("search-clear").style.display = "none";
-      visibleCount = PRODUCTS_PER_PAGE;
+      currentPage = 1;
       renderProducts();
     }
 
@@ -2183,7 +2190,7 @@
       const gridTitle = document.getElementById("grid-title");
       savedGridTitle = mode === "Wholesale" ? "Wholesale Catalog 💼" : "Trending This Week 🔥";
       if (gridTitle) gridTitle.textContent = savedGridTitle;
-      visibleCount = PRODUCTS_PER_PAGE;
+      currentPage = 1;
 
       // legacy hero elements (older layout) — guarded so mode switch never breaks
       const title = document.getElementById("hero-title");
@@ -2223,7 +2230,7 @@
       clearSearchBox();
       currentWorld = currentWorld === name ? "" : name;
       currentCategory = "All";
-      visibleCount = PRODUCTS_PER_PAGE;
+      currentPage = 1;
       renderWorlds();
       renderSubfilters();
       renderSnNav();
@@ -2235,7 +2242,7 @@
       clearSearchBox();
       currentWorld = "";
       currentCategory = cat;
-      visibleCount = PRODUCTS_PER_PAGE;
+      currentPage = 1;
       document.querySelectorAll(".cat-btn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.cat === cat);
       });
@@ -2249,7 +2256,7 @@
       clearSearchBox();
       currentWorld = "";
       currentCategory = "All";
-      visibleCount = PRODUCTS_PER_PAGE;
+      currentPage = 1;
       document.querySelectorAll(".cat-btn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.cat === "All");
       });
@@ -2260,9 +2267,30 @@
       scrollToGrid();
     }
 
-    function loadMoreProducts() {
-      visibleCount += PRODUCTS_PER_PAGE;
+    function pageWindow(cur, total) {
+      if (total <= 7) {
+        const all = [];
+        for (let i = 1; i <= total; i++) all.push(i);
+        return all;
+      }
+      const keep = new Set([1, total]);
+      for (let n = cur - 2; n <= cur + 2; n++) if (n > 1 && n < total) keep.add(n);
+      const nums = [...keep].sort((a, b) => a - b);
+      const out = [];
+      nums.forEach((n, i) => {
+        if (i && n - nums[i - 1] > 1) out.push("...");
+        out.push(n);
+      });
+      return out;
+    }
+
+    function goToPage(n) {
+      const totalPages = Math.max(1, Math.ceil(filteredProducts().length / PRODUCTS_PER_PAGE));
+      const page = Math.min(Math.max(1, parseInt(n, 10) || 1), totalPages);
+      if (page === currentPage) return;
+      currentPage = page;
       renderProducts();
+      scrollToGrid();
     }
 
     function renderSubfilters() {
@@ -2283,7 +2311,7 @@
       box.querySelectorAll(".wf-chip").forEach(b => {
         b.onclick = () => {
           currentCategory = b.dataset.cat;
-          visibleCount = PRODUCTS_PER_PAGE;
+          currentPage = 1;
           renderSubfilters();
           renderProducts();
         };
@@ -2310,16 +2338,24 @@
       if (live) live.textContent = `${filtered.length.toLocaleString("en-IN")} product${filtered.length === 1 ? "" : "s"}`;
     }
 
-    function toggleLoadMore(total, shown) {
-      const wrap = document.getElementById("load-more-wrap");
-      const btn = document.getElementById("load-more-btn");
-      if (!wrap || !btn) return;
-      if (shown > 0 && shown < total) {
-        wrap.classList.add("on");
-        btn.textContent = `Load more · ${(total - shown).toLocaleString("en-IN")} remaining`;
-      } else {
+    function renderPagination(total, totalPages) {
+      const wrap = document.getElementById("pagination");
+      if (!wrap) return;
+      if (!total || totalPages <= 1) {
         wrap.classList.remove("on");
+        wrap.innerHTML = "";
+        return;
       }
+      const parts = [];
+      parts.push(`<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? "disabled" : ""} aria-label="Previous page">‹ Prev</button>`);
+      pageWindow(currentPage, totalPages).forEach(n => {
+        if (n === "...") { parts.push('<span class="page-gap">…</span>'); return; }
+        parts.push(`<button class="page-btn ${n === currentPage ? "active" : ""}" onclick="goToPage(${n})" aria-label="Page ${n}"${n === currentPage ? ' aria-current="page"' : ""}>${n}</button>`);
+      });
+      parts.push(`<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? "disabled" : ""} aria-label="Next page">Next ›</button>`);
+      wrap.innerHTML = `<div class="page-row">${parts.join("")}</div>
+        <div class="page-meta">Page ${currentPage} of ${totalPages} · ${total.toLocaleString("en-IN")} products · ${PRODUCTS_PER_PAGE} per page</div>`;
+      wrap.classList.add("on");
     }
 
     const catIcons = { "All": "🛍️", "Katanas": "🗡️", "Anime Figures": "🧸", "Wands": "🪄", "Cosplay": "🎭", "Keychains": "🔑", "Gifts & Stationery": "🎁" };
@@ -2368,11 +2404,15 @@
           <p>${currentSearch ? `Nothing found for “${escHtml(currentSearch)}” — try “katana”, “figure” or “gift”.` : "No products here yet."}</p>
           <button class="load-more-btn grid-empty-reset" onclick="resetFilters()">Show all products</button>
         </div>`;
-        toggleLoadMore(0, 0);
+        renderPagination(0, 0);
         return;
       }
 
-      const shown = filtered.slice(0, visibleCount);
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PRODUCTS_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+      const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+      const shown = filtered.slice(start, start + PRODUCTS_PER_PAGE);
       shown.forEach((p, i) => {
         const activePrice = activePriceFor(p);
         const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : Math.round(p.retailPrice * 1.18);
@@ -2410,7 +2450,7 @@
         };
         grid.appendChild(card);
       });
-      toggleLoadMore(filtered.length, shown.length);
+      renderPagination(filtered.length, totalPages);
     }
 
     // ---------- Storefront numbers + live order counter ----------
