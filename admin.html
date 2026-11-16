@@ -470,7 +470,7 @@ function json_(o) {
     // ================= Studio Dashboard (standalone admin) =================
     // Bump this whenever admin.html changes. Publish refuses to run from an
     // older, cached copy of this page, so a stale tab can't overwrite the shop.
-    const ADMIN_BUILD = "2026-11-16-banner1";
+    const ADMIN_BUILD = "2026-11-16-banner2";
     const adminDefaultHashKey = "ink_admin_hash_override";
     const DEFAULT_ADMIN_HASH = "1c77704525ebc9a473edab9c0538a29f5781062f165e8da9faa6cc930286c18d"; // default password set in chat
     const GH_REPO = "https://api.github.com/repos/inkandblinkco/ink-and-blink/contents/";
@@ -491,6 +491,10 @@ function json_(o) {
     ];
 
     let products = [], categories = [], categoryImages = {}, worldImages = {}, wholesalePrices = {};
+    // Products removed on PURPOSE in this dashboard session. Publish only allows
+    // a live product to disappear if it is in here, so a stale tab can never
+    // delete anything by accident.
+    let deletedIds = new Set();
 
     // ---- Storefront numbers + reviews (published inside store-data.json) ----
     const DEFAULT_STATS = { ordersBase: 4800, ordersExtra: 0, ordersAuto: true, rating: 4.8, dispatchHours: 72 };
@@ -1032,6 +1036,7 @@ function json_(o) {
 
     function deleteProduct(id) {
       if (confirm("Delete this product?")) {
+        deletedIds.add(String(id));
         products = products.filter(p => p.id != id);
         delete wholesalePrices[id];
         markStaged();
@@ -1479,22 +1484,22 @@ function json_(o) {
         liveCount = liveProducts.length;
         if (liveCount) {
           const here = new Set(products.map(p => String(p.id)));
-          liveProducts.forEach(p => { if (!here.has(String(p.id))) missingLive++; });
+          liveProducts.forEach(p => {
+            const id = String(p.id);
+            if (!here.has(id) && !deletedIds.has(id)) missingLive++;
+          });
         }
       } catch (e) { liveCount = 0; missingLive = 0; }
       if (missingLive > 0) {
-        const goAhead = confirm(
+        alert(
           "⚠️ This dashboard is out of date.\n\n" +
-          "The live shop has " + liveCount + " products, and " + missingLive + " of them are not loaded on this page — publishing now would remove them.\n\n" +
-          "Click Cancel (recommended), reload this dashboard, then publish again.\n\n" +
-          "Publish anyway?"
+          "The live shop has " + liveCount + " products, and " + missingLive + " of them are not loaded on this page.\n\n" +
+          "Nothing was published. Reload this page (Ctrl + F5), open the dashboard again, then publish."
         );
-        if (!goAhead) {
-          status.textContent = "🛑 Publish cancelled — reload this dashboard so it matches the live shop, then publish again.";
-          btn.disabled = false;
-          if (quick) quick.disabled = false;
-          return false;
-        }
+        status.textContent = "🛑 Publish cancelled — reload this dashboard (Ctrl + F5) so it matches the live shop.";
+        btn.disabled = false;
+        if (quick) quick.disabled = false;
+        return false;
       }
 
       // Find dashboard uploads that will become unused BEFORE the catalog is overwritten.
@@ -1544,6 +1549,7 @@ function json_(o) {
         }
 
         const now = Date.now();
+        deletedIds.clear(); // deletions are now part of the live catalogue
         localStorage.setItem("ink_last_publish", new Date(now).toISOString());
         localStorage.setItem("ink_admin_last_edit", String(now)); // staged == published now
         try { localStorage.setItem("ink_gh_last_publish_at", String(now)); } catch (e) {}
