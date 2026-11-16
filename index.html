@@ -624,7 +624,7 @@
     body.wholesale .cat-btn.active .cat-label { color: #2f6fd0 !important; }
 
     /* ===== HERO BANNERS (promo slides) ===== */
-    .snitch-hero { position: relative; width: 100%; max-width: 1500px; margin: 0 auto 0.9rem; aspect-ratio: 16 / 6.8; min-height: 360px; max-height: 580px; overflow: hidden; background: #14141a; border-radius: 18px; }
+    .snitch-hero { position: relative; width: calc(100% - 4rem); max-width: 1436px; margin: 0 auto 0.9rem; aspect-ratio: 16 / 6.8; min-height: 360px; max-height: 580px; overflow: hidden; background: #14141a; border-radius: 18px; }
     .sn-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; }
     .sn-slide.on { opacity: 1; pointer-events: auto; }
     .sn-slide-bg { position: absolute; inset: 0; background: radial-gradient(115% 145% at 76% 42%, #5330ad 0%, #2c1859 46%, #120b26 100%); }
@@ -651,7 +651,7 @@
     .sn-dots button { width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.4); cursor: pointer; padding: 0; transition: all 0.25s; }
     .sn-dots button.on { background: #fff; width: 22px; border-radius: 6px; }
     @media (max-width: 700px) {
-      .snitch-hero { aspect-ratio: auto; height: clamp(430px, 122vw, 560px); min-height: 0; border-radius: 14px; }
+      .snitch-hero { width: calc(100% - 4rem); aspect-ratio: auto; height: clamp(430px, 122vw, 560px); min-height: 0; border-radius: 14px; }
       .sn-slide { grid-template-columns: 1fr; grid-template-rows: 44% 56%; align-items: stretch; }
       .sn-slide-media { grid-row: 1; padding: 0.9rem 1rem 0.2rem; }
       .sn-slide-media::before { width: min(52%, 190px); }
@@ -665,6 +665,9 @@
       .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; top: 44%; }
       .sn-sl-prev { left: 6px; } .sn-sl-next { right: 6px; }
       .sn-dots { bottom: 8px; }
+    }
+    @media (max-width: 600px) {
+      .snitch-hero { width: calc(100% - 1.7rem); border-radius: 12px; }
     }
 
     /* Snitch-style text nav row under header */
