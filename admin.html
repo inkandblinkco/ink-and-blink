@@ -221,11 +221,11 @@
       </div>
 
       <div class="card" style="margin-top:1rem;">
-        <h3>🧹 Replaced Product Photos</h3>
+        <h3>🧹 Unused Product Photos</h3>
         <div class="sync-note">
-          When you change a product's photo (or delete the product) and click <b>Publish</b>, the old photo file is deleted from the repository automatically.
-          A photo is only removed when <b>no other listing uses it</b> — multi-pack listings share the photo of their single version, so that is handled for you.
-          Photos you picked in the dashboard but then replaced or never published are cleaned up too. Photos you added to the repo by hand are never touched.
+          When you change a product's photo (or delete the product) and click <b>Publish</b>, the old dashboard upload is deleted from the repository automatically.
+          A photo is only removed when <b>no listing uses it</b> — multi-pack listings share the photo of their single version, so that is handled for you.
+          Supplier photos and hand-picked photos are never deleted while any listing still uses them, so a stale tab can't break the catalogue.
           Use the button below to clean up right now without publishing anything else.
         </div>
         <div class="btn-row" style="margin-top:0; margin-bottom:0.5rem;">
@@ -1281,9 +1281,10 @@ function json_(o) {
     }
 
     // ---------- Unused photo cleanup ----------
-    // When a product's photo is replaced (or the product removed) and you publish,
-    // the old file in images/ is deleted from GitHub — but only if no other listing
-    // still uses it (multi-pack listings share the photo of their single version).
+    // Only photos uploaded from THIS dashboard (images/upload-*) can be removed,
+    // and only when no listing uses them any more. Supplier and hand-picked
+    // photos are never deleted automatically, so a stale tab cannot wipe the
+    // catalogue's pictures.
     const GH_API = "https://api.github.com/repos/inkandblinkco/ink-and-blink";
     const IMG_PATH_RE = /^images\/[^/?#]+\.(webp|jpg|jpeg|png|avif|gif)$/i;
 
@@ -1353,17 +1354,19 @@ function json_(o) {
         return { orphans: [], oldCount, newCount: products.length, error: "Only " + products.length + " of " + oldCount + " products are loaded here — reload the dashboard before cleaning up." };
       }
       const orphans = new Set();
-      // 1) Files the live catalog points at that nothing in the dashboard points
-      //    at any more. Only the Publish flow deletes these (after the new
-      //    catalog is live), so the live site never shows a missing photo.
+      // 1) True orphans: files no listing points at any more, neither on the live
+      //    shop nor in this dashboard. Safe even if this dashboard is stale.
       if (!safeOnly) {
-        liveRefs.forEach(p => { if (!newRefs.has(p)) orphans.add(p); });
+        snap.imageFiles.forEach(p => {
+          if (newRefs.has(p) || liveRefs.has(p)) return;
+          orphans.add(p);
+        });
       }
       // 2) Photos uploaded from this dashboard that nothing uses
       //    (you picked a photo and then replaced it again, or never published).
-      //    Only upload-… files are treated this way, so photos added to the
-      //    repo by hand are never removed. In safe mode a file still used by
-      //    the live catalog is left alone until the next Publish.
+      //    Only upload-… files are treated this way, so supplier imports and
+      //    hand-picked photos are never removed. In safe mode a file still used
+      //    by the live catalog is left alone until the next Publish.
       snap.imageFiles.forEach(p => {
         if (!/^images\/upload-/i.test(p)) return;
         if (newRefs.has(p)) return;
@@ -1414,7 +1417,7 @@ function json_(o) {
         const plan = await planImageCleanup(token, true);
         if (plan.error) { st.textContent = "⚠️ " + plan.error; return; }
         if (!plan.orphans.length) {
-          st.textContent = "✅ Nothing to delete — no abandoned dashboard uploads. (Photos you replace are removed automatically when you Publish.)";
+          st.textContent = "✅ Nothing to delete — no abandoned dashboard uploads. Supplier and hand-picked photos are always kept.";
           return;
         }
         if (!token) { st.textContent = "⚠️ " + plan.orphans.length + " unused photo(s) found. Add your GitHub token in the ☁️ Publish tab to delete them."; return; }
@@ -1439,7 +1442,35 @@ function json_(o) {
       const quick = document.getElementById("quick-publish-btn");
       if (quick) quick.disabled = true;
 
-      // Find photos that will become unused BEFORE the catalog is overwritten.
+      // Safety net: never overwrite the live shop from an out-of-date dashboard tab.
+      status.textContent = "🔍 Checking the live catalogue…";
+      let liveCount = 0;
+      let missingLive = 0;
+      try {
+        const liveCat = await getRepoCatalog(token);
+        const liveProducts = liveCat && Array.isArray(liveCat.products) ? liveCat.products : [];
+        liveCount = liveProducts.length;
+        if (liveCount) {
+          const here = new Set(products.map(p => String(p.id)));
+          liveProducts.forEach(p => { if (!here.has(String(p.id))) missingLive++; });
+        }
+      } catch (e) { liveCount = 0; missingLive = 0; }
+      if (missingLive > 0) {
+        const goAhead = confirm(
+          "⚠️ This dashboard is out of date.\n\n" +
+          "The live shop has " + liveCount + " products, and " + missingLive + " of them are not loaded on this page — publishing now would remove them.\n\n" +
+          "Click Cancel (recommended), reload this dashboard, then publish again.\n\n" +
+          "Publish anyway?"
+        );
+        if (!goAhead) {
+          status.textContent = "🛑 Publish cancelled — reload this dashboard so it matches the live shop, then publish again.";
+          btn.disabled = false;
+          if (quick) quick.disabled = false;
+          return false;
+        }
+      }
+
+      // Find dashboard uploads that will become unused BEFORE the catalog is overwritten.
       let cleanupPlan = null;
       status.textContent = "🔍 Checking for replaced photos…";
       try { cleanupPlan = await planImageCleanup(token); } catch (e) { cleanupPlan = null; }
@@ -1466,17 +1497,20 @@ function json_(o) {
 
         status.textContent = "☁️ Uploading wholesale price list…";
         const wholesaleMap = {};
-        products.forEach(p => { wholesaleMap[p.id] = p.wholesalePrice || p.retailPrice; });
+        products.forEach(p => {
+          const w = p.wholesalePrice !== undefined ? p.wholesalePrice : wholesalePrices[p.id];
+          wholesaleMap[p.id] = w || p.retailPrice;
+        });
         try { localStorage.setItem("ink_wholesale", JSON.stringify(wholesaleMap)); } catch (e) {}
         await putCatalogFile(undefined, GH_WHOLESALE_FILE, { exportedAt: new Date().toISOString(), wholesale: wholesaleMap }, "Update wholesale price list", token);
 
-        // Delete replaced photos that no listing uses any more (single + pack safe).
+        // Delete old dashboard uploads that no listing uses any more.
         let cleanupNote = "";
         if (cleanupPlan && cleanupPlan.orphans.length) {
-          status.textContent = "🧹 Removing " + cleanupPlan.orphans.length + " replaced photo(s)…";
+          status.textContent = "🧹 Removing " + cleanupPlan.orphans.length + " old dashboard photo(s)…";
           try {
             await deleteImagesBatch(cleanupPlan.orphans.slice(0, 200), token);
-            cleanupNote = " 🧹 Removed " + Math.min(200, cleanupPlan.orphans.length) + " replaced photo(s).";
+            cleanupNote = " 🧹 Removed " + Math.min(200, cleanupPlan.orphans.length) + " old dashboard photo(s).";
           } catch (e) {
             cleanupNote = " ⚠️ Photo cleanup skipped: " + e.message;
           }
