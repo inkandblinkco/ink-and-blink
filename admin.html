@@ -470,7 +470,7 @@ function json_(o) {
     // ================= Studio Dashboard (standalone admin) =================
     // Bump this whenever admin.html changes. Publish refuses to run from an
     // older, cached copy of this page, so a stale tab can't overwrite the shop.
-    const ADMIN_BUILD = "2026-11-16-banner2";
+    const ADMIN_BUILD = "2026-11-16-banner3";
     const adminDefaultHashKey = "ink_admin_hash_override";
     const DEFAULT_ADMIN_HASH = "1c77704525ebc9a473edab9c0538a29f5781062f165e8da9faa6cc930286c18d"; // default password set in chat
     const GH_REPO = "https://api.github.com/repos/inkandblinkco/ink-and-blink/contents/";
@@ -495,6 +495,13 @@ function json_(o) {
     // a live product to disappear if it is in here, so a stale tab can never
     // delete anything by accident.
     let deletedIds = new Set();
+    // Products created in this dashboard session (their ids are new, so the
+    // "live shop doesn't have them" check must not flag them).
+    let createdIds = new Set();
+    // exportedAt of the catalog this page loaded. If the live catalog is newer,
+    // another tab/device published after this page loaded — publishing here
+    // would undo that change (this is how deleted products used to come back).
+    let loadedExportAt = 0;
 
     // ---- Storefront numbers + reviews (published inside store-data.json) ----
     const DEFAULT_STATS = { ordersBase: 4800, ordersExtra: 0, ordersAuto: true, rating: 4.8, dispatchHours: 72 };
@@ -661,6 +668,8 @@ function json_(o) {
     }
 
     function adoptCloud(cloud) {
+      loadedExportAt = Date.parse(cloud.exportedAt || 0) || 0;
+      try { localStorage.setItem("ink_base_export_at", String(loadedExportAt)); } catch (e) {}
       products = cloud.products;
       categories = Array.isArray(cloud.categories) ? cloud.categories.slice() : ["All"];
       if (!categories.includes("All")) categories.unshift("All");
@@ -687,6 +696,7 @@ function json_(o) {
       }
     }
     function adoptLocal() {
+      loadedExportAt = Number(localStorage.getItem("ink_base_export_at") || 0) || 0;
       products = JSON.parse(localStorage.getItem("ink_products")) || [];
       categories = JSON.parse(localStorage.getItem("ink_categories") || '["All"]');
       if (!categories.includes("All")) categories.unshift("All");
@@ -1025,6 +1035,7 @@ function json_(o) {
         const fresh = { id: Date.now(), name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos };
         if (extras.world) fresh.world = extras.world;
         products.push(fresh);
+        createdIds.add(String(fresh.id));
         alert("Product added! Remember to Publish so every device sees it." + (note ? "\n\n" + note : ""));
       }
       if (wholesalePrice !== undefined && !isNaN(wholesalePrice)) { wholesalePrices[editId || products[products.length - 1].id] = wholesalePrice; }
@@ -1478,18 +1489,56 @@ function json_(o) {
       status.textContent = "🔍 Checking the live catalogue…";
       let liveCount = 0;
       let missingLive = 0;
+      let extraHere = 0;
+      let liveExportAt = 0;
       try {
         const liveCat = await getRepoCatalog(token);
         const liveProducts = liveCat && Array.isArray(liveCat.products) ? liveCat.products : [];
         liveCount = liveProducts.length;
+        liveExportAt = (liveCat && Date.parse(liveCat.exportedAt || 0)) || 0;
         if (liveCount) {
           const here = new Set(products.map(p => String(p.id)));
+          const liveIds = new Set(liveProducts.map(p => String(p.id)));
           liveProducts.forEach(p => {
             const id = String(p.id);
             if (!here.has(id) && !deletedIds.has(id)) missingLive++;
           });
+          // Products on this page that the live shop no longer has = they were
+          // deleted somewhere else. Publishing would bring them back.
+          products.forEach(p => {
+            const id = String(p.id);
+            if (!liveIds.has(id) && !createdIds.has(id)) extraHere++;
+          });
         }
-      } catch (e) { liveCount = 0; missingLive = 0; }
+      } catch (e) { liveCount = 0; missingLive = 0; extraHere = 0; liveExportAt = 0; }
+
+      if (extraHere > 0) {
+        alert(
+          "⚠️ This page has " + extraHere + " product(s) that are no longer in the live shop.\n\n" +
+          "They were deleted somewhere else (another tab or device), so publishing now would bring them back.\n\n" +
+          "Nothing was published. Reload this page (Ctrl + F5), then make your changes and publish again."
+        );
+        status.textContent = "🛑 Publish cancelled — this page still has products that were deleted elsewhere. Reload (Ctrl + F5) and publish again.";
+        btn.disabled = false;
+        if (quick) quick.disabled = false;
+        return false;
+      }
+
+      // Someone else (another tab, another device) published after this page
+      // loaded. Publishing now would undo their change — e.g. bring back
+      // products they deleted.
+      if (liveExportAt && loadedExportAt && liveExportAt > loadedExportAt + 2000) {
+        alert(
+          "⚠️ Someone already published after this page was opened.\n\n" +
+          "If you publish now, their changes get undone (deleted products come back).\n\n" +
+          "Nothing was published. Reload this page (Ctrl + F5), check the catalogue, then publish again."
+        );
+        status.textContent = "🛑 Publish cancelled — the shop was updated by another tab/device after this page loaded. Reload (Ctrl + F5) and publish again.";
+        btn.disabled = false;
+        if (quick) quick.disabled = false;
+        return false;
+      }
+
       if (missingLive > 0) {
         alert(
           "⚠️ This dashboard is out of date.\n\n" +
@@ -1550,6 +1599,9 @@ function json_(o) {
 
         const now = Date.now();
         deletedIds.clear(); // deletions are now part of the live catalogue
+        createdIds.clear(); // new products are part of the live catalogue now
+        loadedExportAt = Date.parse(retailCatalog.exportedAt) || 0;
+        try { localStorage.setItem("ink_base_export_at", String(loadedExportAt)); } catch (e) {}
         localStorage.setItem("ink_last_publish", new Date(now).toISOString());
         localStorage.setItem("ink_admin_last_edit", String(now)); // staged == published now
         try { localStorage.setItem("ink_gh_last_publish_at", String(now)); } catch (e) {}

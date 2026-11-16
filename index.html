@@ -1558,7 +1558,7 @@
     async function loadWholesalePrices() {
       if (Object.keys(wholesalePrices).length) return true;
       const urls = [
-        ...(isLocalPreview() ? [GH_WHOLESALE_FILE + "?t=" + Date.now()] : []),
+        GH_WHOLESALE_FILE + "?t=" + Date.now(),
         "https://raw.githubusercontent.com/inkandblinkco/ink-and-blink/main/" + GH_WHOLESALE_FILE + "?t=" + Date.now(),
         "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_WHOLESALE_FILE + "?t=" + Date.now()
       ];
@@ -1586,7 +1586,9 @@
     // ---------- Cloud catalog loading ----------
     async function refreshCatalogFromCloud() {
       const sources = [
-        ...(isLocalPreview() ? [GH_STORE_FILE + "?t=" + Date.now()] : []),
+        // Same site first: this file is refreshed on every deploy, so a publish
+        // shows up immediately instead of waiting on the raw CDN's 5 min cache.
+        GH_STORE_FILE + "?t=" + Date.now(),
         GH_RAW_URL + "?t=" + Date.now(),
         "https://cdn.jsdelivr.net/gh/inkandblinkco/ink-and-blink@main/" + GH_STORE_FILE + "?t=" + Date.now()
       ];
@@ -2100,15 +2102,18 @@
     }
 
     // ---------- Promo banner slides ----------
+    // `ids` is a preference list: the first one that still exists is used, so
+    // deleting a banner product falls through to another matching item instead
+    // of showing a random product.
     const SN_SLIDES = [
-      { id: 1, theme: 1, eyebrow: "✦ Premium Anime Collectibles", title: "OWN YOUR<br>FANDOM.", sub: "Display-grade katanas, prop wands and figures — hand-checked, safely packed and shipped India-wide.", tag: "katana", label: "SHOP KATANAS" },
-      { id: 1794226853748, theme: 2, eyebrow: "🔥 New Drop", title: "WEAR<br>THE MASK.", sub: "LED Spider-Man masks with ring control. The piece everyone asks about — limited stock, restocked weekly.", tag: "cosplay", label: "SHOP COSPLAY" },
-      { id: 1793654119229, theme: 3, eyebrow: "🎁 The Gift Edit", title: "GIFTS THAT<br>HIT.", sub: "Music boxes, boxed wands and keepsakes for the fan who already has everything.", tag: "gift", label: "EXPLORE GIFTS" }
+      { ids: [1, 1794215034760, 1794214319294, 1794215122875], theme: 1, eyebrow: "✦ Premium Anime Collectibles", title: "OWN YOUR<br>FANDOM.", sub: "Display-grade katanas, prop wands and figures — hand-checked, safely packed and shipped India-wide.", tag: "katana", label: "SHOP KATANAS" },
+      { ids: [1794226853748, 1793700281789], theme: 2, eyebrow: "🔥 New Drop", title: "WEAR<br>THE MASK.", sub: "LED Spider-Man masks with ring control. The piece everyone asks about — limited stock, restocked weekly.", tag: "cosplay", label: "SHOP COSPLAY" },
+      { ids: [1793654119229, 1794226915887], theme: 3, eyebrow: "🎁 The Gift Edit", title: "GIFTS THAT<br>HIT.", sub: "Music boxes, boxed wands and keepsakes for the fan who already has everything.", tag: "gift", label: "EXPLORE GIFTS" }
     ];
     const SN_SLIDES_WHOLESALE = [
-      { id: 1, theme: 1, eyebrow: "💼 Artesania Wholesale Portal", title: "SCALE YOUR<br>STORE.", sub: "Verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks — built for resellers who reorder.", tag: "All", label: "BROWSE WHOLESALE" },
-      { id: 1794226853748, theme: 2, eyebrow: "📦 B2B Pricing Active", title: "STOCK WHAT<br>SELLS.", sub: "LED masks, katanas and figures move fastest. Reseller price at 1.5× supplier cost on every listing.", tag: "All", label: "SHOP THE CATALOG" },
-      { id: 1793654119229, theme: 3, eyebrow: "🤝 Dedicated Support", title: "GIFT-PRICE<br>MARGINS.", sub: "23 product types, 47 fan worlds, GST invoice and pallet-grade packing on request.", tag: "All", label: "TALK TO US" }
+      { ids: [1, 1794215034760, 1794214319294, 1794215122875], theme: 1, eyebrow: "💼 Artesania Wholesale Portal", title: "SCALE YOUR<br>STORE.", sub: "Verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks — built for resellers who reorder.", tag: "All", label: "BROWSE WHOLESALE" },
+      { ids: [1794226853748, 1793700281789], theme: 2, eyebrow: "📦 B2B Pricing Active", title: "STOCK WHAT<br>SELLS.", sub: "LED masks, katanas and figures move fastest. Reseller price at 1.5× supplier cost on every listing.", tag: "All", label: "SHOP THE CATALOG" },
+      { ids: [1793654119229, 1794226915887], theme: 3, eyebrow: "🤝 Dedicated Support", title: "GIFT-PRICE<br>MARGINS.", sub: "23 product types, 47 fan worlds, GST invoice and pallet-grade packing on request.", tag: "All", label: "TALK TO US" }
     ];
     let snSlideIdx = 0, snSlideTimer = null;
 
@@ -2123,12 +2128,15 @@
         const step = Math.max(1, Math.floor(usable.length / (slides.length + 1)));
         return usable[(step * (i + 1) + i) % usable.length];
       };
-      const byId = (id) => {
-        const hit = products.find(p => String(p.id) === String(id));
-        return hit && typeof hit.img === "string" && hit.img.trim() ? hit : null;
+      const byIds = (list) => {
+        for (const id of (list || [])) {
+          const hit = products.find(p => String(p.id) === String(id));
+          if (hit && typeof hit.img === "string" && hit.img.trim()) return hit;
+        }
+        return null;
       };
       box.innerHTML = slides.map((s, i) => {
-        const product = byId(s.id) || pick(i);
+        const product = byIds(s.ids) || pick(i);
         const price = product ? Number(activePriceFor(product)) : 0;
         return '<div class="sn-slide sn-t' + (s.theme || 1) + (i === 0 ? " on" : "") + '">' +
           '<div class="sn-slide-bg"></div>' +
