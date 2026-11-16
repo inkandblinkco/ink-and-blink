@@ -623,36 +623,49 @@
     .cat-btn.active .cat-label { color: #5a2ecc !important; }
     body.wholesale .cat-btn.active .cat-label { color: #2f6fd0 !important; }
 
-    /* ===== SNITCH HERO SLIDER ===== */
-    .snitch-hero { position: relative; width: 100%; aspect-ratio: 16 / 7; min-height: 340px; max-height: 560px; overflow: hidden; background: #14141a; }
-    @media (max-width: 700px) {
-      .snitch-hero { aspect-ratio: auto; height: 60vw; min-height: 300px; }
-      .sn-slide-copy { left: 1rem; right: 1rem; max-width: none; }
-      .sn-slide-copy .sn-eyebrow { font-size: 0.6rem; letter-spacing: 1.1px; padding: 4px 10px; margin-bottom: 0.6rem; }
-      .sn-slide-copy h2 { font-size: 1.5rem; margin-bottom: 0.45rem; }
-      .sn-slide-copy p { font-size: 0.76rem; line-height: 1.5; margin-bottom: 0.9rem; }
-      .sn-slide-copy button { padding: 0.7rem 1.3rem; font-size: 0.76rem; }
-      .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; }
-      .sn-sl-prev { left: 6px; }
-      .sn-sl-next { right: 6px; }
-    }
-    .sn-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .55s ease; pointer-events: none; }
+    /* ===== HERO BANNERS (promo slides) ===== */
+    .snitch-hero { position: relative; width: 100%; max-width: 1500px; margin: 0 auto 0.9rem; aspect-ratio: 16 / 6.8; min-height: 360px; max-height: 580px; overflow: hidden; background: #14141a; border-radius: 18px; }
+    .sn-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; }
     .sn-slide.on { opacity: 1; pointer-events: auto; }
-    .sn-slide img, .sn-slide .sn-slide-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .sn-slide .sn-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(16, 10, 34, 0.86) 12%, rgba(16, 10, 34, 0.45) 55%, rgba(16, 10, 34, 0.12) 100%); }
-    body.wholesale .sn-slide .sn-shade { background: linear-gradient(90deg, rgba(10, 20, 44, 0.88) 12%, rgba(10, 20, 44, 0.45) 55%, rgba(10, 20, 44, 0.12) 100%); }
-    .sn-slide-copy { position: absolute; left: clamp(1.2rem, 5vw, 4.5rem); top: 50%; transform: translateY(-50%); max-width: 520px; color: #fff; }
-    .sn-slide-copy .sn-eyebrow { display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: #c9a8ff; border: 1px solid rgba(160, 100, 255, 0.5); padding: 5px 14px; border-radius: 20px; margin-bottom: 0.9rem; }
-    .sn-slide-copy h2 { font-family: 'Poppins', sans-serif; text-transform: uppercase; font-weight: 800; font-size: clamp(1.7rem, 3.6vw, 3rem); line-height: 1.08; margin-bottom: 0.6rem; }
-    .sn-slide-copy p { font-size: 0.85rem; color: #cfcfda; margin-bottom: 1.2rem; line-height: 1.55; }
-    .sn-slide-copy button { background: #fff; color: #14141a; border: none; border-radius: 8px; padding: 0.85rem 2rem; font-weight: 800; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
-    .sn-slide-copy button:hover { background: #e8e6f5; }
-    .sn-sl-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.35); background: rgba(16, 10, 34, 0.45); color: #fff; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .sn-slide-bg { position: absolute; inset: 0; background: radial-gradient(115% 145% at 76% 42%, #5330ad 0%, #2c1859 46%, #120b26 100%); }
+    .sn-slide-bg::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 24px 24px; opacity: .55; }
+    .sn-slide.sn-t2 .sn-slide-bg { background: radial-gradient(115% 145% at 76% 42%, #9c2145 0%, #451027 46%, #190711 100%); }
+    .sn-slide.sn-t3 .sn-slide-bg { background: radial-gradient(115% 145% at 76% 42%, #9a6414 0%, #42280a 46%, #1a1207 100%); }
+    .sn-slide-copy { position: relative; z-index: 2; color: #fff; padding: 0 clamp(1.2rem, 4.6vw, 4.4rem); max-width: 760px; }
+    .sn-slide-copy .sn-eyebrow { display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: #e8dcff; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); padding: 5px 14px; border-radius: 20px; margin-bottom: 1rem; }
+    .sn-slide-copy h2 { font-family: 'Poppins', sans-serif; text-transform: uppercase; font-weight: 800; font-size: clamp(1.9rem, 4vw, 3.4rem); line-height: 1.02; margin-bottom: 0.7rem; letter-spacing: -0.3px; }
+    .sn-slide-copy p { font-size: 0.9rem; color: rgba(255,255,255,0.82); margin-bottom: 1.35rem; line-height: 1.55; max-width: 440px; }
+    .sn-slide-copy button { background: #fff; color: #17131f; border: none; border-radius: 8px; padding: 0.9rem 2rem; font-weight: 800; font-size: 0.86rem; letter-spacing: 0.6px; cursor: pointer; font-family: inherit; transition: transform .18s ease, background .18s ease; }
+    .sn-slide-copy button:hover { background: #f1ecff; transform: translateY(-2px); }
+    .sn-slide-media { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; height: 100%; padding: 1.2rem 2.4rem 1.2rem 0; }
+    .sn-slide-media::before { content: ""; position: absolute; width: min(64%, 380px); aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.12); filter: blur(6px); }
+    .sn-prod-card { position: relative; width: min(60%, 340px); aspect-ratio: 1; background: #fff; border-radius: 22px; padding: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 34px 70px rgba(0,0,0,0.45); transform: rotate(-2.5deg); }
+    .sn-prod-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .sn-prod-price { position: absolute; right: -16px; top: -16px; background: #5a2ecc; color: #fff; font-weight: 800; font-size: 1rem; padding: 0.5rem 0.9rem; border-radius: 999px; box-shadow: 0 12px 26px rgba(0,0,0,0.35); white-space: nowrap; }
+    body.wholesale .sn-prod-price { background: #2f6fd0; }
+    .sn-slide .sn-shade { display: none; }
+    .sn-sl-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.35); background: rgba(16, 10, 34, 0.35); color: #fff; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .sn-sl-btn:hover { background: rgba(16, 10, 34, 0.8); }
     .sn-sl-prev { left: 18px; } .sn-sl-next { right: 18px; }
     .sn-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 7px; }
     .sn-dots button { width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.4); cursor: pointer; padding: 0; transition: all 0.25s; }
     .sn-dots button.on { background: #fff; width: 22px; border-radius: 6px; }
+    @media (max-width: 700px) {
+      .snitch-hero { aspect-ratio: auto; height: clamp(430px, 122vw, 560px); min-height: 0; border-radius: 14px; }
+      .sn-slide { grid-template-columns: 1fr; grid-template-rows: 44% 56%; align-items: stretch; }
+      .sn-slide-media { grid-row: 1; padding: 0.9rem 1rem 0.2rem; }
+      .sn-slide-media::before { width: min(52%, 190px); }
+      .sn-prod-card { width: min(46%, 170px); padding: 9px; border-radius: 16px; }
+      .sn-prod-price { font-size: 0.78rem; padding: 0.35rem 0.65rem; right: -10px; top: -10px; }
+      .sn-slide-copy { grid-row: 2; padding: 0 1.1rem 1.5rem; max-width: none; text-align: center; }
+      .sn-slide-copy .sn-eyebrow { font-size: 0.56rem; letter-spacing: 1px; padding: 4px 10px; margin-bottom: 0.5rem; }
+      .sn-slide-copy h2 { font-size: 1.62rem; margin-bottom: 0.4rem; }
+      .sn-slide-copy p { font-size: 0.74rem; line-height: 1.45; margin: 0 auto 0.8rem; max-width: 320px; }
+      .sn-slide-copy button { padding: 0.7rem 1.4rem; font-size: 0.74rem; }
+      .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; top: 44%; }
+      .sn-sl-prev { left: 6px; } .sn-sl-next { right: 6px; }
+      .sn-dots { bottom: 8px; }
+    }
 
     /* Snitch-style text nav row under header */
     /* ===== Hamburger + left category drawer ===== */
@@ -2083,16 +2096,16 @@
       startAnnouncements();
     }
 
-    // ---------- Snitch-style hero slider ----------
+    // ---------- Promo banner slides ----------
     const SN_SLIDES = [
-      { eyebrow: "✦ Premium Anime Collectibles & Gifts", title: "OWN YOUR FANDOM.<br>NOT JUST WATCH IT.", sub: "Display-grade katanas, prop wands, figures and gift boxes — hand-checked, safely packed and shipped India-wide.", tag: "All", label: "SHOP BEST SELLERS" },
-      { eyebrow: "🔥 New Drops Every Friday", title: "FRIDAY 6 PM.<br>DROP DAY.", sub: "Fresh collectibles land every week — the best pieces go within hours. Keep your notifications on.", tag: "All", label: "SHOP NEW DROPS" },
-      { eyebrow: "🎁 The Gift Edit", title: "THE GIFT<br>WORTH FLEXING", sub: "Gift boxes, keychains and stationery curated for the fan who already has everything.", tag: "gift", label: "EXPLORE GIFTS" }
+      { id: 1, theme: 1, eyebrow: "✦ Premium Anime Collectibles", title: "OWN YOUR<br>FANDOM.", sub: "Display-grade katanas, prop wands and figures — hand-checked, safely packed and shipped India-wide.", tag: "katana", label: "SHOP KATANAS" },
+      { id: 1794226853748, theme: 2, eyebrow: "🔥 New Drop", title: "WEAR<br>THE MASK.", sub: "LED Spider-Man masks with ring control. The piece everyone asks about — limited stock, restocked weekly.", tag: "cosplay", label: "SHOP COSPLAY" },
+      { id: 1793654119229, theme: 3, eyebrow: "🎁 The Gift Edit", title: "GIFTS THAT<br>HIT.", sub: "Music boxes, boxed wands and keepsakes for the fan who already has everything.", tag: "gift", label: "EXPLORE GIFTS" }
     ];
     const SN_SLIDES_WHOLESALE = [
-      { eyebrow: "💼 Artesania Wholesale Portal", title: "SCALE YOUR STORE.<br>WITH STUDIO SUPPLY.", sub: "Verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks — built for resellers who reorder.", tag: "All", label: "BROWSE WHOLESALE" },
-      { eyebrow: "📦 B2B Pricing Active", title: "MARGINS THAT<br>MAKE SENSE.", sub: "Every listing carries a reseller price at 1.5× supplier cost. Mix worlds, mix categories, reorder any time.", tag: "All", label: "SHOP THE CATALOG" },
-      { eyebrow: "🤝 Dedicated Support", title: "ONE PARTNER.<br>EVERY FANDOM.", sub: "47 fan worlds, 22 product types, GST invoice and pallet-grade packing on request.", tag: "All", label: "TALK TO US" }
+      { id: 1, theme: 1, eyebrow: "💼 Artesania Wholesale Portal", title: "SCALE YOUR<br>STORE.", sub: "Verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks — built for resellers who reorder.", tag: "All", label: "BROWSE WHOLESALE" },
+      { id: 1794226853748, theme: 2, eyebrow: "📦 B2B Pricing Active", title: "STOCK WHAT<br>SELLS.", sub: "LED masks, katanas and figures move fastest. Reseller price at 1.5× supplier cost on every listing.", tag: "All", label: "SHOP THE CATALOG" },
+      { id: 1793654119229, theme: 3, eyebrow: "🤝 Dedicated Support", title: "GIFT-PRICE<br>MARGINS.", sub: "23 product types, 47 fan worlds, GST invoice and pallet-grade packing on request.", tag: "All", label: "TALK TO US" }
     ];
     let snSlideIdx = 0, snSlideTimer = null;
 
@@ -2101,25 +2114,34 @@
       const dots = document.getElementById("sn-dots");
       if (!box || !dots) return;
       const slides = currentMode === "Wholesale" ? SN_SLIDES_WHOLESALE : SN_SLIDES;
-      const httpImgs = products.filter(p => typeof p.img === "string" && p.img.startsWith("http"));
-      const usable = httpImgs.length ? httpImgs : products.filter(p => typeof p.img === "string" && p.img.trim());
+      const usable = products.filter(p => typeof p.img === "string" && p.img.trim());
       const pick = (i) => {
         if (!usable.length) return null;
         const step = Math.max(1, Math.floor(usable.length / (slides.length + 1)));
         return usable[(step * (i + 1) + i) % usable.length];
       };
+      const byId = (id) => {
+        const hit = products.find(p => String(p.id) === String(id));
+        return hit && typeof hit.img === "string" && hit.img.trim() ? hit : null;
+      };
       box.innerHTML = slides.map((s, i) => {
-        const product = pick(i);
-        const src = product ? String(product.img).replace(/([?&])w=\d+/, "$1w=1600") : "";
-        return '<div class="sn-slide' + (i === 0 ? " on" : "") + '">' +
-          '<div class="sn-slide-bg" style="background: linear-gradient(120deg, #2b1c52, #120b26);"></div>' +
-          (product ? '<img src="' + src + '" alt="" onerror="this.remove()">' : "") +
-          '<div class="sn-shade"></div>' +
+        const product = byId(s.id) || pick(i);
+        const price = product ? Number(activePriceFor(product)) : 0;
+        return '<div class="sn-slide sn-t' + (s.theme || 1) + (i === 0 ? " on" : "") + '">' +
+          '<div class="sn-slide-bg"></div>' +
           '<div class="sn-slide-copy">' +
             '<span class="sn-eyebrow">' + s.eyebrow + '</span>' +
             '<h2>' + s.title + '</h2>' +
             '<p>' + s.sub + '</p>' +
             '<button onclick="snSlideCTA(\'' + s.tag + '\')">' + s.label + '</button>' +
+          '</div>' +
+          '<div class="sn-slide-media">' +
+            (product
+              ? '<div class="sn-prod-card">' +
+                  '<img src="' + String(product.img).replace(/([?&])w=\d+/, "$1w=1600") + '" alt="' + escHtml(product.name) + '">' +
+                  (price ? '<span class="sn-prod-price">₹' + price.toLocaleString("en-IN") + '</span>' : '') +
+                '</div>'
+              : '') +
           '</div>' +
         '</div>';
       }).join("");
