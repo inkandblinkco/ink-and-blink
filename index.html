@@ -624,7 +624,7 @@
     body.wholesale .cat-btn.active .cat-label { color: #2f6fd0 !important; }
 
     /* ===== HERO BANNERS (promo slides) ===== */
-    .snitch-hero { position: relative; width: calc(100% - 2rem); max-width: 1500px; margin: 0 auto 1rem; height: clamp(390px, 29vw, 520px); overflow: hidden; background: #14141a; border-radius: 20px; }
+    .snitch-hero { position: relative; width: calc(100% - 2rem); max-width: 1500px; margin: 0 auto 1rem; height: clamp(420px, 30vw, 540px); overflow: hidden; background: #14141a; border-radius: 20px; }
     .sn-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; }
     .sn-slide.on { opacity: 1; pointer-events: auto; }
     .sn-slide-bg { position: absolute; inset: 0; background: radial-gradient(120% 150% at 74% 45%, #5330ad 0%, #2c1859 46%, #120b26 100%); }
@@ -641,12 +641,12 @@
     .sn-from b { font-size: clamp(1.35rem, 2.2vw, 1.95rem); font-weight: 800; color: #fff; letter-spacing: -0.3px; text-transform: none; line-height: 1; }
     .sn-slide-copy button { background: #fff; color: #17131f; border: none; border-radius: 8px; padding: 0.9rem 2rem; font-weight: 800; font-size: 0.86rem; letter-spacing: 0.6px; cursor: pointer; font-family: inherit; transition: transform .18s ease, background .18s ease; }
     .sn-slide-copy button:hover { background: #f1ecff; transform: translateY(-2px); }
-    .sn-slide-media { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: clamp(10px, 1.4vw, 24px); height: 100%; padding: 1.6rem 3.2rem 1.6rem 0.4rem; }
-    .sn-slide-media::before { content: ""; position: absolute; width: min(78%, 520px); height: min(70%, 320px); border-radius: 999px; background: rgba(255,255,255,0.14); filter: blur(34px); }
-    .sn-prod-card { position: relative; flex: none; width: clamp(150px, 15.5vw, 246px); aspect-ratio: 1; background: #fff; border-radius: 22px; padding: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.45); }
-    .sn-prod-card.sn-card-1 { transform: rotate(-4deg) translateY(14px); }
-    .sn-prod-card.sn-card-2 { width: clamp(160px, 17vw, 272px); transform: rotate(3deg) translateY(-12px); z-index: 1; }
-    .sn-prod-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .sn-slide-media { position: relative; z-index: 2; display: flex; align-items: stretch; justify-content: flex-end; gap: clamp(12px, 1.6vw, 26px); height: 100%; padding: clamp(11px, 1.5vw, 20px) clamp(18px, 2.6vw, 44px) clamp(11px, 1.5vw, 20px) 0.4rem; }
+    .sn-slide-media::before { content: ""; position: absolute; width: min(78%, 520px); height: min(76%, 360px); border-radius: 999px; background: rgba(255,255,255,0.14); filter: blur(34px); }
+    /* Straight (never tilted) photo tiles: equal width, full banner height. */
+    .sn-prod-card { position: relative; flex: 1 1 0; min-width: 0; max-width: 300px; height: 100%; background: #fff; border-radius: 18px; padding: clamp(8px, 0.9vw, 14px); display: flex; align-items: center; justify-content: center; box-shadow: 0 26px 54px rgba(0,0,0,0.42); }
+    .sn-prod-card.sn-card-1, .sn-prod-card.sn-card-2 { width: auto; transform: none; }
+    .sn-prod-card img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; }
     .sn-prod-price { position: absolute; right: -12px; top: -12px; background: #5a2ecc; color: #fff; font-weight: 800; font-size: 0.85rem; padding: 0.42rem 0.8rem; border-radius: 999px; box-shadow: 0 12px 26px rgba(0,0,0,0.35); white-space: nowrap; }
     body.wholesale .sn-prod-price { background: #2f6fd0; }
     .sn-slide .sn-shade { display: none; }
@@ -656,24 +656,39 @@
     .sn-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 7px; }
     .sn-dots button { width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.4); cursor: pointer; padding: 0; transition: all 0.25s; }
     .sn-dots button.on { background: #fff; width: 22px; border-radius: 6px; }
-    @media (max-width: 700px) {
-      .snitch-hero { width: calc(100% - 2rem); height: clamp(430px, 122vw, 560px); border-radius: 14px; }
+    @media (max-width: 1024px) {
+      .snitch-hero { height: clamp(490px, 56vw, 580px); }
       .sn-slide { grid-template-columns: 1fr; grid-template-rows: 42% 58%; align-items: stretch; }
-      .sn-slide-media { grid-row: 1; padding: 0.9rem 0.7rem 0.1rem; gap: 10px; }
+      .sn-slide-media { grid-row: 1; padding: 0.9rem 0.8rem 0.1rem; gap: 12px; align-items: center; justify-content: center; }
+      .sn-slide-media::before { width: min(62%, 300px); height: 48%; filter: blur(20px); }
+      .sn-prod-card, .sn-prod-card.sn-card-1, .sn-prod-card.sn-card-2 { flex: 0 0 auto; width: auto; height: min(100%, 250px); aspect-ratio: 1; padding: 9px; border-radius: 14px; }
+      .sn-prod-price { font-size: 0.7rem; padding: 0.3rem 0.6rem; right: -6px; top: -6px; }
+      .sn-slide-copy { grid-row: 2; padding: 0 1.4rem 1.4rem; max-width: none; text-align: center; }
+      .sn-slide-copy .sn-eyebrow { font-size: 0.6rem; letter-spacing: 1.1px; padding: 4px 11px; margin-bottom: 0.5rem; }
+      .sn-slide-copy h2 { font-size: clamp(1.7rem, 4.2vw, 2.4rem); margin-bottom: 0.4rem; }
+      .sn-slide-copy p { font-size: clamp(0.74rem, 1.5vw, 0.88rem); line-height: 1.5; margin: 0 auto 0.6rem; max-width: 430px; }
+      .sn-from { justify-content: center; font-size: 0.6rem; letter-spacing: 1.2px; margin-bottom: 0.85rem; gap: 6px; }
+      .sn-from b { font-size: clamp(1.2rem, 2.6vw, 1.55rem); }
+      .sn-slide-copy button { padding: 0.72rem 1.5rem; font-size: 0.76rem; }
+      .sn-sl-btn { width: 36px; height: 36px; font-size: 1rem; top: 42%; }
+      .sn-sl-prev { left: 6px; } .sn-sl-next { right: 6px; }
+      .sn-dots { bottom: 10px; }
+    }
+    @media (max-width: 700px) {
+      .snitch-hero { width: calc(100% - 2rem); height: clamp(440px, 120vw, 540px); border-radius: 14px; }
+      .sn-slide { grid-template-rows: 40% 60%; }
+      .sn-slide-media { padding: 0.8rem 0.7rem 0.1rem; gap: 10px; }
       .sn-slide-media::before { width: min(64%, 240px); height: 44%; filter: blur(18px); }
-      .sn-prod-card, .sn-prod-card.sn-card-1, .sn-prod-card.sn-card-2 { width: min(40%, 150px); padding: 8px; border-radius: 14px; }
-      .sn-prod-card.sn-card-1 { transform: rotate(-4deg) translateY(6px); }
-      .sn-prod-card.sn-card-2 { transform: rotate(3deg) translateY(-6px); }
+      .sn-prod-card, .sn-prod-card.sn-card-1, .sn-prod-card.sn-card-2 { height: min(100%, 190px); padding: 8px; border-radius: 13px; }
       .sn-prod-price { font-size: 0.66rem; padding: 0.28rem 0.55rem; right: -7px; top: -7px; }
-      .sn-slide-copy { grid-row: 2; padding: 0 1.1rem 1.5rem; max-width: none; text-align: center; }
+      .sn-slide-copy { padding: 0 1.1rem 1.5rem; }
       .sn-slide-copy .sn-eyebrow { font-size: 0.56rem; letter-spacing: 1px; padding: 4px 10px; margin-bottom: 0.45rem; }
       .sn-slide-copy h2 { font-size: 1.6rem; margin-bottom: 0.35rem; }
-      .sn-slide-copy p { font-size: 0.72rem; line-height: 1.45; margin: 0 auto 0.55rem; max-width: 330px; }
-      .sn-from { justify-content: center; font-size: 0.58rem; letter-spacing: 1.1px; margin-bottom: 0.8rem; gap: 6px; }
+      .sn-slide-copy p { font-size: 0.72rem; line-height: 1.45; max-width: 330px; margin-bottom: 0.55rem; }
+      .sn-from { font-size: 0.58rem; letter-spacing: 1.1px; margin-bottom: 0.8rem; }
       .sn-from b { font-size: 1.15rem; }
       .sn-slide-copy button { padding: 0.7rem 1.4rem; font-size: 0.74rem; }
-      .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; top: 42%; }
-      .sn-sl-prev { left: 6px; } .sn-sl-next { right: 6px; }
+      .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; }
       .sn-dots { bottom: 8px; }
     }
     @media (max-width: 600px) {
@@ -2146,11 +2161,15 @@
       const slides = currentMode === "Wholesale" ? SN_SLIDES_WHOLESALE : SN_SLIDES;
       const inCat = (p, cat) => cat === "All" || p.category === cat;
 
-      // The lowest price we actually have in that category (retail or reseller).
+      // "Starting from" = the LOWEST price in that product category on the
+      // whole site (retail, or reseller when wholesale mode is on) — not the
+      // price of the two photos shown beside it.
       const fromPrice = (cat) => {
+        if (!cat || cat === "All") return 0;
         let min = 0;
         products.forEach(p => {
           if (!inCat(p, cat)) return;
+          if (!snHasImg(p) || /blank-listing/i.test(p.img)) return;
           const v = snPriceOf(p);
           if (v && (!min || v < min)) min = v;
         });
@@ -2184,10 +2203,7 @@
 
       box.innerHTML = slides.map((s, i) => {
         const picks = twoFor(s);
-        // "Starting from" = cheapest of the two products actually shown, so the
-        // headline price always matches the photos beside it.
-        const shown = picks.map(snPriceOf).filter(v => v);
-        const from = shown.length ? Math.min.apply(null, shown) : fromPrice(s.cat);
+        const from = fromPrice(s.cat);
         const cards = picks.map((p, n) => {
           const price = snPriceOf(p);
           return '<div class="sn-prod-card sn-card-' + (n + 1) + '">' +
