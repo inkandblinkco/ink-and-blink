@@ -2133,14 +2133,14 @@
     // deleting a banner product falls through to another item from the same
     // category instead of showing a random product.
     const SN_SLIDES = [
-      { ids: [8932597104797, 15401224241402, 8906321395869, 8693249605789], theme: 1, cat: "Katanas", eyebrow: "⚔️ Signature Katanas", title: "OWN YOUR<br>FANDOM.", sub: "Hand-checked 104 cm katanas — display-grade finishes, safely packed and shipped India-wide.", label: "SHOP NOW →" },
+      { ids: [8932597104797, 15401224241402, 8906321395869, 8693249605789], theme: 1, cat: "Katanas", fromMatch: "104\\s*cm", fromSkip: "stand|keychain|poster|card|sticker", eyebrow: "⚔️ Signature Katanas", title: "OWN YOUR<br>FANDOM.", sub: "Hand-checked 104 cm katanas — display-grade finishes, safely packed and shipped India-wide.", label: "SHOP NOW →" },
       { ids: [15402570809594, 9047716036765, 15402570776826, 8867806380189], theme: 2, cat: "Cosplay", eyebrow: "🕷️ LED Masks & Helmets", title: "WEAR<br>THE MASK.", sub: "Flicker-eye LED masks and wearable helmets — the pieces everyone stops to ask about.", label: "SHOP NOW →" },
       { ids: [8827761852573, 8827772698781, 8827765096605, 8827766145181], theme: 3, cat: "Wands", eyebrow: "🪄 Wands & Magic", title: "CAST A<br>SPELL.", sub: "Light-up, fire-effect and boxed wands for the fan who already owns the robe.", label: "SHOP NOW →" },
       { ids: [8808846000285, 15453946609914, 9026746679453, 8486085492893], theme: 4, cat: "Anime Figures", eyebrow: "🎎 Collectible Figures", title: "BUILD THE<br>SHELF.", sub: "From Q-posket cuties to 1/6 scale showpieces — thousands of figures across 47 fan worlds.", label: "SHOP NOW →" },
       { ids: [15409015914746, 8971827708061, 8715582734493, 15406752235770], theme: 5, cat: "Gifts & Stationery", eyebrow: "🎁 The Gift Edit", title: "GIFTS THAT<br>HIT.", sub: "Gift-boxed pen sets, diaries and keepsakes — ready to gift, wrapped safe and shipped fast.", label: "SHOP NOW →" }
     ];
     const SN_SLIDES_WHOLESALE = [
-      { ids: [8932597104797, 15401224241402, 8906321395869, 8693249605789], theme: 1, cat: "Katanas", eyebrow: "💼 Artesania Wholesale", title: "SCALE YOUR<br>STORE.", sub: "Reseller pricing on every katana — verified margins, MOQ ₹5,000 and weekly restocks.", label: "SHOP NOW →" },
+      { ids: [8932597104797, 15401224241402, 8906321395869, 8693249605789], theme: 1, cat: "Katanas", fromMatch: "104\\s*cm", fromSkip: "stand|keychain|poster|card|sticker", eyebrow: "💼 Artesania Wholesale", title: "SCALE YOUR<br>STORE.", sub: "Reseller pricing on every katana — verified margins, MOQ ₹5,000 and weekly restocks.", label: "SHOP NOW →" },
       { ids: [15402570809594, 9047716036765, 15402570776826, 8867806380189], theme: 2, cat: "Cosplay", eyebrow: "📦 B2B Pricing Active", title: "STOCK WHAT<br>SELLS.", sub: "LED masks are our fastest reorder — reseller price at 1.5× supplier cost.", label: "SHOP NOW →" },
       { ids: [8827761852573, 8827772698781, 8827765096605, 8827766145181], theme: 3, cat: "Wands", eyebrow: "🤝 Bulk Wands", title: "MARGIN-PROOF<br>MAGIC.", sub: "Boxed and light-up wands move in every gift store — mixed cases available on request.", label: "SHOP NOW →" },
       { ids: [8808846000285, 15453946609914, 9026746679453, 8486085492893], theme: 4, cat: "Anime Figures", eyebrow: "🏷️ Reseller Prices", title: "FILL THE<br>SHELF.", sub: "Figures from entry price to 1/6 scale premium — one catalog, one invoice, GST included.", label: "SHOP NOW →" },
@@ -2163,8 +2163,10 @@
 
       // "Starting from" = the LOWEST price in that product category on the
       // whole site (retail, or reseller when wholesale mode is on) — not the
-      // price of the two photos shown beside it.
-      const fromPrice = (cat) => {
+      // price of the two photos shown beside it. A slide can narrow the pool
+      // with fromMatch/fromSkip (e.g. only real 104 cm swords) and always
+      // falls back to the plain category minimum.
+      const categoryMin = (cat) => {
         if (!cat || cat === "All") return 0;
         let min = 0;
         products.forEach(p => {
@@ -2174,6 +2176,22 @@
           if (v && (!min || v < min)) min = v;
         });
         return min;
+      };
+      const fromPrice = (cat, s) => {
+        if (!cat || cat === "All") return 0;
+        if (!s || (!s.fromMatch && !s.fromSkip)) return categoryMin(cat);
+        const rx = s.fromMatch ? new RegExp(s.fromMatch, "i") : null;
+        const skip = s.fromSkip ? new RegExp(s.fromSkip, "i") : null;
+        let min = 0;
+        products.forEach(p => {
+          if (!inCat(p, cat)) return;
+          if (rx && !rx.test(p.name)) return;
+          if (skip && skip.test(p.name)) return;
+          if (!snHasImg(p) || /blank-listing/i.test(p.img)) return;
+          const v = snPriceOf(p);
+          if (v && (!min || v < min)) min = v;
+        });
+        return min || categoryMin(cat);
       };
 
       // Two photos per banner: preferred products first, then the priciest
@@ -2203,7 +2221,7 @@
 
       box.innerHTML = slides.map((s, i) => {
         const picks = twoFor(s);
-        const from = fromPrice(s.cat);
+        const from = fromPrice(s.cat, s);
         const cards = picks.map((p, n) => {
           const price = snPriceOf(p);
           return '<div class="sn-prod-card sn-card-' + (n + 1) + '">' +
