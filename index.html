@@ -624,45 +624,55 @@
     body.wholesale .cat-btn.active .cat-label { color: #2f6fd0 !important; }
 
     /* ===== HERO BANNERS (promo slides) ===== */
-    .snitch-hero { position: relative; width: calc(100% - 4rem); max-width: 1436px; margin: 0 auto 0.9rem; aspect-ratio: 16 / 6.8; min-height: 360px; max-height: 580px; overflow: hidden; background: #14141a; border-radius: 18px; }
-    .sn-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; }
+    .snitch-hero { position: relative; width: calc(100% - 2rem); max-width: 1500px; margin: 0 auto 1rem; height: clamp(390px, 29vw, 520px); overflow: hidden; background: #14141a; border-radius: 20px; }
+    .sn-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; pointer-events: none; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; }
     .sn-slide.on { opacity: 1; pointer-events: auto; }
-    .sn-slide-bg { position: absolute; inset: 0; background: radial-gradient(115% 145% at 76% 42%, #5330ad 0%, #2c1859 46%, #120b26 100%); }
-    .sn-slide-bg::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 24px 24px; opacity: .55; }
-    .sn-slide.sn-t2 .sn-slide-bg { background: radial-gradient(115% 145% at 76% 42%, #9c2145 0%, #451027 46%, #190711 100%); }
-    .sn-slide.sn-t3 .sn-slide-bg { background: radial-gradient(115% 145% at 76% 42%, #9a6414 0%, #42280a 46%, #1a1207 100%); }
-    .sn-slide-copy { position: relative; z-index: 2; color: #fff; padding: 0 clamp(1.2rem, 4.6vw, 4.4rem); max-width: 760px; }
-    .sn-slide-copy .sn-eyebrow { display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: #e8dcff; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); padding: 5px 14px; border-radius: 20px; margin-bottom: 1rem; }
-    .sn-slide-copy h2 { font-family: 'Poppins', sans-serif; text-transform: uppercase; font-weight: 800; font-size: clamp(1.9rem, 4vw, 3.4rem); line-height: 1.02; margin-bottom: 0.7rem; letter-spacing: -0.3px; }
-    .sn-slide-copy p { font-size: 0.9rem; color: rgba(255,255,255,0.82); margin-bottom: 1.35rem; line-height: 1.55; max-width: 440px; }
+    .sn-slide-bg { position: absolute; inset: 0; background: radial-gradient(120% 150% at 74% 45%, #5330ad 0%, #2c1859 46%, #120b26 100%); }
+    .sn-slide-bg::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 24px 24px; opacity: .5; }
+    .sn-slide.sn-t2 .sn-slide-bg { background: radial-gradient(120% 150% at 74% 45%, #9c2145 0%, #451027 46%, #190711 100%); }
+    .sn-slide.sn-t3 .sn-slide-bg { background: radial-gradient(120% 150% at 74% 45%, #9a6414 0%, #42280a 46%, #1a1207 100%); }
+    .sn-slide.sn-t4 .sn-slide-bg { background: radial-gradient(120% 150% at 74% 45%, #0f7b6c 0%, #0b3b34 46%, #071715 100%); }
+    .sn-slide.sn-t5 .sn-slide-bg { background: radial-gradient(120% 150% at 74% 45%, #1f4fb5 0%, #122b60 46%, #080f22 100%); }
+    .sn-slide-copy { position: relative; z-index: 2; color: #fff; padding: 0 clamp(1.4rem, 3.6vw, 4.2rem); max-width: 660px; }
+    .sn-slide-copy .sn-eyebrow { display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: #e8dcff; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); padding: 5px 14px; border-radius: 20px; margin-bottom: 0.9rem; }
+    .sn-slide-copy h2 { font-family: 'Poppins', sans-serif; text-transform: uppercase; font-weight: 800; font-size: clamp(2rem, 3.6vw, 3.4rem); line-height: 1.02; margin-bottom: 0.65rem; letter-spacing: -0.3px; }
+    .sn-slide-copy p { font-size: clamp(0.82rem, 1.05vw, 0.95rem); color: rgba(255,255,255,0.82); margin-bottom: 0.9rem; line-height: 1.55; max-width: 440px; }
+    .sn-from { display: flex; align-items: baseline; gap: 9px; margin: 0 0 1.15rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(255,255,255,0.68); }
+    .sn-from b { font-size: clamp(1.35rem, 2.2vw, 1.95rem); font-weight: 800; color: #fff; letter-spacing: -0.3px; text-transform: none; line-height: 1; }
     .sn-slide-copy button { background: #fff; color: #17131f; border: none; border-radius: 8px; padding: 0.9rem 2rem; font-weight: 800; font-size: 0.86rem; letter-spacing: 0.6px; cursor: pointer; font-family: inherit; transition: transform .18s ease, background .18s ease; }
     .sn-slide-copy button:hover { background: #f1ecff; transform: translateY(-2px); }
-    .sn-slide-media { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; height: 100%; padding: 1.2rem 2.4rem 1.2rem 0; }
-    .sn-slide-media::before { content: ""; position: absolute; width: min(64%, 380px); aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.12); filter: blur(6px); }
-    .sn-prod-card { position: relative; width: min(60%, 340px); aspect-ratio: 1; background: #fff; border-radius: 22px; padding: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 34px 70px rgba(0,0,0,0.45); transform: rotate(-2.5deg); }
+    .sn-slide-media { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: clamp(10px, 1.4vw, 24px); height: 100%; padding: 1.6rem 3.2rem 1.6rem 0.4rem; }
+    .sn-slide-media::before { content: ""; position: absolute; width: min(78%, 520px); height: min(70%, 320px); border-radius: 999px; background: rgba(255,255,255,0.14); filter: blur(34px); }
+    .sn-prod-card { position: relative; flex: none; width: clamp(150px, 15.5vw, 246px); aspect-ratio: 1; background: #fff; border-radius: 22px; padding: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.45); }
+    .sn-prod-card.sn-card-1 { transform: rotate(-4deg) translateY(14px); }
+    .sn-prod-card.sn-card-2 { width: clamp(160px, 17vw, 272px); transform: rotate(3deg) translateY(-12px); z-index: 1; }
     .sn-prod-card img { max-width: 100%; max-height: 100%; object-fit: contain; }
-    .sn-prod-price { position: absolute; right: -16px; top: -16px; background: #5a2ecc; color: #fff; font-weight: 800; font-size: 1rem; padding: 0.5rem 0.9rem; border-radius: 999px; box-shadow: 0 12px 26px rgba(0,0,0,0.35); white-space: nowrap; }
+    .sn-prod-price { position: absolute; right: -12px; top: -12px; background: #5a2ecc; color: #fff; font-weight: 800; font-size: 0.85rem; padding: 0.42rem 0.8rem; border-radius: 999px; box-shadow: 0 12px 26px rgba(0,0,0,0.35); white-space: nowrap; }
     body.wholesale .sn-prod-price { background: #2f6fd0; }
     .sn-slide .sn-shade { display: none; }
     .sn-sl-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.35); background: rgba(16, 10, 34, 0.35); color: #fff; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .sn-sl-btn:hover { background: rgba(16, 10, 34, 0.8); }
-    .sn-sl-prev { left: 18px; } .sn-sl-next { right: 18px; }
+    .sn-sl-prev { left: 14px; } .sn-sl-next { right: 14px; }
     .sn-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 7px; }
     .sn-dots button { width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.4); cursor: pointer; padding: 0; transition: all 0.25s; }
     .sn-dots button.on { background: #fff; width: 22px; border-radius: 6px; }
     @media (max-width: 700px) {
-      .snitch-hero { width: calc(100% - 4rem); aspect-ratio: auto; height: clamp(430px, 122vw, 560px); min-height: 0; border-radius: 14px; }
-      .sn-slide { grid-template-columns: 1fr; grid-template-rows: 44% 56%; align-items: stretch; }
-      .sn-slide-media { grid-row: 1; padding: 0.9rem 1rem 0.2rem; }
-      .sn-slide-media::before { width: min(52%, 190px); }
-      .sn-prod-card { width: min(46%, 170px); padding: 9px; border-radius: 16px; }
-      .sn-prod-price { font-size: 0.78rem; padding: 0.35rem 0.65rem; right: -10px; top: -10px; }
+      .snitch-hero { width: calc(100% - 2rem); height: clamp(430px, 122vw, 560px); border-radius: 14px; }
+      .sn-slide { grid-template-columns: 1fr; grid-template-rows: 42% 58%; align-items: stretch; }
+      .sn-slide-media { grid-row: 1; padding: 0.9rem 0.7rem 0.1rem; gap: 10px; }
+      .sn-slide-media::before { width: min(64%, 240px); height: 44%; filter: blur(18px); }
+      .sn-prod-card, .sn-prod-card.sn-card-1, .sn-prod-card.sn-card-2 { width: min(40%, 150px); padding: 8px; border-radius: 14px; }
+      .sn-prod-card.sn-card-1 { transform: rotate(-4deg) translateY(6px); }
+      .sn-prod-card.sn-card-2 { transform: rotate(3deg) translateY(-6px); }
+      .sn-prod-price { font-size: 0.66rem; padding: 0.28rem 0.55rem; right: -7px; top: -7px; }
       .sn-slide-copy { grid-row: 2; padding: 0 1.1rem 1.5rem; max-width: none; text-align: center; }
-      .sn-slide-copy .sn-eyebrow { font-size: 0.56rem; letter-spacing: 1px; padding: 4px 10px; margin-bottom: 0.5rem; }
-      .sn-slide-copy h2 { font-size: 1.62rem; margin-bottom: 0.4rem; }
-      .sn-slide-copy p { font-size: 0.74rem; line-height: 1.45; margin: 0 auto 0.8rem; max-width: 320px; }
+      .sn-slide-copy .sn-eyebrow { font-size: 0.56rem; letter-spacing: 1px; padding: 4px 10px; margin-bottom: 0.45rem; }
+      .sn-slide-copy h2 { font-size: 1.6rem; margin-bottom: 0.35rem; }
+      .sn-slide-copy p { font-size: 0.72rem; line-height: 1.45; margin: 0 auto 0.55rem; max-width: 330px; }
+      .sn-from { justify-content: center; font-size: 0.58rem; letter-spacing: 1.1px; margin-bottom: 0.8rem; gap: 6px; }
+      .sn-from b { font-size: 1.15rem; }
       .sn-slide-copy button { padding: 0.7rem 1.4rem; font-size: 0.74rem; }
-      .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; top: 44%; }
+      .sn-sl-btn { width: 34px; height: 34px; font-size: 1rem; top: 42%; }
       .sn-sl-prev { left: 6px; } .sn-sl-next { right: 6px; }
       .sn-dots { bottom: 8px; }
     }
@@ -2102,58 +2112,99 @@
     }
 
     // ---------- Promo banner slides ----------
-    // `ids` is a preference list: the first one that still exists is used, so
-    // deleting a banner product falls through to another matching item instead
-    // of showing a random product.
+    // Five banners, TWO product photos each. `cat` drives the "Starting from"
+    // price and the Shop Now button, so both always match the category shown.
+    // `ids` is a preference list: the first ones that still exist are used, so
+    // deleting a banner product falls through to another item from the same
+    // category instead of showing a random product.
     const SN_SLIDES = [
-      { ids: [1, 1794215034760, 1794214319294, 1794215122875], theme: 1, eyebrow: "✦ Premium Anime Collectibles", title: "OWN YOUR<br>FANDOM.", sub: "Display-grade katanas, prop wands and figures — hand-checked, safely packed and shipped India-wide.", tag: "katana", label: "SHOP KATANAS" },
-      { ids: [1794226853748, 1793700281789], theme: 2, eyebrow: "🔥 New Drop", title: "WEAR<br>THE MASK.", sub: "LED Spider-Man masks with ring control. The piece everyone asks about — limited stock, restocked weekly.", tag: "cosplay", label: "SHOP COSPLAY" },
-      { ids: [1793654119229, 1794226915887], theme: 3, eyebrow: "🎁 The Gift Edit", title: "GIFTS THAT<br>HIT.", sub: "Music boxes, boxed wands and keepsakes for the fan who already has everything.", tag: "gift", label: "EXPLORE GIFTS" }
+      { ids: [8932597104797, 15401224241402, 8906321395869, 8693249605789], theme: 1, cat: "Katanas", eyebrow: "⚔️ Signature Katanas", title: "OWN YOUR<br>FANDOM.", sub: "Hand-checked 104 cm katanas — display-grade finishes, safely packed and shipped India-wide.", label: "SHOP NOW →" },
+      { ids: [15402570809594, 9047716036765, 15402570776826, 8867806380189], theme: 2, cat: "Cosplay", eyebrow: "🕷️ LED Masks & Helmets", title: "WEAR<br>THE MASK.", sub: "Flicker-eye LED masks and wearable helmets — the pieces everyone stops to ask about.", label: "SHOP NOW →" },
+      { ids: [8827761852573, 8827772698781, 8827765096605, 8827766145181], theme: 3, cat: "Wands", eyebrow: "🪄 Wands & Magic", title: "CAST A<br>SPELL.", sub: "Light-up, fire-effect and boxed wands for the fan who already owns the robe.", label: "SHOP NOW →" },
+      { ids: [8808846000285, 15453946609914, 9026746679453, 8486085492893], theme: 4, cat: "Anime Figures", eyebrow: "🎎 Collectible Figures", title: "BUILD THE<br>SHELF.", sub: "From Q-posket cuties to 1/6 scale showpieces — thousands of figures across 47 fan worlds.", label: "SHOP NOW →" },
+      { ids: [15409015914746, 8971827708061, 8715582734493, 15406752235770], theme: 5, cat: "Gifts & Stationery", eyebrow: "🎁 The Gift Edit", title: "GIFTS THAT<br>HIT.", sub: "Gift-boxed pen sets, diaries and keepsakes — ready to gift, wrapped safe and shipped fast.", label: "SHOP NOW →" }
     ];
     const SN_SLIDES_WHOLESALE = [
-      { ids: [1, 1794215034760, 1794214319294, 1794215122875], theme: 1, eyebrow: "💼 Artesania Wholesale Portal", title: "SCALE YOUR<br>STORE.", sub: "Verified margins, MOQ ₹5,000, quality-graded stock and weekly restocks — built for resellers who reorder.", tag: "All", label: "BROWSE WHOLESALE" },
-      { ids: [1794226853748, 1793700281789], theme: 2, eyebrow: "📦 B2B Pricing Active", title: "STOCK WHAT<br>SELLS.", sub: "LED masks, katanas and figures move fastest. Reseller price at 1.5× supplier cost on every listing.", tag: "All", label: "SHOP THE CATALOG" },
-      { ids: [1793654119229, 1794226915887], theme: 3, eyebrow: "🤝 Dedicated Support", title: "GIFT-PRICE<br>MARGINS.", sub: "23 product types, 47 fan worlds, GST invoice and pallet-grade packing on request.", tag: "All", label: "TALK TO US" }
+      { ids: [8932597104797, 15401224241402, 8906321395869, 8693249605789], theme: 1, cat: "Katanas", eyebrow: "💼 Artesania Wholesale", title: "SCALE YOUR<br>STORE.", sub: "Reseller pricing on every katana — verified margins, MOQ ₹5,000 and weekly restocks.", label: "SHOP NOW →" },
+      { ids: [15402570809594, 9047716036765, 15402570776826, 8867806380189], theme: 2, cat: "Cosplay", eyebrow: "📦 B2B Pricing Active", title: "STOCK WHAT<br>SELLS.", sub: "LED masks are our fastest reorder — reseller price at 1.5× supplier cost.", label: "SHOP NOW →" },
+      { ids: [8827761852573, 8827772698781, 8827765096605, 8827766145181], theme: 3, cat: "Wands", eyebrow: "🤝 Bulk Wands", title: "MARGIN-PROOF<br>MAGIC.", sub: "Boxed and light-up wands move in every gift store — mixed cases available on request.", label: "SHOP NOW →" },
+      { ids: [8808846000285, 15453946609914, 9026746679453, 8486085492893], theme: 4, cat: "Anime Figures", eyebrow: "🏷️ Reseller Prices", title: "FILL THE<br>SHELF.", sub: "Figures from entry price to 1/6 scale premium — one catalog, one invoice, GST included.", label: "SHOP NOW →" },
+      { ids: [15409015914746, 8971827708061, 8715582734493, 15406752235770], theme: 5, cat: "Gifts & Stationery", eyebrow: "🎁 Gift Wholesale", title: "GIFT-PRICE<br>MARGINS.", sub: "The gift range that sells all year — pallet-grade packing and dedicated support.", label: "SHOP NOW →" }
     ];
     let snSlideIdx = 0, snSlideTimer = null;
+
+    function snHasImg(p) { return !!(p && typeof p.img === "string" && p.img.trim()); }
+    function snPriceOf(p) {
+      const v = Number(activePriceFor(p));
+      return isFinite(v) && v > 0 ? v : 0;
+    }
 
     function renderHeroSlider() {
       const box = document.getElementById("sn-slides");
       const dots = document.getElementById("sn-dots");
       if (!box || !dots) return;
       const slides = currentMode === "Wholesale" ? SN_SLIDES_WHOLESALE : SN_SLIDES;
-      const usable = products.filter(p => typeof p.img === "string" && p.img.trim());
-      const pick = (i) => {
-        if (!usable.length) return null;
-        const step = Math.max(1, Math.floor(usable.length / (slides.length + 1)));
-        return usable[(step * (i + 1) + i) % usable.length];
+      const inCat = (p, cat) => cat === "All" || p.category === cat;
+
+      // The lowest price we actually have in that category (retail or reseller).
+      const fromPrice = (cat) => {
+        let min = 0;
+        products.forEach(p => {
+          if (!inCat(p, cat)) return;
+          const v = snPriceOf(p);
+          if (v && (!min || v < min)) min = v;
+        });
+        return min;
       };
-      const byIds = (list) => {
-        for (const id of (list || [])) {
+
+      // Two photos per banner: preferred products first, then the priciest
+      // items in the same category as a safe fallback.
+      const twoFor = (s) => {
+        const out = [];
+        (s.ids || []).forEach(id => {
+          if (out.length >= 2) return;
           const hit = products.find(p => String(p.id) === String(id));
-          if (hit && typeof hit.img === "string" && hit.img.trim()) return hit;
+          if (snHasImg(hit) && !out.includes(hit)) out.push(hit);
+        });
+        if (out.length < 2) {
+          const usable = products.filter(p => snHasImg(p) && inCat(p, s.cat) && !/blank-listing/i.test(p.img));
+          // Stay in a sane price band so a fallback never shows a ₹3 lakh
+          // showpiece or an ₹80 keychain in a banner.
+          const banded = usable.filter(p => snPriceOf(p) >= 299 && snPriceOf(p) <= 6000);
+          const pool = (banded.length >= 2 ? banded : usable)
+            .slice()
+            .sort((a, b) => snPriceOf(b) - snPriceOf(a));
+          for (const p of pool) {
+            if (out.length >= 2) break;
+            if (!out.includes(p)) out.push(p);
+          }
         }
-        return null;
+        return out.slice(0, 2);
       };
+
       box.innerHTML = slides.map((s, i) => {
-        const product = byIds(s.ids) || pick(i);
-        const price = product ? Number(activePriceFor(product)) : 0;
+        const picks = twoFor(s);
+        // "Starting from" = cheapest of the two products actually shown, so the
+        // headline price always matches the photos beside it.
+        const shown = picks.map(snPriceOf).filter(v => v);
+        const from = shown.length ? Math.min.apply(null, shown) : fromPrice(s.cat);
+        const cards = picks.map((p, n) => {
+          const price = snPriceOf(p);
+          return '<div class="sn-prod-card sn-card-' + (n + 1) + '">' +
+            '<img src="' + String(p.img).replace(/([?&])w=\d+/, "$1w=1600") + '" alt="' + escHtml(p.name) + '" loading="' + (i === 0 ? "eager" : "lazy") + '">' +
+            (price ? '<span class="sn-prod-price">₹' + price.toLocaleString("en-IN") + '</span>' : '') +
+          '</div>';
+        }).join("");
         return '<div class="sn-slide sn-t' + (s.theme || 1) + (i === 0 ? " on" : "") + '">' +
           '<div class="sn-slide-bg"></div>' +
           '<div class="sn-slide-copy">' +
             '<span class="sn-eyebrow">' + s.eyebrow + '</span>' +
             '<h2>' + s.title + '</h2>' +
             '<p>' + s.sub + '</p>' +
-            '<button onclick="snSlideCTA(\'' + s.tag + '\')">' + s.label + '</button>' +
+            (from ? '<div class="sn-from">Starting from <b>₹' + from.toLocaleString("en-IN") + '</b></div>' : '') +
+            '<button onclick="snGoCat(' + i + ')">' + s.label + '</button>' +
           '</div>' +
-          '<div class="sn-slide-media">' +
-            (product
-              ? '<div class="sn-prod-card">' +
-                  '<img src="' + String(product.img).replace(/([?&])w=\d+/, "$1w=1600") + '" alt="' + escHtml(product.name) + '">' +
-                  (price ? '<span class="sn-prod-price">₹' + price.toLocaleString("en-IN") + '</span>' : '') +
-                '</div>'
-              : '') +
-          '</div>' +
+          '<div class="sn-slide-media">' + cards + '</div>' +
         '</div>';
       }).join("");
       snSlideIdx = 0;
@@ -2192,8 +2243,17 @@
       startSnSlideTimer();
     }
 
-    function snSlideCTA(tag) {
-      const found = categories.find(c => c.toLowerCase().includes(String(tag))) || "All";
+    function snGoCat(i) {
+      const slides = currentMode === "Wholesale" ? SN_SLIDES_WHOLESALE : SN_SLIDES;
+      const s = slides[i];
+      if (s) snSlideCTA(s.cat);
+    }
+
+    function snSlideCTA(cat) {
+      const wanted = String(cat || "All");
+      const found = categories.includes(wanted)
+        ? wanted
+        : (categories.find(c => c.toLowerCase().includes(wanted.toLowerCase())) || "All");
       filterCategory(found);
       const grid = document.getElementById("product-grid");
       if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
