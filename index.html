@@ -2191,7 +2191,7 @@
         const cards = picks.map((p, n) => {
           const price = snPriceOf(p);
           return '<div class="sn-prod-card sn-card-' + (n + 1) + '">' +
-            '<img src="' + String(p.img).replace(/([?&])w=\d+/, "$1w=1600") + '" alt="' + escHtml(p.name) + '" loading="' + (i === 0 ? "eager" : "lazy") + '">' +
+            '<img src="' + String(p.img).replace(/([?&])w=\d+/, "$1w=1600") + '" alt="' + escHtml(p.name) + '" decoding="async">' +
             (price ? '<span class="sn-prod-price">₹' + price.toLocaleString("en-IN") + '</span>' : '') +
           '</div>';
         }).join("");
