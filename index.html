@@ -2053,7 +2053,9 @@
         accounts[key].email = email;
         localStorage.setItem("ink_accounts", JSON.stringify(accounts));
       }
-      sendLead({ name: name, phone: customerInfo.phone, email: email }, "edit");
+      // Profile edits go ONLY to the Orders script's Customers sheet, so the
+      // leads sheet never gets a new row for the same person.
+      postCustomerRecord({ name: name, phone: customerInfo.phone, email: email }, "edit", ordersUrl());
       closeProfileEditor();
       document.getElementById("ac-avatar").textContent = name.trim().slice(0, 2).toUpperCase();
       document.getElementById("ac-name").textContent = name;
