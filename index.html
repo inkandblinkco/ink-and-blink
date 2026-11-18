@@ -3524,7 +3524,10 @@
 
     // ---------- Proper order placement (order page + email confirmations) ----------
     function ordersUrl() {
-      return localStorage.getItem("ink_orders_url") || ORDERS_URL || LEADS_URL;
+      const override = localStorage.getItem("ink_orders_url") || "";
+      // The old leads URL must never become a customer/orders destination.
+      if (override && override !== LEADS_URL) return override;
+      return ORDERS_URL;
     }
 
     function absoluteImageUrl(src) {
