@@ -1860,10 +1860,10 @@
       } catch (e) { /* never block the visitor if the sheet call fails */ }
     }
 
+    // A customer is written to ONE place only: the Customers tab of the Orders
+    // script. The old leads spreadsheet must never receive accounts, or the
+    // same number gets a fresh row every time they visit.
     function sendLead(rec, type) {
-      postCustomerRecord(rec, type, LEADS_URL);
-      // Also store the customer in the Orders script so a new device/browser
-      // can recognise them. This never blocks the visitor.
       postCustomerRecord(rec, type, ordersUrl());
     }
 
@@ -1940,7 +1940,7 @@
           lastMode: "returning"
         };
         if (typedEmail && rec.email && typedEmail.toLowerCase() !== rec.email.toLowerCase()) {
-          rec.otherEmail = typedEmail; // keep the extra email in the Replaced column
+          rec.otherEmail = typedEmail; // keep the extra email in Mail 2 / Mail 3
         }
         saveAccountRecord(rec);
         sendLead(rec, "signin");
@@ -2016,7 +2016,7 @@
     function hideAccount() { document.getElementById("account-pop").classList.remove("open"); }
 
     // Name and email can only be changed from inside the account panel, never
-    // from the signup/sign-in forms. The old email moves to the Replaced column.
+    // from the signup/sign-in forms. Old emails move to Mail 2, then Mail 3.
     function openProfileEditor() {
       if (!customerInfo) return;
       document.getElementById("ac-new-name").value = customerInfo.name || "";
