@@ -1057,7 +1057,7 @@
       <div id="auth-create">
         <input type="text" id="visitor-name" placeholder="Full Name" required>
         <input type="tel" id="visitor-phone" placeholder="WhatsApp Mobile Number" required>
-        <input type="email" id="visitor-email" placeholder="Email (required)" required>
+        <input type="email" id="visitor-email" placeholder="Email (optional — needed only when you order)">
         <button class="btn-primary-big" onclick="createAccount()">Create Account →</button>
       </div>
 
@@ -1908,22 +1908,16 @@
       const name = document.getElementById("visitor-name").value.trim();
       const phone = document.getElementById("visitor-phone").value.trim();
       const emailEl = document.getElementById("visitor-email");
-      const email = emailEl.value.trim();
+      const typedEmail = emailEl.value.trim();
       if (!name || !phone) { alert("Please enter both your Name and WhatsApp Mobile Number!"); return; }
-      if (!email) {
-        emailEl.focus();
-        alert("Please enter your email address to create your account.");
-        return;
-      }
-      if (!/^\S+@\S+\.\S+$/.test(email)) {
-        emailEl.focus();
-        alert("Please enter a valid email address.");
-        return;
-      }
+      // Email is optional for an account. It is only REQUIRED when placing an order.
+      const email = /^\S+@\S+\.\S+$/.test(typedEmail) ? typedEmail : "";
+      if (typedEmail && !email) emailEl.value = "";
       // Check this device first (instant), then any other device via the cloud.
-      const local = findAccountByEmail(email) || accounts[normPhone(phone)];
+      const local = accounts[normPhone(phone)] || findAccountByEmail(email);
       const remote = await lookupCustomerRemote(email, phone);
-      const existing = local || remote;
+      // The cloud row is authoritative for the saved email; local is the fallback.
+      const existing = remote || local;
       if (existing) {
         const rec = { ...existing, lastMode: "returning" };
         saveAccountRecord(rec);
