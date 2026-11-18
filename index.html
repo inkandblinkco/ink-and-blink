@@ -1467,7 +1467,22 @@
     }
 
     let categories = JSON.parse(localStorage.getItem("ink_categories")) || defaultCategories.slice();
-    let products = JSON.parse(localStorage.getItem("ink_products")) || (defaultProducts.map(p => ({ badgeDefault: null, ...p })));
+
+    // The dashboard APPENDS new and imported products at the end of the catalog
+    // array, so the file is oldest-first. Show the newest uploads first. The
+    // three curated "New Arrival" picks stay pinned at the very top.
+    function newestFirst(list) {
+      const arr = Array.isArray(list) ? list.slice() : [];
+      const featured = [], rest = [];
+      for (const p of arr) {
+        const curatedNew = /new arrival/i.test(String(p.badge || "")) && /curated-/i.test(String(p.img || ""));
+        (curatedNew ? featured : rest).push(p);
+      }
+      rest.reverse();
+      return featured.concat(rest);
+    }
+
+    let products = newestFirst(JSON.parse(localStorage.getItem("ink_products")) || (defaultProducts.map(p => ({ badgeDefault: null, ...p }))));
     let cart = JSON.parse(localStorage.getItem("ink_cart")) || {};
     let currentMode = "Retail";
     let currentCategory = "All";
@@ -1747,7 +1762,7 @@
           if (!res.ok) throw new Error("HTTP " + res.status);
           const data = await res.json();
           if (Array.isArray(data.products) && data.products.length) {
-            products = data.products;
+            products = newestFirst(data.products);
             if (Array.isArray(data.categories) && data.categories.length) {
               categories = data.categories;
             }
