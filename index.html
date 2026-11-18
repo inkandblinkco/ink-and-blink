@@ -1837,15 +1837,54 @@
       localStorage.setItem("ink_accounts", JSON.stringify(accounts));
     }
 
-    function sendLead(rec, type) {
+    function postCustomerRecord(rec, type, url) {
       try {
-        fetch(LEADS_URL, {
+        fetch(url, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ name: rec.name, phone: rec.phone, email: rec.email || "", mode: currentMode, type: type })
         }).catch(() => {});
       } catch (e) { /* never block the visitor if the sheet call fails */ }
+    }
+
+    function sendLead(rec, type) {
+      postCustomerRecord(rec, type, LEADS_URL);
+      // Also store the customer in the Orders script so a new device/browser
+      // can recognise them. This never blocks the visitor.
+      postCustomerRecord(rec, type, ordersUrl());
+    }
+
+    // Read-only customer lookup from the Orders script. JSONP is used because
+    // Google Apps Script web apps cannot be called cross-origin with fetch().
+    // Always resolves (to a customer or null) so signup never gets stuck.
+    function lookupCustomerRemote(email, phone) {
+      return new Promise(resolve => {
+        const em = normEmail(email);
+        const ph = normPhone(phone);
+        if (!em && !ph) { resolve(null); return; }
+        const cb = "__ibCustomer" + Date.now() + Math.floor(Math.random() * 100000);
+        let settled = false;
+        function finish(value) {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+          if (script.parentNode) script.parentNode.removeChild(script);
+          resolve(value);
+        }
+        const timer = setTimeout(() => finish(null), 5000);
+        window[cb] = data => {
+          finish(data && data.found && data.customer ? data.customer : null);
+        };
+        const script = document.createElement("script");
+        script.onerror = () => finish(null);
+        script.src = ordersUrl() + "?callback=" + encodeURIComponent(cb)
+          + "&email=" + encodeURIComponent(em)
+          + "&phone=" + encodeURIComponent(ph)
+          + "&_=" + Date.now();
+        document.head.appendChild(script);
+      });
     }
 
     function startSession(rec) {
@@ -1865,7 +1904,7 @@
       refreshCatalogFromCloud();
     }
 
-    function createAccount() {
+    async function createAccount() {
       const name = document.getElementById("visitor-name").value.trim();
       const phone = document.getElementById("visitor-phone").value.trim();
       const emailEl = document.getElementById("visitor-email");
@@ -1881,7 +1920,10 @@
         alert("Please enter a valid email address.");
         return;
       }
-      const existing = findAccountByEmail(email) || accounts[normPhone(phone)];
+      // Check this device first (instant), then any other device via the cloud.
+      const local = findAccountByEmail(email) || accounts[normPhone(phone)];
+      const remote = await lookupCustomerRemote(email, phone);
+      const existing = local || remote;
       if (existing) {
         const rec = { ...existing, lastMode: "returning" };
         saveAccountRecord(rec);
@@ -1906,19 +1948,25 @@
       }
     }
 
-    function signInStore() {
+    async function signInStore() {
       const phone = document.getElementById("signin-phone").value.trim();
-      let name = document.getElementById("signin-name").value.trim();
+      const name = document.getElementById("signin-name").value.trim();
       if (!phone || !name) { alert("Please enter your WhatsApp number and Name!"); return; }
-      const saved = accounts[normPhone(phone)];
-      if (saved && saved.email) {
-        const typed = document.getElementById("signin-name").value.trim();
-        const rec = { ...saved, name: typed || saved.name, lastMode: "signin" };
+      const local = accounts[normPhone(phone)];
+      const remote = await lookupCustomerRemote("", phone);
+      if (remote) {
+        // Same number on a different device — log into the original account.
+        const rec = { ...remote, name: name || remote.name, lastMode: "returning" };
+        saveAccountRecord(rec);
+        sendLead(rec, "signin");
+        startSession(rec);
+      } else if (local && local.email) {
+        const rec = { ...local, name: name || local.name, lastMode: "signin" };
         saveAccountRecord(rec);
         sendLead(rec, "signin");
         startSession(rec);
       } else {
-        // unknown device / first sign-in on this browser — create the local record too
+        // Genuinely new customer — create the local record too.
         const rec = { name, phone, lastMode: "signin" };
         saveAccountRecord(rec);
         sendLead(rec, "signin");
