@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#140d2b" />
+<title>Ink &amp; Blink — Spin &amp; Save</title>
+<meta name="description" content="Follow, review and spin for a random discount on your first Ink & Blink order." />
+<style>
+  :root{
+    --bg1:#140d2b; --bg2:#1c1238; --bg3:#2a1a4d;
+    --gold:#f0c46a; --violet:#a78bfa; --ink:#f7f4ff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:
+      radial-gradient(120% 80% at 50% 0%, #3a2568 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%);
+    min-height:100dvh; display:flex; flex-direction:column; align-items:center;
+    padding:18px 16px 26px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin:4px 0 16px;letter-spacing:.08em;font-weight:700;font-size:14px}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold)}
+  .steps{display:flex;gap:7px;margin:0 0 16px}
+  .steps i{width:26px;height:4px;border-radius:3px;background:rgba(255,255,255,.14);transition:background .25s}
+  .steps i.on{background:var(--gold)}
+  .card{
+    width:100%;max-width:430px;background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.10);border-radius:22px;
+    padding:22px 20px 24px;backdrop-filter:blur(8px);
+    box-shadow:0 24px 60px rgba(0,0,0,.45);position:relative;overflow:hidden;
+  }
+  .view{display:none}
+  .view.on{display:block;animation:slide .28s ease both}
+  @keyframes slide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+  .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  h1{font-size:clamp(25px,6.6vw,32px);line-height:1.12;margin:0 0 10px;letter-spacing:-.01em}
+  .sub{color:#cfc6e6;font-size:14.5px;line-height:1.55;margin:0 0 18px}
+  label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#b9aee0;margin:0 0 6px}
+  input[type=tel]{
+    width:100%;padding:15px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.14);
+    background:rgba(10,6,24,.55);color:#fff;font-size:17px;outline:none;margin-bottom:14px;letter-spacing:.06em;
+  }
+  input[type=tel]:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(167,139,250,.18)}
+  button,.btn{
+    display:block;width:100%;border:0;border-radius:14px;padding:15px 16px;font-size:16px;font-weight:700;
+    text-align:center;text-decoration:none;color:#1a1030;background:linear-gradient(135deg,#f6d798,#e7b45c);
+    cursor:pointer;box-shadow:0 10px 24px rgba(240,196,106,.22);
+  }
+  button:disabled{opacity:.6;cursor:default}
+  .btn.ghost{background:transparent;color:#e7e0ff;border:1px solid rgba(255,255,255,.18);box-shadow:none;margin-top:10px}
+  .btn.ig{background:linear-gradient(135deg,#f9ce34,#ee2a7b 45%,#6228d7)}
+  .btn.rev{background:linear-gradient(135deg,#fff,#e8e8e8);color:#1a1030}
+  .fine{font-size:11.5px;color:#9d92bd;text-align:center;margin:12px 0 0;line-height:1.5}
+  .err{display:none;color:#ffb4b4;font-size:13px;margin:-4px 0 12px}
+  .handle{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:rgba(10,6,24,.45);
+          border:1px solid rgba(255,255,255,.08);margin-bottom:16px}
+  .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;
+          background:linear-gradient(135deg,#f9ce34,#ee2a7b 45%,#6228d7);color:#fff;flex:none}
+  .handle b{display:block;font-size:15px}
+  .handle span{font-size:12.5px;color:#b3a8d4}
+  .stars{font-size:22px;letter-spacing:3px;color:var(--gold);margin:2px 0 6px}
+  .pct{font-size:clamp(58px,17vw,80px);font-weight:800;line-height:1;letter-spacing:-.03em;text-align:center;
+       background:linear-gradient(180deg,#fff3d6,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;
+       margin:8px 0 2px;font-variant-numeric:tabular-nums}
+  .pct small{font-size:.36em;-webkit-text-fill-color:var(--gold)}
+  .codewrap{text-align:center}
+  .code{
+    display:inline-block;margin:12px 0 4px;padding:12px 20px;border-radius:12px;
+    border:1px dashed rgba(240,196,106,.55);background:rgba(240,196,106,.08);
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:21px;letter-spacing:.14em;color:#ffe9b8;
+  }
+  .copy{margin-top:14px;background:transparent;border:1px solid rgba(255,255,255,.18);color:#e7e0ff;box-shadow:none;font-weight:600}
+  .note{margin-top:14px;font-size:12.5px;color:#a99ecb;line-height:1.5;text-align:center}
+  .overlay{position:absolute;inset:0;background:rgba(12,7,30,.92);display:none;place-items:center;text-align:center;padding:20px}
+  .overlay.on{display:grid}
+  .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:var(--gold);
+           animation:spin .8s linear infinite;margin:0 auto 12px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <div class="brand"><span class="dot"></span> INK &amp; BLINK</div>
+
+  <div class="steps" id="steps">
+    <i class="on"></i><i></i><i></i><i></i>
+  </div>
+
+  <main class="card">
+    <!-- STEP 1 -->
+    <section class="view on" id="v1">
+      <div class="kicker">Comic Con special</div>
+      <h1>Win up to<br>25% off</h1>
+      <p class="sub">Enter your WhatsApp number to start. Follow us, leave a review, then spin for a random discount on your first order.</p>
+      <form id="f1" novalidate>
+        <label for="phone">WhatsApp number</label>
+        <input type="tel" id="phone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="10-digit mobile number" />
+        <div class="err" id="e1"></div>
+        <button type="submit" id="b1">Start</button>
+        <p class="fine">We only message you about your discount and our launch. No spam.</p>
+      </form>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="view" id="v2">
+      <div class="kicker">Step 2 of 4</div>
+      <h1>Follow us on<br>Instagram</h1>
+      <p class="sub">Tap follow, then come back here to continue.</p>
+      <div class="handle">
+        <div class="avatar">IB</div>
+        <div><b>@inkandblink._</b><span>Anime collectibles · new drops</span></div>
+      </div>
+      <a class="btn ig" href="https://www.instagram.com/inkandblink._/" target="_blank" rel="noopener">Open Instagram</a>
+      <button class="ghost" type="button" id="b2">I followed — next</button>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="view" id="v3">
+      <div class="kicker">Step 3 of 4</div>
+      <h1>Leave us a<br>Google review</h1>
+      <div class="stars">★★★★★</div>
+      <p class="sub">It takes 20 seconds and helps our small studio more than you know.</p>
+      <a class="btn rev" href="https://g.page/r/CccZxdT6gF4MEAE/review" target="_blank" rel="noopener">Write a review</a>
+      <button class="ghost" type="button" id="b3">I reviewed — spin now</button>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="view" id="v4">
+      <div class="kicker">You're in</div>
+      <div class="pct" id="pct">0<small>% OFF</small></div>
+      <div class="codewrap">
+        <div class="code" id="code">—</div>
+        <p class="sub" style="margin:8px 0 0">Use this code on your first order when the store opens.</p>
+        <button class="copy" type="button" id="copyBtn">Copy my code</button>
+        <p class="note">Same number again? You'll see the same code.</p>
+      </div>
+    </section>
+
+    <div class="overlay" id="overlay"><div><div class="spinner"></div><div id="overlayText">Working…</div></div></div>
+  </main>
+
+<script>
+(function () {
+  "use strict";
+
+  var API = "https://script.google.com/macros/s/AKfycbxEelymwlfQy2EU1aPs3I4rlyKC-duycAJue3KG1-uM05Rl144S6a7FaQq3yx7_GVN3/exec";
+  var CON_KEY = "inkblink-con";
+  var QUEUE_KEY = "ib_con_queue_v1";
+  var WEIGHTS = [5, 5, 10, 10, 10, 15, 15, 15, 20, 20, 25];
+
+  var phone = "";
+  var dots = document.querySelectorAll("#steps i");
+
+  function view(n) {
+    for (var i = 1; i <= 4; i++) document.getElementById("v" + i).classList.toggle("on", i === n);
+    for (var d = 0; d < dots.length; d++) dots[d].classList.toggle("on", d < n);
+    window.scrollTo(0, 0);
+  }
+
+  function jsonp(params, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var cb = "ibcb_" + Math.random().toString(36).slice(2, 11);
+      var qs = Object.keys(params).map(function (k) {
+        return encodeURIComponent(k) + "=" + encodeURIComponent(params[k]);
+      }).join("&");
+      var s = document.createElement("script");
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return; done = true; cleanup(); reject(new Error("timeout"));
+      }, timeoutMs || 12000);
+      function cleanup() {
+        clearTimeout(timer);
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        if (s.parentNode) s.parentNode.removeChild(s);
+      }
+      window[cb] = function (data) { if (done) return; done = true; cleanup(); resolve(data || {}); };
+      s.onerror = function () { if (done) return; done = true; cleanup(); reject(new Error("network")); };
+      s.src = API + "?" + qs + "&callback=" + encodeURIComponent(cb) + "&_=" + Date.now();
+      document.head.appendChild(s);
+    });
+  }
+
+  function randomPct() { return WEIGHTS[Math.floor(Math.random() * WEIGHTS.length)]; }
+  function makeCode(pct) {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+    for (var i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return "IB" + pct + "-" + s;
+  }
+
+  function save(extra, timeout) {
+    var payload = { con: 1, k: CON_KEY, phone: phone, source: "Con" };
+    Object.keys(extra).forEach(function (k) { payload[k] = extra[k]; });
+    return jsonp(payload, timeout || 12000);
+  }
+
+  function queuePush(rec) {
+    try {
+      var q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+      q.push(rec); localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    } catch (e) {}
+  }
+
+  function flushQueue() {
+    var q;
+    try { q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]"); } catch (e) { q = []; }
+    if (!q.length) return;
+    var rec = q[0];
+    jsonp(Object.assign({ con: 1, k: CON_KEY, source: "Con" }, rec), 7000).then(function () {
+      q.shift(); localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+      if (q.length) flushQueue();
+    }).catch(function () {});
+  }
+
+  function overlay(on, text) {
+    var o = document.getElementById("overlay");
+    o.classList.toggle("on", !!on);
+    if (text) document.getElementById("overlayText").textContent = text;
+  }
+
+  function err(id, msg) {
+    var box = document.getElementById(id);
+    box.textContent = msg; box.style.display = "block";
+  }
+
+  function validPhone(v) { return /^[6-9]\d{9}$/.test(v); }
+
+  /* Step 1 */
+  document.getElementById("f1").addEventListener("submit", function (e) {
+    e.preventDefault();
+    document.getElementById("e1").style.display = "none";
+    var v = document.getElementById("phone").value.replace(/\D/g, "").slice(-10);
+    if (!validPhone(v)) return err("e1", "Enter a valid 10-digit mobile number.");
+
+    phone = v;
+    overlay(true, "Checking…");
+    save({ stage: "number" }, 12000).then(function (data) {
+      overlay(false);
+      if (data && data.discount) return reveal(data.discount, data.code);
+      view(2);
+    }).catch(function () {
+      overlay(false);
+      view(2); // don't block the funnel; the queue will sync later
+    });
+  });
+
+  /* Step 2 */
+  document.getElementById("b2").addEventListener("click", function () {
+    overlay(true, "Saving…");
+    save({ followed: 1, stage: "follow" }).catch(function () {
+      queuePush({ phone: phone, followed: 1, stage: "follow", source: "Con" });
+    }).then(function () { overlay(false); view(3); });
+  });
+
+  /* Step 3 + spin */
+  var spinning = false;
+  document.getElementById("b3").addEventListener("click", function () {
+    if (spinning) return;
+    spinning = true;
+
+    function finish(pct, code) {
+      spinning = false;
+      reveal(pct, code);
+    }
+
+    overlay(true, "Spinning…");
+    save({ reviewed: 1, spin: 1, stage: "spin" }, 15000).then(function (data) {
+      overlay(false);
+      if (data && data.discount) return finish(Number(data.discount), String(data.code || ""));
+      throw new Error("server");
+    }).catch(function () {
+      overlay(false);
+      var pct = randomPct(), code = makeCode(pct);
+      queuePush({ phone: phone, reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code, source: "Con" });
+      finish(pct, code);
+    });
+  });
+
+  /* Result */
+  function reveal(pct, code) {
+    view(4);
+    var el = document.getElementById("pct");
+    var ticks = 0, total = 18;
+    var timer = setInterval(function () {
+      ticks++;
+      if (ticks >= total) {
+        clearInterval(timer);
+        el.innerHTML = pct + "<small>% OFF</small>";
+        document.getElementById("code").textContent = code || "";
+        window.__ibCode = code || "";
+        return;
+      }
+      el.innerHTML = randomPct() + "<small>% OFF</small>";
+    }, 65);
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var code = window.__ibCode || document.getElementById("code").textContent;
+    var b = this;
+    function done() { b.textContent = "Copied!"; setTimeout(function () { b.textContent = "Copy my code"; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, done);
+    else {
+      var t = document.createElement("textarea");
+      t.value = code; document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(t); done();
+    }
+  });
+
+  document.getElementById("phone").addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "").slice(0, 10);
+  });
+
+  window.addEventListener("online", flushQueue);
+  flushQueue();
+})();
+</script>
+</body>
+</html>
