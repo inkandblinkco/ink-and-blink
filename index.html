@@ -1864,7 +1864,8 @@
     // script. The old leads spreadsheet must never receive accounts, or the
     // same number gets a fresh row every time they visit.
     function sendLead(rec, type) {
-      postCustomerRecord(rec, type, ordersUrl());
+      // Always the built-in Orders script — never a saved/old URL.
+      postCustomerRecord(rec, type, ORDERS_URL);
     }
 
     // Read-only customer lookup from the Orders script. JSONP is used because
@@ -1891,7 +1892,7 @@
         };
         const script = document.createElement("script");
         script.onerror = () => finish(null);
-        script.src = ordersUrl() + "?callback=" + encodeURIComponent(cb)
+        script.src = ORDERS_URL + "?callback=" + encodeURIComponent(cb)
           + "&email=" + encodeURIComponent(em)
           + "&phone=" + encodeURIComponent(ph)
           + "&_=" + Date.now();
@@ -2055,7 +2056,7 @@
       }
       // Profile edits go ONLY to the Orders script's Customers sheet, so the
       // leads sheet never gets a new row for the same person.
-      postCustomerRecord({ name: name, phone: customerInfo.phone, email: email }, "edit", ordersUrl());
+      postCustomerRecord({ name: name, phone: customerInfo.phone, email: email }, "edit", ORDERS_URL);
       closeProfileEditor();
       document.getElementById("ac-avatar").textContent = name.trim().slice(0, 2).toUpperCase();
       document.getElementById("ac-name").textContent = name;
