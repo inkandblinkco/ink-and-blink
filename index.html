@@ -430,6 +430,8 @@
     .op-item { display: flex; justify-content: space-between; gap: 12px; font-size: 0.85rem; padding: 7px 0; border-bottom: 1px dashed rgba(160, 100, 255, 0.22); }
     .op-item:last-child { border-bottom: none; }
     .op-item span { color: var(--text); }
+    .op-item-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .op-item-img { width: 38px; height: 50px; object-fit: cover; border-radius: 7px; border: 1px solid var(--border); background: #f5f4f8; flex: none; }
     .op-item b { color: var(--purple-light); white-space: nowrap; }
     .op-total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-bottom: 0.5rem; }
     .op-total-row span:last-child { color: var(--purple-light); }
@@ -576,6 +578,7 @@
     #order-placed { background: rgba(250, 250, 252, 0.97) !important; }
     .order-box { background: #fff !important; border: 1px solid #e8e8ee !important; box-shadow: 0 30px 70px rgba(20, 20, 40, 0.18) !important; }
     .op-items { background: #fafafb !important; border-color: #ececef !important; }
+    .op-item-img { border-color: #e4e4ea !important; }
 
     /* Visitor login gate: white card on soft lavender */
     .customer-login-box { background: #fff !important; border: 1px solid #ececef !important; box-shadow: 0 24px 70px rgba(20, 20, 40, 0.16) !important; backdrop-filter: none !important; }
@@ -1054,7 +1057,7 @@
       <div id="auth-create">
         <input type="text" id="visitor-name" placeholder="Full Name" required>
         <input type="tel" id="visitor-phone" placeholder="WhatsApp Mobile Number" required>
-        <input type="email" id="visitor-email" placeholder="Email (optional — for order updates)">
+        <input type="email" id="visitor-email" placeholder="Email (required)" required>
         <button class="btn-primary-big" onclick="createAccount()">Create Account →</button>
       </div>
 
@@ -1391,6 +1394,7 @@
     // ---- Visitor login capture: POSTs name+phone to the owner's Google Sheet ----
     const LEADS_URL = "https://script.google.com/macros/s/AKfycby9jZKgVJhN_o97946iT5vC1loveR-HuKB6gAnX4fhhZaedSPdLTrcWfgDzqOgkiW0HZg/exec";
     const ORDERS_URL = "https://script.google.com/macros/s/AKfycbxEelymwlfQy2EU1aPs3I4rlyKC-duycAJue3KG1-uM05Rl144S6a7FaQq3yx7_GVN3/exec"; // built-in default — survives browser data clearing
+    const SITE_IMG_BASE = "https://inkandblinkco.github.io/ink-and-blink/";
 
     // ---- Passwords are stored as one-way SHA-256 hashes (never plain text) ----
     // To change a password: compute the hash of your new password (e.g. sha-256.online-hashcalculator.com) and replace below.
@@ -1799,6 +1803,12 @@
     try { accounts = JSON.parse(localStorage.getItem("ink_accounts")) || {}; } catch (e) { accounts = {}; }
     let pendingCheckoutAction = null;
     const normPhone = ph => String(ph || "").replace(/[^0-9]/g, "").slice(-10);
+    const normEmail = em => String(em || "").trim().toLowerCase();
+    function findAccountByEmail(email) {
+      const key = normEmail(email);
+      if (!key) return null;
+      return Object.values(accounts).find(a => a && normEmail(a.email) === key) || null;
+    }
 
     function openAccountGate(contextNote, action) {
       pendingCheckoutAction = action || null;
@@ -1845,7 +1855,10 @@
       updateCartUI();
       const action = pendingCheckoutAction;
       pendingCheckoutAction = null;
-      snToast(rec.lastMode === "signin" ? `Welcome back, ${rec.name.split(" ")[0]}! 👋` : `Account created — welcome, ${rec.name.split(" ")[0]}! 🎉`);
+      const first = String(rec.name || "").trim().split(" ")[0] || "there";
+      if (rec.lastMode === "returning") snToast(`You are already our precious customer, ${first}! We logged you in. 💜`);
+      else if (rec.lastMode === "signin") snToast(`Welcome back, ${first}! 👋`);
+      else snToast(`Account created — welcome, ${first}! 🎉`);
       if (action === "placeOrder") { placeOrder(); return; }
       if (action === "whatsapp") { checkoutWhatsApp(); return; }
       revealStore();
@@ -1855,8 +1868,27 @@
     function createAccount() {
       const name = document.getElementById("visitor-name").value.trim();
       const phone = document.getElementById("visitor-phone").value.trim();
-      const email = document.getElementById("visitor-email").value.trim();
+      const emailEl = document.getElementById("visitor-email");
+      const email = emailEl.value.trim();
       if (!name || !phone) { alert("Please enter both your Name and WhatsApp Mobile Number!"); return; }
+      if (!email) {
+        emailEl.focus();
+        alert("Please enter your email address to create your account.");
+        return;
+      }
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        emailEl.focus();
+        alert("Please enter a valid email address.");
+        return;
+      }
+      const existing = findAccountByEmail(email) || accounts[normPhone(phone)];
+      if (existing) {
+        const rec = { ...existing, lastMode: "returning" };
+        saveAccountRecord(rec);
+        sendLead(rec, "signin");
+        startSession(rec);
+        return;
+      }
       const rec = { name, phone, email, lastMode: "create" };
       saveAccountRecord(rec);
       sendLead(rec, "signup");
@@ -3381,6 +3413,15 @@
       return localStorage.getItem("ink_orders_url") || ORDERS_URL || LEADS_URL;
     }
 
+    function absoluteImageUrl(src) {
+      if (!src || typeof src !== "string") return "";
+      const s = src.trim();
+      if (!s) return "";
+      if (/^https?:\/\//i.test(s) || /^data:/i.test(s)) return s;
+      if (s.startsWith("//")) return location.protocol + s;
+      return SITE_IMG_BASE + s.replace(/^\.\//, "").replace(/^\//, "");
+    }
+
     function shippingNoteFor(subtotal) {
       if (currentMode === "Wholesale") return subtotal >= 5000 ? "Pallet-grade packing included (MOQ met)" : "MOQ ₹5,000 per bulk order — confirm with team";
       return subtotal >= 999 ? "FREE shipping" : "Shipping calculated after confirmation";
@@ -3405,6 +3446,11 @@
       if (customerInfo && email) {
         customerInfo.email = email;
         localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
+        const accountKey = normPhone(customerInfo.phone);
+        if (accounts[accountKey]) {
+          accounts[accountKey].email = email;
+          localStorage.setItem("ink_accounts", JSON.stringify(accounts));
+        }
       }
 
       const items = [];
@@ -3415,8 +3461,9 @@
           const price = cartPriceForKey(key);
           const st = price * qty;
           subtotal += st;
-          const image = cartImageForKey(key);
-          items.push({ name: cartNameForKey(key), qty: qty, price: price, subtotal: st, img: (typeof image === "string" && image.startsWith("http")) ? image : "" });
+          const productName = cartNameForKey(key);
+          const image = absoluteImageUrl(cartImageForKey(key));
+          items.push({ name: productName, productName: productName, qty: qty, price: price, subtotal: st, img: image, imageUrl: image });
         }
       }
 
@@ -3458,9 +3505,10 @@
       updateCartUI();
       toggleCart(false);
 
-      document.getElementById("op-items").innerHTML = order.items.map(it =>
-        `<div class="op-item"><span>${it.name} × ${it.qty}</span><b>₹${it.subtotal.toLocaleString("en-IN")}</b></div>`
-      ).join("");
+      document.getElementById("op-items").innerHTML = order.items.map(it => {
+        const thumb = it.img ? `<img class="op-item-img" src="${escHtml(it.img)}" alt="">` : "";
+        return `<div class="op-item"><span class="op-item-left">${thumb}<span>${escHtml(it.name)} × ${it.qty}</span></span><b>₹${it.subtotal.toLocaleString("en-IN")}</b></div>`;
+      }).join("");
       document.getElementById("op-number").textContent = order.orderNumber;
       document.getElementById("op-total").textContent = order.total.toLocaleString("en-IN");
       document.getElementById("op-shipping").textContent = order.shippingNote;
