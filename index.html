@@ -1349,12 +1349,13 @@
       </div>
     </div>
     <div class="ac-row" onclick="toggleWishDrawer(true); hideAccount();">♡ Wishlist <span id="ac-wish-count">(0)</span></div>
-    <div class="ac-row" id="ac-change-name" onclick="openNameEditor()">✏️ Change name</div>
-    <div id="ac-name-editor" style="display:none;padding:0.35rem 0.4rem 0.6rem;">
-      <input type="text" id="ac-new-name" placeholder="Your new name" style="width:100%;box-sizing:border-box;border:1px solid #e3def8;border-radius:8px;padding:0.5rem 0.6rem;font-family:inherit;font-size:0.85rem;">
+    <div class="ac-row" id="ac-edit-profile" onclick="openProfileEditor()">✏️ Edit profile</div>
+    <div id="ac-profile-editor" style="display:none;padding:0.35rem 0.4rem 0.6rem;">
+      <input type="text" id="ac-new-name" placeholder="Your name" style="width:100%;box-sizing:border-box;border:1px solid #e3def8;border-radius:8px;padding:0.5rem 0.6rem;font-family:inherit;font-size:0.85rem;">
+      <input type="email" id="ac-new-email" placeholder="Email (for order confirmations)" style="width:100%;box-sizing:border-box;border:1px solid #e3def8;border-radius:8px;padding:0.5rem 0.6rem;font-family:inherit;font-size:0.85rem;margin-top:6px;">
       <div style="display:flex;gap:6px;margin-top:6px;">
-        <button type="button" class="ac-mini-btn" onclick="saveChangedName()">Save</button>
-        <button type="button" class="ac-mini-btn ghost" onclick="closeNameEditor()">Cancel</button>
+        <button type="button" class="ac-mini-btn" onclick="saveProfile()">Save</button>
+        <button type="button" class="ac-mini-btn ghost" onclick="closeProfileEditor()">Cancel</button>
       </div>
     </div>
     <div class="ac-row ac-muted" id="ac-orders">🧾 Orders — tracked on WhatsApp</div>
@@ -2014,35 +2015,50 @@
     }
     function hideAccount() { document.getElementById("account-pop").classList.remove("open"); }
 
-    // Name can only be changed from inside the account panel, never from the
-    // signup/sign-in forms.
-    function openNameEditor() {
+    // Name and email can only be changed from inside the account panel, never
+    // from the signup/sign-in forms. The old email moves to the Replaced column.
+    function openProfileEditor() {
       if (!customerInfo) return;
       document.getElementById("ac-new-name").value = customerInfo.name || "";
-      document.getElementById("ac-name-editor").style.display = "block";
+      document.getElementById("ac-new-email").value = customerInfo.email || "";
+      document.getElementById("ac-profile-editor").style.display = "block";
       setTimeout(() => { const el = document.getElementById("ac-new-name"); if (el) el.focus(); }, 0);
     }
-    function closeNameEditor() {
-      const box = document.getElementById("ac-name-editor");
+    function closeProfileEditor() {
+      const box = document.getElementById("ac-profile-editor");
       if (box) box.style.display = "none";
     }
-    function saveChangedName() {
+    function saveProfile() {
       if (!customerInfo) return;
-      const el = document.getElementById("ac-new-name");
-      const name = el ? el.value.trim() : "";
-      if (!name) { alert("Please enter your new name."); return; }
+      const nameEl = document.getElementById("ac-new-name");
+      const emailEl = document.getElementById("ac-new-email");
+      const name = nameEl ? nameEl.value.trim() : "";
+      const typedEmail = emailEl ? emailEl.value.trim() : "";
+      if (!name) { alert("Please enter your name."); return; }
+      let email = customerInfo.email || "";
+      if (typedEmail) {
+        if (!/^\S+@\S+\.\S+$/.test(typedEmail)) {
+          emailEl.focus();
+          alert("Please enter a valid email address.");
+          return;
+        }
+        email = typedEmail;
+      }
       customerInfo.name = name;
+      customerInfo.email = email;
       localStorage.setItem("ink_customer", JSON.stringify(customerInfo));
       const key = normPhone(customerInfo.phone);
       if (accounts[key]) {
         accounts[key].name = name;
+        accounts[key].email = email;
         localStorage.setItem("ink_accounts", JSON.stringify(accounts));
       }
-      sendLead({ name: name, phone: customerInfo.phone, email: customerInfo.email || "" }, "rename");
-      closeNameEditor();
+      sendLead({ name: name, phone: customerInfo.phone, email: email }, "edit");
+      closeProfileEditor();
       document.getElementById("ac-avatar").textContent = name.trim().slice(0, 2).toUpperCase();
       document.getElementById("ac-name").textContent = name;
-      snToast("Your name has been updated. ✅");
+      document.getElementById("ac-email").textContent = email ? "✉️ " + email : "";
+      snToast("Profile updated. ✅");
     }
     // old entry point kept for compatibility
     function registerCustomer() { createAccount(); }
