@@ -345,13 +345,9 @@
     .worlds-all-panel.on { display: block; }
     .worlds-search { width: 100%; border: 1px solid #dcdce4; border-radius: 30px; padding: 10px 16px; font-family: inherit; font-size: 0.84rem; font-weight: 600; color: #17171d; background: #fff; margin-bottom: 12px; box-sizing: border-box; }
     .worlds-search:focus { outline: none; border-color: var(--purple-glow); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12); }
-    .world-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 7px; }
-    .world-chip { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #e3e3ea; background: #fff; color: #2b2b33; font-weight: 700; font-size: 0.76rem; padding: 8px 11px; border-radius: 10px; cursor: pointer; font-family: inherit; text-align: left; transition: all 0.15s; min-width: 0; }
-    .world-chip:hover { border-color: var(--purple-glow); color: var(--purple-glow); }
-    .world-chip.active { background: var(--purple-glow); border-color: var(--purple-glow); color: #fff; }
-    .world-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .world-chip small { color: #8b8b96; font-weight: 800; font-size: 0.68rem; flex-shrink: 0; }
-    .world-chip.active small { color: rgba(255, 255, 255, 0.85); }
+    .world-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 9px; max-height: 46vh; overflow-y: auto; padding-right: 2px; }
+    .world-chips .anime-card { min-height: 84px; border-radius: 12px; }
+    .world-chips .anime-card .w-name { font-size: 0.72rem; }
     .worlds-empty { display: none; margin: 8px 2px 0; font-size: 0.8rem; color: var(--muted); }
     .world-subfilters { display: none; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid #ececef; }
     .world-subfilters.on { display: flex; }
@@ -1303,9 +1299,6 @@
       </div>
       <div class="foot-legal">
         <span>© <span id="foot-year">2026</span> Ink & Blink — All Rights Reserved.</span>
-        <span style="display:flex; gap:1.2rem;">
-          <a href="#" id="footer-mode-link" onclick="footerModeSwitch(); return false;">🔒 Wholesale Portal</a>
-        </span>
       </div>
     </footer>
   </div>
@@ -1330,8 +1323,8 @@
         <span id="cart-total-price">₹0.00</span>
       </div>
       <div class="cart-hint" id="cart-hint">🎁 Add ₹999 more for FREE shipping</div>
-      <input type="email" id="order-email" placeholder="Your Email (for order confirmation)">
-      <div class="email-hint">📧 Your confirmation email is sent by The Artesania Studio.</div>
+      <input type="email" id="order-email" placeholder="Your Email (required to confirm order)">
+      <div class="email-hint">📧 Required — your order is not confirmed without an email address.</div>
       <button class="whatsapp-checkout-btn" onclick="placeOrder()">🧾 Place Order</button>
       <a class="wa-alt" href="#" onclick="checkoutWhatsApp(); return false;">Prefer WhatsApp? Order there instead →</a>
     </div>
@@ -1532,43 +1525,67 @@
     }
 
     let worldsPanelOpen = false;
-    const WORLDS_PINNED = 18;
+    let lastWorldLimit = 0;
+
+    // How many photo tiles fit in two rows on the current screen. Desktop uses
+    // the CSS grid width; phones use the horizontal scrolling row.
+    function worldsShownCount() {
+      const strip = document.getElementById("anime-strip");
+      const total = worldList().length;
+      if (!strip || !total) return total;
+      const cs = getComputedStyle(strip);
+      const width = strip.getBoundingClientRect().width || strip.clientWidth || 1200;
+      const gap = parseFloat(cs.columnGap || cs.gap) || (cs.display === "flex" ? 10 : 9);
+      if (cs.display === "flex") {
+        const visible = Math.floor((width + gap) / (140 + gap));
+        return Math.max(1, Math.min(total, visible + 4));
+      }
+      const cols = Math.max(1, Math.floor((width + gap) / (122 + gap)));
+      return Math.max(2, Math.min(total, cols * 2));
+    }
+
+    function makeWorldCard(name, count, isActive, onClick, isPanelCard) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "anime-card" + (isPanelCard ? " world-panel-card" : "") + (isActive ? " active" : "");
+      const u = worldImages[name];
+      card.style.background = u
+        ? `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.35)), url("${u}") center/cover`
+        : worldGradient(name);
+      card.innerHTML = `<span class="w-name">${escHtml(name)}</span><span class="w-count">${count}</span>`;
+      card.setAttribute("aria-pressed", isActive ? "true" : "false");
+      card.onclick = onClick;
+      return card;
+    }
 
     function renderWorlds() {
       const strip = document.getElementById("anime-strip");
       if (!strip) return;
       const list = worldList();
-      let top = list.slice(0, WORLDS_PINNED);
+      const limit = worldsShownCount();
+      lastWorldLimit = limit;
+      let top = list.slice(0, limit);
       if (currentWorld && !top.some(([n]) => n === currentWorld)) {
         const picked = list.find(([n]) => n === currentWorld);
-        if (picked) top = [picked, ...top];
+        if (picked) top = [picked, ...top].slice(0, limit);
       }
       strip.innerHTML = "";
       top.forEach(([name, count]) => {
-        const card = document.createElement("button");
-        card.type = "button";
-        card.className = "anime-card" + (currentWorld === name ? " active" : "");
-        const u = worldImages[name];
-        card.style.background = u
-          ? `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.35)), url("${u}") center/cover`
-          : worldGradient(name);
-        card.innerHTML = `<span class="w-name">${escHtml(name)}</span><span class="w-count">${count}</span>`;
-        card.setAttribute("aria-pressed", currentWorld === name ? "true" : "false");
-        card.onclick = () => filterWorld(name);
-        strip.appendChild(card);
+        strip.appendChild(makeWorldCard(name, count, currentWorld === name, () => filterWorld(name), false));
       });
       renderWorldChips(list);
-      applyWorldsPanelState(list.length);
+      applyWorldsPanelState(list.length, limit);
       updateClearButton();
     }
 
-    function applyWorldsPanelState(totalWorlds) {
+    function applyWorldsPanelState(totalWorlds, shown) {
       const panel = document.getElementById("worlds-all-panel");
       const moreWrap = document.getElementById("worlds-more-wrap");
       const btn = document.getElementById("worlds-more-btn");
       const total = totalWorlds || worldList().length;
+      const limit = shown || worldsShownCount();
       if (!panel || !moreWrap || !btn) return;
-      const hasMore = total > WORLDS_PINNED;
+      const hasMore = total > limit;
       moreWrap.classList.toggle("on", hasMore);
       panel.classList.toggle("on", hasMore && worldsPanelOpen);
       btn.classList.toggle("open", worldsPanelOpen);
@@ -1583,17 +1600,7 @@
       const worlds = (list || worldList()).filter(([n]) => !q || n.toLowerCase().includes(q));
       box.innerHTML = "";
       worlds.forEach(([name, count]) => {
-        const chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "world-chip" + (currentWorld === name ? " active" : "");
-        chip.setAttribute("aria-pressed", currentWorld === name ? "true" : "false");
-        const label = document.createElement("span");
-        label.textContent = name;
-        const num = document.createElement("small");
-        num.textContent = count;
-        chip.append(label, num);
-        chip.onclick = () => selectWorldFromPanel(name);
-        box.appendChild(chip);
+        box.appendChild(makeWorldCard(name, count, currentWorld === name, () => selectWorldFromPanel(name), true));
       });
       const empty = document.getElementById("worlds-empty");
       if (empty) empty.style.display = worlds.length ? "none" : "block";
@@ -3202,7 +3209,10 @@
       updateRevPos();
       buildRevDots();
     }
-    window.addEventListener("resize", () => { if (document.getElementById("rev-track")) { buildRevDots(); updateRevPos(); } });
+    window.addEventListener("resize", () => {
+      if (worldsShownCount() !== lastWorldLimit) renderWorlds();
+      if (document.getElementById("rev-track")) { buildRevDots(); updateRevPos(); }
+    });
 
     function renderImageMarquee() {
       const track = document.getElementById("nova-track");
@@ -3381,9 +3391,15 @@
       if (!customerInfo) { openAccountGate("To place your order we just need your name & WhatsApp number.", "placeOrder"); return; }
 
       const emailInput = document.getElementById("order-email");
-      const email = emailInput && emailInput.value.trim();
-      if (email && !/^\S+@\S+\.\S+$/.test(email)) {
-        alert("Please enter a valid email address — or leave it blank for WhatsApp-only updates.");
+      const email = emailInput ? emailInput.value.trim() : "";
+      if (!email) {
+        if (emailInput) emailInput.focus();
+        alert("Please enter your email address to confirm your order. Orders without an email are not confirmed.");
+        return;
+      }
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        if (emailInput) emailInput.focus();
+        alert("Please enter a valid email address to confirm your order.");
         return;
       }
       if (customerInfo && email) {
@@ -3409,7 +3425,7 @@
         orderNumber: "IB-" + Date.now().toString(36).toUpperCase(),
         name: customerInfo ? customerInfo.name : "",
         phone: customerInfo ? customerInfo.phone : "",
-        email: email || (customerInfo && customerInfo.email) || "",
+        email: email,
         mode: currentMode,
         items: items,
         shippingNote: shippingNoteFor(subtotal),
