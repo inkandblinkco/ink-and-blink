@@ -130,6 +130,8 @@
     .product-card:hover .product-img-wrap img { transform: scale(1.09); }
 
     .product-tag { position: absolute; top: 12px; left: 12px; background: rgba(20, 8, 48, 0.85); color: var(--purple-light); font-size: 0.63rem; font-weight: 700; padding: 5px 12px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.6px; backdrop-filter: blur(4px); border: 1px solid var(--border); }
+    .variant-count { position: absolute; right: 10px; bottom: 10px; background: rgba(20, 8, 48, 0.86); color: #fff; font-size: 0.6rem; font-weight: 800; padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); backdrop-filter: blur(4px); letter-spacing: 0.2px; }
+    body.wholesale .variant-count { background: rgba(20, 45, 95, 0.9); }
     .urgency-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(120deg, #d1006e, #ff2e88); color: #fff; font-size: 0.62rem; font-weight: 800; padding: 5px 11px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 3px 14px rgba(255,46,136,0.55); }
     body.wholesale .urgency-badge { background: linear-gradient(120deg, #b57e00, #ffb703); color: #1a1200; box-shadow: 0 3px 14px rgba(255,183,3,0.4); }
 
@@ -780,6 +782,7 @@
     .pdp-main { position: relative; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; background: #f5f4f8; border: 1px solid #ececef; }
     .pdp-main img, .pdp-main video, .pdp-main iframe { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border: none; }
     .pdp-thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .pdp-thumbs:empty { display: none; margin-top: 0; }
     .pdp-thumbs button { width: 62px; height: 62px; border-radius: 10px; overflow: hidden; border: 2px solid #e8e8ee; background: #f5f4f8; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; color: #43434d; font-size: 1.1rem; transition: border-color 0.2s; }
     .pdp-thumbs button img { width: 100%; height: 100%; object-fit: cover; }
     .pdp-thumbs button.on { border-color: #5a2ecc; }
@@ -791,6 +794,14 @@
     .pdp-chips .pdp-chip { margin: 0; }
     .pdp-chip-link { border: 1px solid transparent; cursor: pointer; transition: all 0.18s; }
     .pdp-chip-link:hover { border-color: #cbb6f5; background: #e8dfff; }
+    .pdp-variants { margin: 0.2rem 0 1rem; }
+    .pdp-variants-label { font-size: 0.76rem; font-weight: 800; color: #43434d; margin-bottom: 7px; }
+    .pdp-variant-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pdp-variant-chip { display: flex; align-items: center; gap: 6px; border: 1px solid #e1e1e8; background: #fff; color: #17171d; border-radius: 10px; padding: 6px 11px; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.18s; }
+    .pdp-variant-chip img { width: 24px; height: 24px; border-radius: 6px; object-fit: cover; background: #f1f1f5; }
+    .pdp-variant-chip:hover { border-color: #cbb6f5; }
+    .pdp-variant-chip.on { border-color: #5a2ecc; background: #f4efff; box-shadow: 0 3px 10px rgba(90,46,204,0.12); }
+    body.wholesale .pdp-variant-chip.on { border-color: #2f6fd0; background: #eef4fd; box-shadow: 0 3px 10px rgba(47,111,208,0.12); }
     .pdp-pack-link { display: block; width: 100%; text-align: left; border: 1px dashed #d4c6f5; background: #faf7ff; color: #5a2ecc; font-weight: 700; font-size: 0.84rem; padding: 11px 14px; border-radius: 10px; margin: 0 0 1rem; cursor: pointer; transition: all 0.18s; }
     .pdp-pack-link:hover { background: #f1ecff; border-color: #b79cf0; }
     .pdp-details { margin: 1.3rem 0; padding: 1rem 1.1rem; background: #fafafb; border: 1px solid #ececef; border-radius: 12px; }
@@ -1606,10 +1617,65 @@
       filterWorld(name);
     }
 
-    function activePriceFor(p) {
-      if (currentMode !== "Wholesale") return p.retailPrice;
-      const w = wholesalePrices[p.id];
-      return (w !== undefined && w !== null) ? w : p.retailPrice;
+    function hasVariants(p) { return !!(p && Array.isArray(p.variants) && p.variants.length); }
+
+    function activePriceFor(p, variant) {
+      if (!p) return 0;
+      const base = currentMode !== "Wholesale"
+        ? (Number(p.retailPrice) || 0)
+        : (wholesalePrices[p.id] !== undefined && wholesalePrices[p.id] !== null ? Number(wholesalePrices[p.id]) : (Number(p.retailPrice) || 0));
+      if (!variant) return base;
+      const delta = currentMode !== "Wholesale" ? variant.retailDelta : variant.wholesaleDelta;
+      return Math.max(0, Math.round(base + (Number(delta) || 0)));
+    }
+
+    // Grid/related cards show the cheapest option when a product has variants.
+    function displayPriceFor(p) {
+      if (!hasVariants(p)) return activePriceFor(p);
+      return Math.min(...p.variants.map(v => activePriceFor(p, v)));
+    }
+
+    function variantKindText(p) {
+      const kind = String((p && p.variantKind) || "Options");
+      const plurals = { Colour: "Colours", Size: "Sizes", Style: "Styles", Design: "Designs", Capacity: "Capacities" };
+      return plurals[kind] || (kind.endsWith("s") ? kind : kind + "s");
+    }
+
+    // Cart keys stay plain numbers for ordinary products. Variant products use
+    // "<product id>::<variant index>" so two colours can sit in the bag together.
+    function cartKeyFor(id, variantIndex) {
+      return (variantIndex === undefined || variantIndex === null || variantIndex < 0)
+        ? String(id) : String(id) + "::" + variantIndex;
+    }
+    function parseCartKey(key) {
+      const s = String(key);
+      const split = s.indexOf("::");
+      if (split < 0) return { id: s, variantIndex: -1 };
+      return { id: s.slice(0, split), variantIndex: parseInt(s.slice(split + 2), 10) };
+    }
+    function cartVariantFor(p, key) {
+      const parts = parseCartKey(key);
+      return (hasVariants(p) && parts.variantIndex >= 0) ? p.variants[parts.variantIndex] : null;
+    }
+    function cartProductForKey(key) {
+      const id = parseCartKey(key).id;
+      return products.find(p => String(p.id) === String(id));
+    }
+    function cartNameForKey(key) {
+      const p = cartProductForKey(key);
+      if (!p) return key;
+      const v = cartVariantFor(p, key);
+      return v && v.name ? p.name + " — " + v.name : p.name;
+    }
+    function cartPriceForKey(key) {
+      const p = cartProductForKey(key);
+      return p ? activePriceFor(p, cartVariantFor(p, key)) : 0;
+    }
+    function cartImageForKey(key) {
+      const p = cartProductForKey(key);
+      if (!p) return "";
+      const v = cartVariantFor(p, key);
+      return (v && v.img) || p.img || "";
     }
 
     async function loadWholesalePrices() {
@@ -1871,7 +1937,7 @@
       });
     }
 
-    function wishPrice(p) { return activePriceFor(p); }
+    function wishPrice(p) { return displayPriceFor(p); }
 
     function renderWishDrawer() {
       const list = document.getElementById("wish-items-list");
@@ -1905,28 +1971,58 @@
     function wishToBag(id) {
       const p = products.find(x => String(x.id) === String(id));
       if (!p) return;
-      cart[id] = (cart[id] || 0) + 1;
+      if (hasVariants(p)) {
+        toggleWishDrawer(false);
+        openPDP(p.id);
+        snToast("Choose an option, then add it to your Bag");
+        return;
+      }
+      cart[String(id)] = (cart[String(id)] || 0) + 1;
       localStorage.setItem("ink_cart", JSON.stringify(cart));
       updateCartUI();
       snToast(`🛍️ "${p.name}" added to Bag`);
     }
 
     function wishAddAllToBag() {
-      let added = 0;
+      let added = 0, needChoice = 0;
       wishlist.map(id => products.find(p => String(p.id) === String(id))).filter(Boolean).forEach(p => {
-        cart[p.id] = (cart[p.id] || 0) + 1; added++;
+        if (hasVariants(p)) { needChoice++; return; }
+        cart[String(p.id)] = (cart[String(p.id)] || 0) + 1; added++;
       });
       localStorage.setItem("ink_cart", JSON.stringify(cart));
       updateCartUI();
       toggleWishDrawer(false);
       toggleCart(true);
-      snToast(added ? `🛍️ ${added} item${added > 1 ? "s" : ""} moved to Bag` : "Nothing to move");
+      snToast((added ? `🛍️ ${added} item${added > 1 ? "s" : ""} moved to Bag` : "Nothing to move") + (needChoice ? ` · ${needChoice} item${needChoice > 1 ? "s" : ""} need an option — open it from the wishlist` : ""));
     }
 
     // ---------- Product Detail Page (PDP) ----------
     let pdpProduct = null;
     let pdpMedia = [];
     let pdpMediaIdx = 0;
+    let pdpVariantIndex = -1;
+
+    function currentPdpVariant() {
+      return (hasVariants(pdpProduct) && pdpVariantIndex >= 0) ? pdpProduct.variants[pdpVariantIndex] : null;
+    }
+
+    function buildPdpMedia(p, variant) {
+      const media = [];
+      const seen = new Set();
+      const addImage = src => { if (src && !seen.has(src)) { seen.add(src); media.push({ type: "image", src }); } };
+      if (variant && variant.img) addImage(variant.img);
+      if (p.img) addImage(p.img);
+      (p.images || []).forEach(addImage);
+      (p.videos || []).forEach(src => { if (src && !seen.has(src)) { seen.add(src); media.push({ type: "video", src }); } });
+      return media;
+    }
+
+    function comparePriceFor(p, variant) {
+      const price = activePriceFor(p, variant);
+      const base = Number(p.retailPrice) || price;
+      const delta = currentMode === "Wholesale" ? (variant && variant.wholesaleDelta) : (variant && variant.retailDelta);
+      return Math.max(price, Math.round(base * (currentMode === "Retail" ? 1.25 : 1.18)) + (Number(delta) || 0));
+    }
 
     function openPDP(id, fromHistory) {
       const p = products.find(x => x.id == id);
@@ -1935,14 +2031,13 @@
         try { history.pushState({ pdp: String(id) }, "", location.pathname + location.search); } catch (e) {}
       }
       pdpProduct = p;
-      pdpMedia = [];
-      if (p.img) pdpMedia.push({ type: "image", src: p.img });
-      (p.images || []).forEach(u => { if (u) pdpMedia.push({ type: "image", src: u }); });
-      (p.videos || []).forEach(u => { if (u) pdpMedia.push({ type: "video", src: u }); });
+      pdpVariantIndex = hasVariants(p) ? 0 : -1;
+      const variant = currentPdpVariant();
+      pdpMedia = buildPdpMedia(p, variant);
       pdpMediaIdx = 0;
 
-      const price = activePriceFor(p);
-      const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : Math.round(p.retailPrice * 1.18);
+      const price = activePriceFor(p, variant);
+      const comparePrice = comparePriceFor(p, variant);
       const savePct = Math.max(0, Math.round((comparePrice - price) / comparePrice * 100));
       const wished = wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id));
       const linked = p.packOf
@@ -1958,7 +2053,7 @@
         <div class="pdp-grid">
           <div class="pdp-gallery">
             <div class="pdp-main" id="pdp-main"></div>
-            ${pdpMedia.length > 1 ? `<div class="pdp-thumbs" id="pdp-thumbs"></div>` : ""}
+            <div class="pdp-thumbs" id="pdp-thumbs"></div>
           </div>
           <div class="pdp-info">
             <div class="rating-row">${pdpRatingRowHtml(p)}</div>
@@ -1969,7 +2064,20 @@
               ${p.packQty && p.singleOf ? `<span class="pdp-chip">📦 Pack of ${p.packQty}</span>` : ""}
             </div>
             ${p.badge ? `<div class="pdp-chip">${p.badge}</div>` : ""}
-            <div class="price-row">
+            ${hasVariants(p) ? `
+            <div class="pdp-variants">
+              <div class="pdp-variants-label">Choose ${escHtml(variantKindText(p))}</div>
+              <div class="pdp-variant-chips">
+                ${p.variants.map((v, i) => {
+                  const d = currentMode === "Wholesale" ? (Number(v.wholesaleDelta) || 0) : (Number(v.retailDelta) || 0);
+                  return `<button class="pdp-variant-chip${i === 0 ? " on" : ""}" data-variant="${i}" onclick="pdpSelectVariant(${i})">
+                    ${v.img ? `<img src="${escHtml(v.img)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}
+                    <span>${escHtml(v.name)}</span>${d ? `<small>+₹${d}</small>` : ""}
+                  </button>`;
+                }).join("")}
+              </div>
+            </div>` : ""}
+            <div class="price-row" id="pdp-price-row">
               <span class="price">₹${price}</span>
               ${currentMode === "Retail" ? `<span class="compare-price">₹${comparePrice}</span>` : ''}
               ${savePct > 0 ? `<span class="save-chip">${currentMode === "Retail" ? "SAVE" : "MARGIN"} ${savePct}%</span>` : ""}
@@ -2011,7 +2119,7 @@
               <div class="pdp-rel-card" onclick="openPDP('${x.id}')">
                 <div class="pdp-rel-img"><img src="${x.img}" alt="${x.name}" loading="lazy" onerror="this.style.display='none'"></div>
                 <div class="pdp-rel-name">${x.name}</div>
-                <div class="pdp-rel-price">₹${activePriceFor(x)}</div>
+                <div class="pdp-rel-price">₹${displayPriceFor(x)}</div>
               </div>
             `).join("")}
           </div>
@@ -2029,14 +2137,7 @@
       `;
 
       pdpRenderMain();
-      if (pdpMedia.length > 1) {
-        const thumbs = document.getElementById("pdp-thumbs");
-        thumbs.innerHTML = pdpMedia.map((m, i) => `
-          <button class="${i === 0 ? "on" : ""}" onclick="pdpSetMedia(${i})" aria-label="Media ${i + 1}">
-            ${m.type === "image" ? `<img src="${m.src}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='🖼'">` : `<span>▶</span>`}
-          </button>
-        `).join("");
-      }
+      renderPdpThumbs();
 
       const view = document.getElementById("pdp-view");
       view.classList.add("open");
@@ -2056,27 +2157,67 @@
     function pdpRenderMain() {
       const m = pdpMedia[pdpMediaIdx];
       const main = document.getElementById("pdp-main");
+      if (!main || !m) return;
       main.innerHTML = m.type === "image"
-        ? `<img src="${m.src}" alt="${pdpProduct.name}" onerror="this.style.display='none'">`
+        ? `<img src="${escHtml(m.src)}" alt="${escHtml(pdpProduct.name)}" onerror="this.style.display='none'">`
         : pdpVideoEmbed(m.src);
       const thumbs = document.getElementById("pdp-thumbs");
       if (thumbs) thumbs.querySelectorAll("button").forEach((b, i) => b.classList.toggle("on", i === pdpMediaIdx));
     }
 
+    function renderPdpThumbs() {
+      const thumbs = document.getElementById("pdp-thumbs");
+      if (!thumbs) return;
+      thumbs.innerHTML = pdpMedia.map((m, i) => `
+        <button class="${i === 0 ? "on" : ""}" onclick="pdpSetMedia(${i})" aria-label="Media ${i + 1}">
+          ${m.type === "image" ? `<img src="${escHtml(m.src)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='🖼'">` : `<span>▶</span>`}
+        </button>
+      `).join("");
+    }
+
     function pdpSetMedia(i) { pdpMediaIdx = i; pdpRenderMain(); }
+
+    function pdpUpdatePrice() {
+      const row = document.getElementById("pdp-price-row");
+      if (!row || !pdpProduct) return;
+      const variant = currentPdpVariant();
+      const price = activePriceFor(pdpProduct, variant);
+      const comparePrice = comparePriceFor(pdpProduct, variant);
+      const savePct = Math.max(0, Math.round((comparePrice - price) / comparePrice * 100));
+      row.innerHTML = `
+        <span class="price">₹${price}</span>
+        ${currentMode === "Retail" ? `<span class="compare-price">₹${comparePrice}</span>` : ""}
+        ${savePct > 0 ? `<span class="save-chip">${currentMode === "Retail" ? "SAVE" : "MARGIN"} ${savePct}%</span>` : ""}
+      `;
+    }
+
+    function pdpSelectVariant(i) {
+      if (!hasVariants(pdpProduct) || !pdpProduct.variants[i]) return;
+      pdpVariantIndex = i;
+      document.querySelectorAll(".pdp-variant-chip").forEach(b => b.classList.toggle("on", Number(b.dataset.variant) === i));
+      pdpMedia = buildPdpMedia(pdpProduct, currentPdpVariant());
+      pdpMediaIdx = 0;
+      pdpRenderMain();
+      renderPdpThumbs();
+      pdpUpdatePrice();
+    }
 
     function pdpAddToBag() {
       if (!pdpProduct) return;
       const q = parseInt(document.getElementById("pdp-qty").value) || 1;
-      cart[pdpProduct.id] = (cart[pdpProduct.id] || 0) + q;
+      const key = cartKeyFor(pdpProduct.id, pdpVariantIndex);
+      cart[key] = (cart[key] || 0) + q;
       localStorage.setItem("ink_cart", JSON.stringify(cart));
       updateCartUI();
-      snToast(`🛍️ ${q} × "${pdpProduct.name}" added to Bag`);
+      const v = currentPdpVariant();
+      snToast(`🛍️ ${q} × "${pdpProduct.name}${v && v.name ? " — " + v.name : ""}" added to Bag`);
     }
 
     function pdpWhatsApp() {
       if (!pdpProduct) return;
-      const msg = `Hi! I'm interested in "${pdpProduct.name}" (₹${activePriceFor(pdpProduct)}). Can you share more details/photos?`;
+      const v = currentPdpVariant();
+      const label = v && v.name ? `${pdpProduct.name} — ${v.name}` : pdpProduct.name;
+      const msg = `Hi! I'm interested in "${label}" (₹${activePriceFor(pdpProduct, v)}). Can you share more details/photos?`;
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
     }
 
@@ -2171,7 +2312,8 @@
         (p.category || "").toLowerCase().includes(q) ||
         (p.world || "").toLowerCase().includes(q) ||
         (p.description || p.desc || "").toLowerCase().includes(q) ||
-        (p.tags || []).join(" ").toLowerCase().includes(q)
+        (p.tags || []).join(" ").toLowerCase().includes(q) ||
+        (hasVariants(p) ? p.variants.map(v => v.name || "").join(" ").toLowerCase().includes(q) : false)
       );
     }
 
@@ -2225,7 +2367,7 @@
 
     function snHasImg(p) { return !!(p && typeof p.img === "string" && p.img.trim()); }
     function snPriceOf(p) {
-      const v = Number(activePriceFor(p));
+      const v = Number(displayPriceFor(p));
       return isFinite(v) && v > 0 ? v : 0;
     }
 
@@ -2712,9 +2854,10 @@
       const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
       const shown = filtered.slice(start, start + PRODUCTS_PER_PAGE);
       shown.forEach((p, i) => {
-        const activePrice = activePriceFor(p);
+        const activePrice = displayPriceFor(p);
         const comparePrice = currentMode === "Retail" ? Math.round(p.retailPrice * 1.25) : Math.round(p.retailPrice * 1.18);
         const savePct = Math.max(0, Math.round((comparePrice - activePrice) / comparePrice * 100));
+        const variantCount = hasVariants(p) ? p.variants.length : 0;
         const card = document.createElement("div");
         card.className = "product-card";
         card.style.animationDelay = (i % 8) * 0.06 + "s";
@@ -2722,6 +2865,7 @@
           <div class="product-img-wrap">
             <span class="product-tag">${p.packQty && p.singleOf ? "Pack of " + p.packQty : p.category}</span>
             ${p.badge ? `<span class="urgency-badge">${p.badge}</span>` : '<span style="position:absolute; top:12px; right:12px; font-size:0.95rem; filter:drop-shadow(0 0 6px rgba(255,183,3,0.6));">⭐</span>'}
+            ${variantCount ? `<span class="variant-count">${variantCount} ${escHtml(variantKindText(p))}</span>` : ""}
             <button class="wish-btn ${wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id)) ? "active" : ""}" data-id="${p.id}" onclick="toggleWish('${p.id}', event)" aria-label="Add to wishlist">${wishlist.includes(String(p.id)) || wishlist.includes(Number(p.id)) ? "♥" : "♡"}</button>
             <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
           </div>
@@ -2729,14 +2873,14 @@
             <div class="rating-row"><span class="stars">★★★★★</span><small>${(Number(storeStats.rating) || 4.8).toFixed(1)} · verified buyers</small></div>
             <h3>${p.name}</h3>
             <div class="price-row${String(activePrice).length >= 6 ? " price-long" : ""}">
-              <span class="price">₹${activePrice}</span>
+              <span class="price">${variantCount ? "From " : ""}₹${activePrice}</span>
               ${currentMode === "Retail" ? `<span class="compare-price">₹${comparePrice}</span>` : ''}
               ${savePct > 0 ? `<span class="save-chip">${currentMode === "Retail" ? "SAVE" : "MARGIN"} ${savePct}%</span>` : ''}
             </div>
             <div class="ship-hint">${currentMode === "Retail" ? "🚚 Free shipping above ₹999" : "📦 MOQ ₹5,000 per bulk order"}</div>
             <div class="product-footer">
               <input type="number" class="qty-input" id="qty-${p.id}" value="1" min="1" max="99">
-              <button class="add-btn" onclick="addToCart(${p.id})">${currentMode === "Wholesale" ? "Add to Bulk Order" : "Add to Bag"}</button>
+              <button class="add-btn" onclick="${variantCount ? `openPDP('${p.id}')` : `addToCart(${p.id})`}">${variantCount ? "Choose option" : (currentMode === "Wholesale" ? "Add to Bulk Order" : "Add to Bag")}</button>
             </div>
           </div>
         `;
@@ -3106,16 +3250,19 @@
     // ---------- ADMIN PANEL ----------
     // ---------- Cart & Checkout ----------
     function addToCart(productId) {
+      const p = products.find(x => String(x.id) === String(productId));
+      if (hasVariants(p)) { openPDP(p.id); return; }
       const qtyInput = document.getElementById(`qty-${productId}`);
-      const qty = parseInt(qtyInput.value) || 1;
-      cart[productId] = (cart[productId] || 0) + qty;
+      const qty = parseInt(qtyInput && qtyInput.value) || 1;
+      const key = String(productId);
+      cart[key] = (cart[key] || 0) + qty;
       localStorage.setItem("ink_cart", JSON.stringify(cart));
       updateCartUI();
       toggleCart(true);
     }
 
-    function removeFromCart(productId) {
-      delete cart[productId];
+    function removeFromCart(key) {
+      delete cart[String(key)];
       localStorage.setItem("ink_cart", JSON.stringify(cart));
       updateCartUI();
     }
@@ -3136,23 +3283,25 @@
       list.innerHTML = "";
       let totalCount = 0, totalPrice = 0, hasItems = false;
 
-      for (const [id, qty] of Object.entries(cart)) {
+      for (const [key, qty] of Object.entries(cart)) {
         hasItems = true;
-        const product = products.find(p => p.id == id);
+        const product = cartProductForKey(key);
         if (!product) continue;
 
-        const activePrice = activePriceFor(product);
+        const activePrice = cartPriceForKey(key);
+        const label = cartNameForKey(key);
+        const image = cartImageForKey(key);
         totalCount += qty;
         totalPrice += activePrice * qty;
 
         const itemEl = document.createElement("div");
         itemEl.className = "cart-item";
         itemEl.innerHTML = `
-          <img src="${product.img}" alt="${product.name}">
+          <img src="${escHtml(image)}" alt="${escHtml(label)}" onerror="this.style.display='none'">
           <div style="flex:1;">
-            <h4 style="font-size:0.85rem;">${product.name}</h4>
+            <h4 style="font-size:0.85rem;">${escHtml(label)}</h4>
             <span style="font-size:0.8rem; color:var(--purple-light);">Qty: ${qty} × ₹${activePrice}</span>
-            <button style="background:none; border:none; color:#ff4d6b; font-size:0.75rem; cursor:pointer; text-decoration:underline;" onclick="removeFromCart(${product.id})">Remove</button>
+            <button style="background:none; border:none; color:#ff4d6b; font-size:0.75rem; cursor:pointer; text-decoration:underline;" onclick="removeFromCart('${escHtml(key)}')">Remove</button>
           </div>
         `;
         list.appendChild(itemEl);
@@ -3203,13 +3352,13 @@
       message += "Order Items:\n";
 
       let total = 0;
-      for (const [id, qty] of Object.entries(cart)) {
-        const product = products.find(p => p.id == id);
+      for (const [key, qty] of Object.entries(cart)) {
+        const product = cartProductForKey(key);
         if (product) {
-          const activePrice = activePriceFor(product);
+          const activePrice = cartPriceForKey(key);
           const subtotal = activePrice * qty;
           total += subtotal;
-          message += "- " + product.name + " (Qty: " + qty + ") - ₹" + subtotal + "\n";
+          message += "- " + cartNameForKey(key) + " (Qty: " + qty + ") - ₹" + subtotal + "\n";
         }
       }
 
@@ -3244,13 +3393,14 @@
 
       const items = [];
       let subtotal = 0;
-      for (const [id, qty] of Object.entries(cart)) {
-        const p = products.find(pr => pr.id == id);
+      for (const [key, qty] of Object.entries(cart)) {
+        const p = cartProductForKey(key);
         if (p) {
-          const price = activePriceFor(p);
+          const price = cartPriceForKey(key);
           const st = price * qty;
           subtotal += st;
-          items.push({ name: p.name, qty: qty, price: price, subtotal: st, img: (typeof p.img === "string" && p.img.startsWith("http")) ? p.img : "" });
+          const image = cartImageForKey(key);
+          items.push({ name: cartNameForKey(key), qty: qty, price: price, subtotal: st, img: (typeof image === "string" && image.startsWith("http")) ? image : "" });
         }
       }
 

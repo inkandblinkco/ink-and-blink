@@ -98,6 +98,42 @@
     .code-box { background: #17171d; color: #eaeaf2; border-radius: 10px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 0.72rem; line-height: 1.55; overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-word; margin-top: 10px; }
     details summary { cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 4px; }
 
+    /* Variants, extra-photo chooser, photo library picker, inventory tally */
+    .variant-box { border: 1px dashed #d9c8ff; background: #faf8ff; border-radius: 10px; padding: 10px; margin-top: 0.4rem; }
+    .variant-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .variant-top > div { flex: 1; min-width: 130px; }
+    .variant-row { display: grid; grid-template-columns: minmax(90px, 1fr) 54px 150px 34px; gap: 6px; align-items: center; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 6px; margin-top: 6px; }
+    .variant-row input[type="text"], .variant-row input[type="number"] { padding: 6px 7px; font-size: 0.78rem; }
+    .variant-row input[type="file"] { display: none; }
+    .variant-thumb { width: 54px; height: 54px; object-fit: cover; border-radius: 7px; border: 1px solid var(--border); background: #f5f4f8; display: block; }
+    .var-prices { display: flex; gap: 5px; }
+    .var-prices > div { flex: 1; min-width: 0; }
+    .var-prices label { font-size: 0.66rem; margin: 0 0 2px; color: var(--muted); }
+    .mini.icon { padding: 5px 8px; font-size: 0.85rem; }
+    .photo-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .photo-chip { position: relative; width: 74px; height: 74px; border-radius: 9px; border: 1px solid var(--border); overflow: hidden; background: #f5f4f8; }
+    .photo-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-chip button { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border: none; border-radius: 50%; background: rgba(20,20,30,0.72); color: #fff; font-size: 0.8rem; line-height: 1; cursor: pointer; }
+    .photo-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .photo-actions input[type="file"] { max-width: 200px; font-size: 0.72rem; }
+    .tally-line { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+    .tally-chip { font-size: 0.72rem; font-weight: 700; color: #4a2b8c; background: #f4efff; border: 1px solid #d9c8ff; border-radius: 999px; padding: 3px 9px; }
+    .tally-chip.sel { color: #fff; background: var(--purple); border-color: var(--purple); }
+    .picker-backdrop { position: fixed; inset: 0; background: rgba(17,17,26,0.55); z-index: 90; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .picker-backdrop.open { display: flex; }
+    .picker-box { background: #fff; border-radius: 14px; width: min(880px, 100%); max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; }
+    .picker-head, .picker-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; flex-wrap: wrap; }
+    .picker-head { border-bottom: 1px solid var(--border); }
+    .picker-head h3 { font-size: 0.95rem; margin: 0; }
+    .picker-foot { border-top: 1px solid var(--border); }
+    .picker-search { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+    .picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; padding: 12px 16px; overflow-y: auto; }
+    .picker-tile { position: relative; border: 2px solid transparent; border-radius: 9px; overflow: hidden; cursor: pointer; background: #f5f4f8; aspect-ratio: 1; }
+    .picker-tile.on { border-color: var(--purple); }
+    .picker-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .picker-tile span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.55rem; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .picker-status { font-size: 0.76rem; color: var(--muted); }
+
     @media (max-width: 1100px) {
       .two-col { grid-template-columns: 1fr; gap: 0; }
       .two-col > .card { margin-bottom: 1.2rem; }
@@ -105,6 +141,9 @@
     @media (max-width: 700px) {
       .img-row-label { min-width: 100%; }
       .stat-preview { gap: 14px; }
+      .variant-row { grid-template-columns: minmax(0, 1fr) 54px 34px; }
+      .var-prices { grid-column: 1 / -1; }
+      .picker-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
     }
   </style>
 </head>
@@ -171,8 +210,43 @@
         </div>
         <label>Main Image — Or Paste Image URL:</label>
         <input type="text" id="new-img-url" placeholder="https://… or images/photo.webp">
-        <label>Extra Photos (one link per line — product page gallery):</label>
-        <textarea id="new-images" rows="2" placeholder="https://photo-2.jpg&#10;https://photo-3.jpg"></textarea>
+        <label>Extra Photos (product page gallery):</label>
+        <div class="sync-note" style="margin-top:0.25rem;">
+          Pick photos from your computer or choose ones already in the photo library — no links to copy. They are saved as real files when you press <b>+ Save Product</b>, and go live when you <b>Publish</b>.
+        </div>
+        <div id="extra-photo-strip" class="photo-strip"></div>
+        <div class="photo-actions">
+          <input type="file" id="new-extra-files" accept="image/*" multiple onchange="onExtraFilesPicked(this)">
+          <button type="button" class="mini" onclick="openPhotoPicker('extras')">🖼️ Choose from photo library</button>
+          <button type="button" class="mini danger" onclick="clearExtraPhotos()">Clear all</button>
+        </div>
+        <details style="margin-top:6px;">
+          <summary>Or paste image links (one per line)</summary>
+          <textarea id="new-images" rows="2" placeholder="https://photo-2.jpg&#10;https://photo-3.jpg" style="margin-top:6px;"></textarea>
+        </details>
+
+        <label>Variants — optional (colours, sizes, styles in ONE product)</label>
+        <div class="sync-note" style="margin-top:0.25rem;">
+          Same tumbler in 5 colours, or one figure in 3 sizes? Add it once here and list each option below. Shoppers pick the option on the product page, and its own photo and price show up automatically. Leave the price boxes empty when every option costs the same.
+        </div>
+        <div class="variant-box">
+          <div class="variant-top">
+            <div><label>Option type:</label>
+              <select id="variant-kind" onchange="onVariantKindChange()">
+                <option value="Colour">Colour</option>
+                <option value="Size">Size</option>
+                <option value="Style">Style</option>
+                <option value="Design">Design</option>
+                <option value="Capacity">Capacity</option>
+                <option value="Custom…">Custom…</option>
+              </select>
+            </div>
+            <div id="variant-custom-wrap" style="display:none;"><label>Your own name:</label><input type="text" id="variant-kind-custom" placeholder="e.g. Finish"></div>
+            <button type="button" class="btn" onclick="addVariantOption()">+ Add option</button>
+          </div>
+          <div id="variant-rows"></div>
+        </div>
+
         <label>Videos (YouTube / .mp4 links, one per line):</label>
         <textarea id="new-videos" rows="2" placeholder="https://youtube.com/watch?v=..."></textarea>
         <label>Product Details (shown on the product page):</label>
@@ -185,7 +259,12 @@
       <div class="card">
         <h3>Current Inventory</h3>
         <input type="text" id="admin-product-search" placeholder="🔎 Search by name, world, category or ID…" oninput="onAdminSearch(this.value)">
-        <div id="admin-list-meta" class="sync-note" style="margin: 8px 0 10px;"></div>
+        <div class="row2" style="margin-top:8px;">
+          <div><label>Show category:</label><select id="admin-category-filter" onchange="onAdminCategoryChange(this.value)"></select></div>
+          <div><label>Quick tally:</label><div id="admin-inventory-total" class="sync-note" style="margin:0; padding:0.45rem 0.7rem;">—</div></div>
+        </div>
+        <div id="admin-inventory-tally" class="tally-line"></div>
+        <div id="admin-list-meta" class="sync-note" style="margin: 2px 0 10px;"></div>
         <div id="admin-product-list" style="max-height: 70vh; overflow-y: auto;"></div>
       </div>
       </div>
@@ -466,11 +545,32 @@ function json_(o) {
     </div>
   </div>
 
+  <div id="photo-picker" class="picker-backdrop" onclick="if(event.target===this) closePhotoPicker()">
+    <div class="picker-box">
+      <div class="picker-head">
+        <h3 id="picker-title">Choose photos</h3>
+        <button type="button" class="mini" onclick="closePhotoPicker()">✕ Close</button>
+      </div>
+      <div class="picker-search">
+        <input type="text" id="picker-search" placeholder="🔎 Search photo names (e.g. tumbler, upload-, katana)…" oninput="renderPickerGrid(this.value)">
+        <p id="picker-status" class="picker-status" style="margin-top:6px;">Loading photos…</p>
+      </div>
+      <div id="picker-grid" class="picker-grid"></div>
+      <div class="picker-foot">
+        <span id="picker-count" class="picker-status">0 selected</span>
+        <div class="btn-row" style="margin:0;">
+          <button type="button" class="btn grey" onclick="closePhotoPicker()">Cancel</button>
+          <button type="button" class="btn" id="picker-add-btn" onclick="confirmPhotoPicker()">Add selected photos</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ================= Studio Dashboard (standalone admin) =================
     // Bump this whenever admin.html changes. Publish refuses to run from an
     // older, cached copy of this page, so a stale tab can't overwrite the shop.
-    const ADMIN_BUILD = "2026-11-16-banner3";
+    const ADMIN_BUILD = "2026-11-18-variants";
     const adminDefaultHashKey = "ink_admin_hash_override";
     const DEFAULT_ADMIN_HASH = "1c77704525ebc9a473edab9c0538a29f5781062f165e8da9faa6cc930286c18d"; // default password set in chat
     const GH_REPO = "https://api.github.com/repos/inkandblinkco/ink-and-blink/contents/";
@@ -502,6 +602,15 @@ function json_(o) {
     // another tab/device published after this page loaded — publishing here
     // would undo that change (this is how deleted products used to come back).
     let loadedExportAt = 0;
+
+    // Product form state: extra gallery photos and variant options.
+    // Each item may carry a picked File until it is uploaded on save.
+    let extraPhotos = [];       // [{ src, file? }]
+    let variantOptions = [];    // [{ name, img, retailDelta, wholesaleDelta, file? }]
+    let adminCategory = "";
+    let pickerTarget = "extras";
+    let pickerImages = null;
+    let pickerSelected = new Set();
 
     // ---- Storefront numbers + reviews (published inside store-data.json) ----
     const DEFAULT_STATS = { ordersBase: 4800, ordersExtra: 0, ordersAuto: true, rating: 4.8, dispatchHours: 72 };
@@ -750,7 +859,59 @@ function json_(o) {
       });
       if (previous && categories.includes(previous)) sel.value = previous;
 
+      renderInventoryCategoryFilter();
       renderFormWorlds();
+    }
+
+    function renderInventoryCategoryFilter() {
+      const sel = document.getElementById("admin-category-filter");
+      if (!sel) return;
+      const previous = adminCategory;
+      sel.innerHTML = `<option value="">All categories</option>`;
+      categories.filter(c => c !== "All").forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c; opt.textContent = c;
+        sel.appendChild(opt);
+      });
+      if (products.some(p => !p.category)) {
+        const unc = document.createElement("option");
+        unc.value = "Uncategorised"; unc.textContent = "Uncategorised";
+        sel.appendChild(unc);
+      }
+      sel.value = categories.includes(previous) ? previous : "";
+      adminCategory = sel.value;
+      renderInventoryTally();
+    }
+
+    function renderInventoryTally() {
+      const box = document.getElementById("admin-inventory-tally");
+      const totalBox = document.getElementById("admin-inventory-total");
+      if (!box) return;
+      const counts = {};
+      const values = {};
+      products.forEach(p => {
+        const c = p.category || "Uncategorised";
+        counts[c] = (counts[c] || 0) + 1;
+        values[c] = (values[c] || 0) + (Number(p.retailPrice) || 0);
+      });
+      const names = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+      box.innerHTML = names.map(c => `
+        <button class="tally-chip${adminCategory === c ? " sel" : ""}" data-cat="${escAdmin(c)}" onclick="onAdminCategoryChange(this.dataset.cat)">${escAdmin(c)} · ${counts[c].toLocaleString("en-IN")}</button>
+      `).join("");
+      if (totalBox) {
+        const shown = adminCategory ? (counts[adminCategory] || 0) : products.length;
+        const value = adminCategory ? (values[adminCategory] || 0) : Object.values(values).reduce((a, b) => a + b, 0);
+        totalBox.textContent = `${shown.toLocaleString("en-IN")} products · ₹${Math.round(value).toLocaleString("en-IN")} catalogue value`;
+      }
+    }
+
+    function onAdminCategoryChange(value) {
+      adminCategory = String(value || "");
+      adminLimit = ADMIN_PAGE;
+      const sel = document.getElementById("admin-category-filter");
+      if (sel && sel.value !== adminCategory) sel.value = adminCategory;
+      renderInventoryTally();
+      renderAdminList();
     }
 
     function renderFormWorlds() {
@@ -800,15 +961,17 @@ function json_(o) {
       const list = document.getElementById("admin-product-list");
       const meta = document.getElementById("admin-list-meta");
       list.innerHTML = "";
-      if (!products.length) { list.innerHTML = `<div class="list-item">No products yet — add your first one above.</div>`; if (meta) meta.textContent = ""; return; }
+      if (!products.length) { list.innerHTML = `<div class="list-item">No products yet — add your first one above.</div>`; if (meta) meta.textContent = ""; renderInventoryTally(); return; }
       let filtered = products;
+      if (adminCategory) filtered = filtered.filter(p => (p.category || "Uncategorised") === adminCategory);
       if (adminQuery) {
-        filtered = products.filter(p =>
+        filtered = filtered.filter(p =>
           String(p.name || "").toLowerCase().includes(adminQuery) ||
           String(p.world || "").toLowerCase().includes(adminQuery) ||
           String(p.category || "").toLowerCase().includes(adminQuery) ||
           String(p.id) === adminQuery ||
-          String(p.sourceHandle || "").toLowerCase().includes(adminQuery)
+          String(p.sourceHandle || "").toLowerCase().includes(adminQuery) ||
+          (Array.isArray(p.variants) ? p.variants.map(v => v.name || "").join(" ").toLowerCase().includes(adminQuery) : false)
         );
       }
       const shown = filtered.slice(0, adminLimit);
@@ -816,7 +979,7 @@ function json_(o) {
         const item = document.createElement("div");
         item.className = "list-item";
         item.innerHTML = `
-          <span><b>${escAdmin(p.name)}</b> [${escAdmin(p.category)}]${p.world ? " · 🌍 " + escAdmin(p.world) : ""}${p.packQty && p.singleOf ? " · 📦 Pack of " + p.packQty : ""} (R:₹${p.retailPrice} | W:₹${p.wholesalePrice})${(p.images && p.images.length) ? " 🖼" : ""}${(p.videos && p.videos.length) ? " 🎬" : ""}${p.description ? " 📝" : ""}</span>
+          <span><b>${escAdmin(p.name)}</b> [${escAdmin(p.category)}]${p.world ? " · 🌍 " + escAdmin(p.world) : ""}${p.packQty && p.singleOf ? " · 📦 Pack of " + p.packQty : ""}${Array.isArray(p.variants) && p.variants.length ? ` · 🎨 ${p.variants.length} ${escAdmin(p.variantKind || "options")}` : ""} (R:₹${p.retailPrice} | W:₹${p.wholesalePrice})${(p.images && p.images.length) ? " 🖼" : ""}${(p.videos && p.videos.length) ? " 🎬" : ""}${p.description ? " 📝" : ""}</span>
           <div class="btns">
             <button class="mini" onclick="startEditProduct(${p.id})">Edit</button>
             <button class="mini danger" onclick="deleteProduct(${p.id})">Delete</button>
@@ -832,10 +995,12 @@ function json_(o) {
         list.appendChild(more);
       }
       if (meta) {
+        const catNote = adminCategory ? ` in ${adminCategory}` : "";
         meta.textContent = filtered.length === products.length
-          ? `Showing ${shown.length.toLocaleString("en-IN")} of ${products.length.toLocaleString("en-IN")} products`
-          : `${filtered.length.toLocaleString("en-IN")} match${filtered.length === 1 ? "" : "es"} · showing ${shown.length.toLocaleString("en-IN")}`;
+          ? `Showing ${shown.length.toLocaleString("en-IN")} of ${products.length.toLocaleString("en-IN")} products${catNote}`
+          : `${filtered.length.toLocaleString("en-IN")} match${filtered.length === 1 ? "" : "es"} · showing ${shown.length.toLocaleString("en-IN")}${catNote}`;
       }
+      renderInventoryTally();
       fillAdminReviewProducts();
     }
 
@@ -854,7 +1019,18 @@ function json_(o) {
       document.getElementById("new-category").value = p.category;
       setWorldSelect(p.world || "");
       document.getElementById("new-img-url").value = (typeof p.img === "string" && p.img.startsWith("data:")) ? "" : p.img;
-      document.getElementById("new-images").value = (p.images || []).join("\n");
+      document.getElementById("new-images").value = "";
+      extraPhotos = (Array.isArray(p.images) ? p.images : []).map(src => ({ src }));
+      renderExtraPhotos();
+      variantOptions = (Array.isArray(p.variants) ? p.variants : []).map(v => ({
+        name: v.name || "", img: v.img || "", retailDelta: v.retailDelta || 0, wholesaleDelta: v.wholesaleDelta || 0
+      }));
+      const kindSel = document.getElementById("variant-kind");
+      const savedKind = p.variantKind || "Colour";
+      kindSel.value = [...kindSel.options].some(o => o.value === savedKind) ? savedKind : "Custom…";
+      document.getElementById("variant-kind-custom").value = kindSel.value === "Custom…" ? savedKind : "";
+      onVariantKindChange();
+      renderVariantRows();
       document.getElementById("new-videos").value = (p.videos || []).join("\n");
       document.getElementById("new-desc").value = p.description || "";
       document.getElementById("form-title").textContent = "Edit Product";
@@ -866,12 +1042,191 @@ function json_(o) {
 
     function resetProductForm() {
       document.getElementById("edit-product-id").value = "";
-      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc"].forEach(id => document.getElementById(id).value = "");
+      ["new-name", "new-retail-price", "new-wholesale-price", "new-img-url", "new-images", "new-videos", "new-desc", "new-extra-files", "new-img-file", "variant-kind-custom"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+      extraPhotos = [];
+      variantOptions = [];
+      const kindSel = document.getElementById("variant-kind");
+      if (kindSel) kindSel.value = "Colour";
+      onVariantKindChange();
+      renderExtraPhotos();
+      renderVariantRows();
       setWorldSelect("");
       document.getElementById("new-img-file").value = "";
       document.getElementById("form-title").textContent = "Add New Product";
       document.getElementById("save-product-btn").textContent = "+ Save Product";
       document.getElementById("cancel-edit-btn").style.display = "none";
+    }
+
+    // ---------- Extra photos + variants in the product form ----------
+    function renderExtraPhotos() {
+      const strip = document.getElementById("extra-photo-strip");
+      if (!strip) return;
+      strip.innerHTML = extraPhotos.map((ph, i) => `
+        <div class="photo-chip">
+          <img src="${escAdmin(ph.preview || ph.src)}" alt="Extra photo ${i + 1}" loading="lazy">
+          <button type="button" onclick="removeExtraPhoto(${i})" title="Remove this photo">×</button>
+        </div>`).join("");
+    }
+
+    function onExtraFilesPicked(input) {
+      [...(input.files || [])].forEach(file => {
+        extraPhotos.push({ src: "", file, preview: URL.createObjectURL(file) });
+      });
+      input.value = "";
+      renderExtraPhotos();
+    }
+
+    function removeExtraPhoto(i) { extraPhotos.splice(i, 1); renderExtraPhotos(); }
+    function clearExtraPhotos() {
+      extraPhotos = [];
+      document.getElementById("new-images").value = "";
+      renderExtraPhotos();
+    }
+
+    function onVariantKindChange() {
+      const sel = document.getElementById("variant-kind");
+      const wrap = document.getElementById("variant-custom-wrap");
+      if (wrap) wrap.style.display = (sel && sel.value === "Custom…") ? "" : "none";
+    }
+
+    function variantKindLabel() {
+      const sel = document.getElementById("variant-kind");
+      const v = sel ? sel.value : "Colour";
+      if (v === "Custom…") {
+        const custom = document.getElementById("variant-kind-custom");
+        return (custom && custom.value.trim()) ? custom.value.trim() : "Options";
+      }
+      return v;
+    }
+
+    function renderVariantRows() {
+      const box = document.getElementById("variant-rows");
+      if (!box) return;
+      box.innerHTML = variantOptions.map((v, i) => {
+        const thumb = (v.preview || v.img)
+          ? `<img class="variant-thumb" src="${escAdmin(v.preview || v.img)}" alt="Option photo" loading="lazy">`
+          : `<div class="variant-thumb" style="display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📷</div>`;
+        return `
+          <div class="variant-row">
+            <input type="text" value="${escAdmin(v.name)}" placeholder="e.g. Black / 500 ml" oninput="variantOptions[${i}].name=this.value">
+            <div style="text-align:center;">
+              ${thumb}
+              <button type="button" class="mini icon" onclick="onVariantPickFile(${i})" title="Upload a photo for this option">📷</button>
+              <button type="button" class="mini icon" onclick="openPhotoPicker(${i})" title="Choose a photo from the library">🖼</button>
+              <input type="file" id="variant-file-${i}" accept="image/*" style="display:none" onchange="onVariantFilePicked(${i}, this)">
+            </div>
+            <div class="var-prices">
+              <div><label>Retail +₹</label><input type="number" min="0" step="1" value="${v.retailDelta || ""}" placeholder="0" oninput="variantOptions[${i}].retailDelta=this.value"></div>
+              <div><label>Bulk +₹</label><input type="number" min="0" step="1" value="${v.wholesaleDelta || ""}" placeholder="0" oninput="variantOptions[${i}].wholesaleDelta=this.value"></div>
+            </div>
+            <button type="button" class="mini danger icon" onclick="removeVariantOption(${i})" title="Remove option">×</button>
+          </div>`;
+      }).join("");
+    }
+
+    function addVariantOption() {
+      variantOptions.push({ name: "", img: "", retailDelta: 0, wholesaleDelta: 0 });
+      renderVariantRows();
+      const rows = document.querySelectorAll("#variant-rows .variant-row input[type=text]");
+      if (rows.length) rows[rows.length - 1].focus();
+    }
+
+    function removeVariantOption(i) { variantOptions.splice(i, 1); renderVariantRows(); }
+    function onVariantPickFile(i) {
+      const input = document.getElementById("variant-file-" + i);
+      if (input) input.click();
+    }
+    function onVariantFilePicked(i, input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      variantOptions[i].file = file;
+      variantOptions[i].preview = URL.createObjectURL(file);
+      variantOptions[i].img = "";
+      input.value = "";
+      renderVariantRows();
+    }
+    function setVariantImage(i, src) {
+      variantOptions[i].img = src;
+      delete variantOptions[i].file;
+      delete variantOptions[i].preview;
+      renderVariantRows();
+    }
+
+    // ---------- Photo library picker ----------
+    function openPhotoPicker(target) {
+      pickerTarget = target;
+      pickerSelected = new Set();
+      const modal = document.getElementById("photo-picker");
+      modal.classList.add("open");
+      const search = document.getElementById("picker-search");
+      search.value = "";
+      const addBtn = document.getElementById("picker-add-btn");
+      if (addBtn) addBtn.textContent = (typeof target === "number") ? "Use this photo" : "Add selected photos";
+      document.getElementById("picker-status").textContent = "Loading photo library…";
+      document.getElementById("picker-grid").innerHTML = "";
+      updatePickerCount();
+      loadPickerImages();
+      search.focus();
+    }
+
+    function closePhotoPicker() {
+      const modal = document.getElementById("photo-picker");
+      if (modal) modal.classList.remove("open");
+    }
+
+    async function loadPickerImages() {
+      if (pickerImages) { renderPickerGrid(document.getElementById("picker-search").value); return; }
+      try {
+        const snap = await getRepoSnapshot(localStorage.getItem("ink_gh_token"));
+        pickerImages = [...(snap.imageFiles || [])].sort((a, b) => b.localeCompare(a));
+        renderPickerGrid(document.getElementById("picker-search").value);
+      } catch (e) {
+        document.getElementById("picker-status").textContent = "Could not load the photo library: " + (e.message || e);
+      }
+    }
+
+    function updatePickerCount() {
+      const el = document.getElementById("picker-count");
+      if (el) el.textContent = `${pickerSelected.size} selected`;
+    }
+
+    function renderPickerGrid(value) {
+      const grid = document.getElementById("picker-grid");
+      if (!grid || !pickerImages) return;
+      const term = String(value || "").trim().toLowerCase();
+      const matches = pickerImages.filter(p => !term || p.toLowerCase().includes(term));
+      const shown = matches.slice(0, 300);
+      grid.innerHTML = shown.map(p => `
+        <div class="picker-tile${pickerSelected.has(p) ? " on" : ""}" data-path="${escAdmin(p)}" onclick="togglePickerTile(this.dataset.path)">
+          <img src="${escAdmin(p)}" loading="lazy" alt="">
+          <span>${escAdmin(p.replace("images/", ""))}</span>
+        </div>`).join("");
+      const status = document.getElementById("picker-status");
+      if (status) status.textContent = `${matches.length.toLocaleString("en-IN")} photos found${matches.length > shown.length ? " — showing the first 300, search to narrow it down" : ""}. Click a photo to select it.`;
+      updatePickerCount();
+    }
+
+    function togglePickerTile(path) {
+      if (typeof pickerTarget === "number") {
+        pickerSelected = new Set([path]);
+      } else if (pickerSelected.has(path)) {
+        pickerSelected.delete(path);
+      } else {
+        pickerSelected.add(path);
+      }
+      renderPickerGrid(document.getElementById("picker-search").value);
+    }
+
+    function confirmPhotoPicker() {
+      if (!pickerSelected.size) { alert("Click a photo first."); return; }
+      const chosen = [...pickerSelected];
+      if (typeof pickerTarget === "number") {
+        setVariantImage(pickerTarget, chosen[0]);
+      } else {
+        chosen.forEach(p => { if (!extraPhotos.some(x => x.src === p)) extraPhotos.push({ src: p }); });
+        renderExtraPhotos();
+      }
+      closePhotoPicker();
     }
 
     // ---------- Photo upload (saved as real files in images/) ----------
@@ -976,46 +1331,102 @@ function json_(o) {
       if (!category) { alert("Create a category first (🗂 tab)."); return; }
 
       const existing = editId ? products.find(p => p.id == editId) : null;
-      const parseList = v => v.split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      const parseList = v => String(v || "").split(/\n|,/).map(s => s.trim()).filter(Boolean);
       const worldValue = document.getElementById("new-world").value;
-      const extras = {
-        description: document.getElementById("new-desc").value.trim(),
-        images: parseList(document.getElementById("new-images").value),
-        videos: parseList(document.getElementById("new-videos").value),
-        world: worldValue === "__new__" ? "" : worldValue.trim()
-      };
-      let defaultImg = existing ? existing.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80";
 
-      let img = urlInput || defaultImg;
-      let note = "";
-      const file = fileInput.files && fileInput.files[0];
-
-      if (file) {
-        const token = localStorage.getItem("ink_gh_token");
-        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "⏳ Uploading photo…"; }
-        try {
-          const up = await uploadPickedImage(file, name, token);
-          img = up.path;
-          note = "Photo saved as " + up.path + " (" + Math.round(up.bytes / 1024) + " KB).";
-        } catch (e) {
-          // Never lose the photo: fall back to embedding it in the catalog.
-          let shot;
-          try {
-            shot = await compressPickedImage(file, 700, 0.78);
-          } catch (readErr) {
-            alert(readErr.message || "That photo could not be read — please pick a different file.");
-            return;
-          }
-          img = shot.dataUrl;
-          note = e.message === "NO_TOKEN"
-            ? "Photo stored inside the catalog for now. Add your GitHub token in the ☁️ Publish tab so future photos are saved as real files."
-            : "Could not upload the photo to GitHub (" + e.message + "). It was stored inside the catalog instead — check your token in the ☁️ Publish tab.";
-        } finally {
-          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveLabel; }
+      // Build the variant list first so we can reject blank/duplicate option names
+      // before spending time uploading any photos.
+      const variants = [];
+      for (let i = 0; i < variantOptions.length; i++) {
+        const v = variantOptions[i];
+        const variantName = String(v.name || "").trim();
+        if (!variantName) { alert(`Option ${i + 1} needs a name (e.g. Black or 500 ml).`); return; }
+        if (variants.some(x => x.name.toLowerCase() === variantName.toLowerCase())) {
+          alert(`"${variantName}" is listed twice. Remove the duplicate option.`);
+          return;
         }
+        variants.push({
+          name: variantName,
+          img: "",
+          retailDelta: Math.max(0, parseFloat(v.retailDelta) || 0),
+          wholesaleDelta: Math.max(0, parseFloat(v.wholesaleDelta) || 0)
+        });
       }
 
-      commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras, note);
+      const pastedImages = parseList(document.getElementById("new-images").value);
+      const images = [];
+      extraPhotos.forEach(ph => images.push(ph.src || "")); // blank = a file still to upload
+      pastedImages.forEach(u => { if (!images.includes(u)) images.push(u); });
+
+      const extras = {
+        description: document.getElementById("new-desc").value.trim(),
+        images,
+        videos: parseList(document.getElementById("new-videos").value),
+        world: worldValue === "__new__" ? "" : worldValue.trim(),
+        variants,
+        variantKind: variants.length ? variantKindLabel() : ""
+      };
+      let defaultImg = existing ? existing.img : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80";
+      let img = urlInput || defaultImg;
+
+      const file = fileInput.files && fileInput.files[0];
+      const token = localStorage.getItem("ink_gh_token");
+      let uploaded = 0;
+      let embeddedNoToken = false;
+      let embeddedError = "";
+      const busy = files => {
+        if (saveBtn) {
+          saveBtn.disabled = !!files;
+          saveBtn.textContent = files ? "⏳ Uploading " + files + " photo" + (files === 1 ? "…" : "s…") : saveLabel;
+        }
+      };
+      const totalFiles = (file ? 1 : 0) + extraPhotos.filter(x => x.file).length + variantOptions.filter((v, i) => !!v.file).length;
+      busy(totalFiles);
+
+      try {
+        const fileToSrc = async (pickedFile, hint) => {
+          try {
+            const up = await uploadPickedImage(pickedFile, hint, token);
+            uploaded++;
+            return up.path;
+          } catch (e) {
+            // Never lose a photo: fall back to a compressed copy inside the catalog.
+            let shot;
+            try { shot = await compressPickedImage(pickedFile, 700, 0.78); }
+            catch (readErr) { throw new Error(readErr.message || "That photo could not be read — please pick a different file."); }
+            if (e.message === "NO_TOKEN") embeddedNoToken = true;
+            else embeddedError = e.message || "GitHub upload failed";
+            return shot.dataUrl;
+          }
+        };
+
+        if (file) img = await fileToSrc(file, name);
+
+        for (let i = 0; i < extraPhotos.length; i++) {
+          if (extraPhotos[i].file) {
+            const src = await fileToSrc(extraPhotos[i].file, name + " extra " + (i + 1));
+            const at = images.indexOf("");
+            if (at >= 0) images[at] = src; else images.push(src);
+          }
+        }
+
+        for (let i = 0; i < variants.length; i++) {
+          const source = variantOptions[i];
+          if (source.file) variants[i].img = await fileToSrc(source.file, name + " " + variants[i].name);
+          else if (source.img) variants[i].img = source.img;
+        }
+
+        let note = "";
+        if (uploaded) note += uploaded + " photo" + (uploaded === 1 ? "" : "s") + " saved as real files in images\\.";
+        if (embeddedNoToken) note += (note ? " " : "") + "Some photos are stored inside the catalog for now. Add your GitHub token in the ☁️ Publish tab so future photos are saved as real files.";
+        if (embeddedError) note += (note ? " " : "") + "Some photos could not be uploaded (" + embeddedError + ") and were stored inside the catalog instead — check your token in the ☁️ Publish tab.";
+        if (uploaded) { pickerImages = null; }
+        commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras, note);
+      } catch (e) {
+        alert(e.message || "The photos could not be saved — please try again.");
+      } finally {
+        busy(false);
+      }
     }
 
     function commitProductData(editId, name, retailPrice, wholesalePrice, category, img, extras, note) {
@@ -1026,14 +1437,21 @@ function json_(o) {
           ...prev, name, retailPrice, wholesalePrice, category, img,
           world: extras.world !== undefined ? extras.world : (prev.world || ""),
           description: extras.description !== undefined ? extras.description : (prev.description || ""),
-          images: extras.images.length ? extras.images : (prev.images || []),
-          videos: extras.videos.length ? extras.videos : (prev.videos || [])
+          images: extras.images !== undefined ? extras.images : (prev.images || []),
+          videos: extras.videos !== undefined ? extras.videos : (prev.videos || []),
+          variants: extras.variants !== undefined ? extras.variants : (Array.isArray(prev.variants) ? prev.variants : []),
+          variantKind: extras.variantKind !== undefined ? extras.variantKind : (prev.variantKind || "")
         };
+        if (!merged.variants.length) merged.variantKind = "";
         products = products.map(p => p.id == editId ? merged : p);
         alert("Product updated! Remember to Publish so every device sees it." + (note ? "\n\n" + note : ""));
       } else {
         const fresh = { id: Date.now(), name, retailPrice, wholesalePrice, category, img, badge: "✨ New Arrival", description: extras.description, images: extras.images, videos: extras.videos };
         if (extras.world) fresh.world = extras.world;
+        if (extras.variants && extras.variants.length) {
+          fresh.variants = extras.variants;
+          fresh.variantKind = extras.variantKind;
+        }
         products.push(fresh);
         createdIds.add(String(fresh.id));
         alert("Product added! Remember to Publish so every device sees it." + (note ? "\n\n" + note : ""));
@@ -1324,6 +1742,7 @@ function json_(o) {
         if (!p) return;
         add(p.img);
         (Array.isArray(p.images) ? p.images : []).forEach(add);
+        (Array.isArray(p.variants) ? p.variants : []).forEach(v => { if (v) add(v.img); });
       });
       Object.values(cat.categoryImages || {}).forEach(add);
       Object.values(cat.worldImages || {}).forEach(add);
