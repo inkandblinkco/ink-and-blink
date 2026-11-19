@@ -95,18 +95,8 @@
   .handle span{font-size:12px;color:var(--muted)}
 
   /* Confirm step sits in its own block, never glued to the open button */
-  .gate{margin-top:26px;padding-top:20px;border-top:1px solid rgba(160,100,255,.16)}
-  .gate-head{
-    display:flex;align-items:center;gap:12px;margin-bottom:14px;
-    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#8b7fb0;font-weight:800;
-  }
-  .gate-head::before,.gate-head::after{
-    content:"";flex:1;height:1px;
-    background:linear-gradient(90deg,rgba(160,100,255,0) 0%,rgba(160,100,255,.42) 50%,rgba(160,100,255,0) 100%);
-  }
-  .hint{font-size:12.5px;color:var(--muted);text-align:center;margin:0;line-height:1.5}
-  .hint b{color:var(--light)}
-  .gate .btn{margin-top:14px}
+  .gate{margin-top:26px;padding-top:24px;border-top:1px solid rgba(160,100,255,.16)}
+  .gate .btn{margin-top:0}
   .reveal{animation:rise .32s ease both}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
@@ -173,15 +163,13 @@
     <section class="view" id="v2">
       <div class="kicker">Step 2 of 4</div>
       <h1>Follow us on Instagram</h1>
-      <p class="sub">Tap below, follow the page, then come back to this screen.</p>
+      <p class="sub">Tap below and follow the page.</p>
       <div class="handle">
         <div class="avatar">IB</div>
         <div><b>@inkandblink._</b><span>Anime collectibles · new drops</span></div>
       </div>
       <a class="btn ig" id="igLink" href="https://www.instagram.com/inkandblink._/" target="_blank" rel="noopener">Open Instagram</a>
       <div class="gate">
-        <div class="gate-head">After you follow</div>
-        <p class="hint" id="h2">This button unlocks once Instagram has actually opened — not before.</p>
         <button class="btn ghost hidden" type="button" id="b2">I followed — continue</button>
       </div>
     </section>
@@ -194,8 +182,6 @@
       <p class="sub">It takes 20 seconds and helps our small studio more than you know.</p>
       <a class="btn rev" id="revLink" href="https://g.page/r/CccZxdT6gF4MEAE/review" target="_blank" rel="noopener">Write a review</a>
       <div class="gate">
-        <div class="gate-head">After you review</div>
-        <p class="hint" id="h3">This button unlocks once Google has actually opened — not before.</p>
         <button class="btn ghost hidden" type="button" id="b3">I reviewed — spin now</button>
       </div>
     </section>
@@ -304,14 +290,12 @@
 
   function validPhone(v) { return /^[6-9]\d{9}$/.test(v); }
 
-  /* Gate: the confirm button unlocks only after the open-link was pressed AND
-     the visitor left the page for at least 10 seconds. A website cannot read
-     Instagram follow status or Google review status, so this enforces the
-     sequence instead of pretending to verify it. */
+  /* Gate: the confirm button appears 15 seconds after the open-link is pressed.
+     No hints, no return detection — just a short enforced pause so the step can
+     actually be done before the button shows up. */
   function gateLink(opts) {
     var link = document.getElementById(opts.link);
     var btn = document.getElementById(opts.btn);
-    var hint = document.getElementById(opts.hint);
     var openedAt = 0, timer = null, shown = false;
 
     function show() {
@@ -320,31 +304,19 @@
       if (timer) { clearInterval(timer); timer = null; }
       btn.classList.remove("hidden");
       btn.classList.add("reveal");
-      if (hint) hint.classList.add("hidden");
-    }
-
-    function tick() {
-      if (!openedAt || shown) return;
-      if (document.visibilityState === "hidden") return; // never unlock while away
-      var left = Math.ceil((opts.minMs - (Date.now() - openedAt)) / 1000);
-      if (left <= 0) { show(); return; }
-      if (hint) hint.innerHTML = "Unlocking in <b>" + left + "s</b> — finish the step and come back.";
     }
 
     link.addEventListener("click", function () {
       if (shown || openedAt) return;
       openedAt = Date.now();
-      if (hint) hint.innerHTML = "Opening… finish the step, then come back here.";
-      timer = setInterval(tick, 500);
+      timer = setInterval(function () {
+        if (Date.now() - openedAt >= opts.minMs) show();
+      }, 250);
     });
-
-    document.addEventListener("visibilitychange", tick);
-    window.addEventListener("focus", tick);
-    window.addEventListener("pageshow", tick);
   }
 
-  gateLink({ link: "igLink", btn: "b2", hint: "h2", minMs: 10000 });
-  gateLink({ link: "revLink", btn: "b3", hint: "h3", minMs: 10000 });
+  gateLink({ link: "igLink", btn: "b2", minMs: 15000 });
+  gateLink({ link: "revLink", btn: "b3", minMs: 15000 });
 
   /* Step 1 */
   document.getElementById("f1").addEventListener("submit", function (e) {
