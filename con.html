@@ -453,16 +453,28 @@
     document.getElementById("resultBlock").classList.remove("reveal");
     document.getElementById("wheelwrap").classList.remove("done", "hidden");
 
-    spinWheelTo(faceIndex);
+    // The wheel sits inside a section that was display:none a moment ago.
+    // Paint it at its current angle first, otherwise the browser applies the
+    // end angle in the same frame and the wheel never visibly spins.
+    var wheelEl = document.getElementById("wheel");
+    wheelEl.style.transition = "none";
+    wheelEl.style.transform = "rotate(" + wheelRot + "deg)";
+    void wheelEl.getBoundingClientRect();
+    wheelEl.style.transition = "transform 4.2s cubic-bezier(.15,.72,.16,1)";
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        spinWheelTo(faceIndex);
+        setTimeout(function () {
+          spinning = false;
+          showResult(pct, code, face.next);
+        }, 4400);
+      });
+    });
 
     save({ reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code }, 15000).catch(function () {
       queuePush({ phone: phone, reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code, source: "Con" });
     });
-
-    setTimeout(function () {
-      spinning = false;
-      showResult(pct, code, face.next);
-    }, 4400);
   });
 
   /* Result */
