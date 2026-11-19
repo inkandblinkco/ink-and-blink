@@ -114,12 +114,11 @@
   .pointer{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;
     border-left:10px solid transparent;border-right:10px solid transparent;border-top:19px solid var(--gold);
     filter:drop-shadow(0 4px 8px rgba(0,0,0,.65));z-index:3}
-  .hub{position:absolute;top:50%;left:50%;width:23%;height:23%;transform:translate(-50%,-50%);
-    border-radius:50%;display:grid;place-items:center;z-index:2;
-    background:radial-gradient(circle at 50% 28%, #2c1a52, #140d2b 72%);
-    border:2px solid rgba(255,183,3,.85);
-    box-shadow:0 4px 14px rgba(0,0,0,.6), inset 0 0 12px rgba(0,0,0,.6)}
-  .hub span{font-family:'Cinzel',Georgia,serif;font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.04em}
+  .hub{position:absolute;top:50%;left:50%;width:25%;height:25%;transform:translate(-50%,-50%);
+    border-radius:50%;overflow:hidden;z-index:2;background:#140d2b;
+    border:2px solid rgba(255,183,3,.9);
+    box-shadow:0 4px 16px rgba(0,0,0,.7), 0 0 0 4px rgba(7,5,16,.55)}
+  .hub img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
   .result{margin-top:4px}
   .nextnote{text-align:center;color:var(--gold);font-size:10.5px;letter-spacing:.18em;
     text-transform:uppercase;font-weight:800;margin:4px 0 0}
@@ -137,6 +136,9 @@
     font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;letter-spacing:.16em;color:#ffe6a8;
   }
   .copy{margin-top:16px}
+  .claim{margin-top:16px}
+  .again{margin-top:10px;font-size:13.5px;padding:12px}
+  .claimnote{margin:12px 0 0;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.4}
   .note{margin:14px 0 0;font-size:11.5px;color:#8f83b5;text-align:center;line-height:1.5}
 
   .overlay{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:20px;
@@ -210,14 +212,16 @@
       <div class="wheelwrap" id="wheelwrap">
         <div class="pointer"></div>
         <svg class="wheel" id="wheel" viewBox="0 0 200 200" role="img" aria-label="Discount wheel"></svg>
-        <div class="hub"><span>IB</span></div>
+        <div class="hub"><img src="con-logo.jpg" alt="" /></div>
       </div>
       <div class="result hidden" id="resultBlock">
         <div class="pct" id="pct">0<small>% OFF</small></div>
         <p class="nextnote hidden" id="nextNote">on your next order</p>
         <div class="codewrap">
           <div class="code" id="code">—</div>
-          <button class="btn ghost copy" type="button" id="copyBtn">Copy my code</button>
+          <p class="claimnote hidden" id="claimNote">Code copied — show it at the booth.</p>
+          <button class="btn primary claim" type="button" id="claimBtn">Claim discount</button>
+          <button class="btn ghost again" type="button" id="againBtn">Spin once more</button>
         </div>
       </div>
     </section>
@@ -237,16 +241,18 @@
 
   // Six faces on the wheel. Only the first four can ever be landed on.
   var WHEEL = [
-    { pct: 5,  line1: "5%",  line2: "",              next: false, live: true  },
-    { pct: 10, line1: "10%", line2: "",              next: false, live: true  },
-    { pct: 10, line1: "10%", line2: "ON NEXT ORDER", next: true,  live: true  },
-    { pct: 15, line1: "15%", line2: "ON NEXT ORDER", next: true,  live: true  },
-    { pct: 25, line1: "25%", line2: "",              next: false, live: false },
-    { pct: 50, line1: "50%", line2: "",              next: false, live: false }
+    { pct: 5,  line1: "5% OFF",  line2: "",              next: false, live: true  },
+    { pct: 10, line1: "10% OFF", line2: "",              next: false, live: true  },
+    { pct: 10, line1: "10% OFF", line2: "ON NEXT ORDER", next: true,  live: true  },
+    { pct: 15, line1: "15% OFF", line2: "ON NEXT ORDER", next: true,  live: true  },
+    { pct: 25, line1: "25% OFF", line2: "",              next: false, live: false },
+    { pct: 50, line1: "50% OFF", line2: "",              next: false, live: false }
   ];
   var LIVE = [0, 1, 2, 3];
   var wheelRot = 0;
   var spinning = false;
+  var locked = null;
+  var spins = 0;
 
   var phone = "";
   var dots = document.querySelectorAll("#steps i");
@@ -307,22 +313,22 @@
     }
     for (var j = 0; j < 6; j++) {
       var mid = -60 + j * 60;
-      var at = wheelPoint(100, 100, 58, mid);
+      var at = wheelPoint(100, 100, 60, mid);
       var rot = mid + 90;
       var flip = (rot > 90 && rot <= 270) ? 180 : 0;
       var tf = 'transform="translate(' + at[0].toFixed(2) + ',' + at[1].toFixed(2) +
         ') rotate(' + (rot + flip) + ')" x="0"';
       var face = WHEEL[j];
 
-      out += '<text ' + tf + ' y="' + (face.line2 ? -3.5 : 0) + '" text-anchor="middle" ' +
+      out += '<text ' + tf + ' y="' + (face.line2 ? -5.2 : 0) + '" text-anchor="middle" ' +
         'dominant-baseline="central" fill="#fff" font-family="Plus Jakarta Sans, Arial, sans-serif" ' +
-        'font-weight="800" font-size="10.5" letter-spacing="0.2">' + face.line1 + '</text>';
+        'font-weight="800" font-size="9.2" letter-spacing="0.15">' + face.line1 + '</text>';
 
       if (face.line2) {
-        out += '<text ' + tf + ' y="5.1" text-anchor="middle" ' +
-          'dominant-baseline="central" fill="rgba(255,255,255,.72)" ' +
-          'font-family="Plus Jakarta Sans, Arial, sans-serif" font-weight="700" font-size="5.4" ' +
-          'letter-spacing="0.18">' + face.line2 + '</text>';
+        out += '<text ' + tf + ' y="6.2" text-anchor="middle" ' +
+          'dominant-baseline="central" fill="rgba(255,255,255,.78)" ' +
+          'font-family="Plus Jakarta Sans, Arial, sans-serif" font-weight="700" font-size="4.9" ' +
+          'letter-spacing="0.15">' + face.line2 + '</text>';
       }
     }
     out += '<circle cx="100" cy="100" r="96.5" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1.4"/>';
@@ -437,17 +443,8 @@
     }).then(function () { overlay(false); view(3); });
   });
 
-  /* Step 3 — the wheel */
-  document.getElementById("b3").addEventListener("click", function () {
-    if (spinning) return;
-    spinning = true;
-
-    var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
-    var face = WHEEL[faceIndex];
-    var pct = face.pct;
-    var code = makeCode(pct);
-
-    view(4);
+  /* One spin animation, reused by the first spin and the bonus spin. */
+  function playSpin(faceIndex, onDone) {
     document.getElementById("spinKicker").textContent = "Spinning…";
     document.getElementById("resultBlock").classList.add("hidden");
     document.getElementById("resultBlock").classList.remove("reveal");
@@ -465,26 +462,106 @@
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         spinWheelTo(faceIndex);
-        setTimeout(function () {
-          spinning = false;
-          showResult(pct, code, face.next);
-        }, 4400);
+        setTimeout(onDone, 4400);
       });
     });
+  }
 
-    save({ reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code }, 15000).catch(function () {
-      queuePush({ phone: phone, reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code, source: "Con" });
+  /* Step 3 — the wheel */
+  document.getElementById("b3").addEventListener("click", function () {
+    if (spinning) return;
+    spinning = true;
+
+    var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
+    var face = WHEEL[faceIndex];
+    var pct = face.pct;
+    var code = makeCode(pct);
+
+    view(4);
+    playSpin(faceIndex, function () {
+      spinning = false;
+      spins = 1;
+      locked = { face: faceIndex, pct: pct, code: code, next: face.next };
+      showResult(pct, code, face.next, "first");
     });
   });
 
+  /* Spin once more — a real second spin, but it can only match or beat the
+     first result, so nobody drops from 15% down to 5%. The discount is saved
+     when they claim, so the sheet always matches the code they keep. */
+  document.getElementById("againBtn").addEventListener("click", function () {
+    if (spinning || !locked || spins >= 2) return;
+    spinning = true;
+
+    var pool = LIVE.filter(function (j) { return WHEEL[j].pct >= locked.pct; });
+    var faceIndex = pool[Math.floor(Math.random() * pool.length)];
+    var face = WHEEL[faceIndex];
+    var pct = face.pct;
+    var code = makeCode(pct);
+
+    playSpin(faceIndex, function () {
+      spinning = false;
+      spins = 2;
+      locked = { face: faceIndex, pct: pct, code: code, next: face.next };
+      showResult(pct, code, face.next, "second");
+    });
+  });
+
+  /* Claim — this is the moment the discount is written to the sheet, so the
+     stored number and code are always the ones the visitor walks away with. */
+  document.getElementById("claimBtn").addEventListener("click", function () {
+    if (!locked) return;
+
+    var b = this;
+    copyText(locked.code);
+
+    // Returning number: the code already exists in the sheet, just hand it over.
+    if (locked.stored) {
+      b.textContent = "Copied!";
+      setTimeout(function () { b.textContent = "Copy code"; }, 1500);
+      return;
+    }
+
+    b.textContent = "Claimed ✓";
+    b.disabled = true;
+    document.getElementById("againBtn").classList.add("hidden");
+    document.getElementById("claimNote").classList.remove("hidden");
+
+    save({ reviewed: 1, spin: 1, stage: "spin", pct: locked.pct, code: locked.code }, 15000).catch(function () {
+      queuePush({
+        phone: phone, reviewed: 1, spin: 1, stage: "spin",
+        pct: locked.pct, code: locked.code, source: "Con"
+      });
+    });
+  });
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(function () {});
+      return;
+    }
+    var t = document.createElement("textarea");
+    t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(t);
+  }
+
   /* Result */
-  function showResult(pct, code, onNextOrder) {
+  function showResult(pct, code, onNextOrder, mode) {
     document.getElementById("wheelwrap").classList.add("done");
     document.getElementById("spinKicker").textContent = "You're in";
     document.getElementById("pct").innerHTML = pct + "<small>% OFF</small>";
     document.getElementById("nextNote").classList.toggle("hidden", !onNextOrder);
     document.getElementById("code").textContent = code || "";
     window.__ibCode = code || "";
+
+    var btn = document.getElementById("claimBtn");
+    btn.disabled = false;
+    btn.textContent = mode === "stored" ? "Copy code" : "Claim discount";
+
+    document.getElementById("againBtn").classList.toggle("hidden", mode !== "first");
+    document.getElementById("claimNote").classList.add("hidden");
+
     var block = document.getElementById("resultBlock");
     block.classList.remove("hidden");
     block.classList.add("reveal");
@@ -494,21 +571,9 @@
   function showStored(pct, code) {
     view(4);
     document.getElementById("wheelwrap").classList.add("hidden");
-    showResult(Number(pct), String(code || ""), false);
+    locked = { pct: Number(pct), code: String(code || ""), next: false, stored: true };
+    showResult(Number(pct), String(code || ""), false, "stored");
   }
-
-  document.getElementById("copyBtn").addEventListener("click", function () {
-    var code = window.__ibCode || document.getElementById("code").textContent;
-    var b = this;
-    function done() { b.textContent = "Copied!"; setTimeout(function () { b.textContent = "Copy my code"; }, 1600); }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, done);
-    else {
-      var t = document.createElement("textarea");
-      t.value = code; document.body.appendChild(t); t.select();
-      try { document.execCommand("copy"); } catch (e) {}
-      document.body.removeChild(t); done();
-    }
-  });
 
   document.getElementById("phone").addEventListener("input", function () {
     this.value = this.value.replace(/\D/g, "").slice(0, 10);
