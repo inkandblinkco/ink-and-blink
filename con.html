@@ -3,150 +3,219 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#140d2b" />
-<title>Ink &amp; Blink — Spin &amp; Save</title>
-<meta name="description" content="Follow, review and spin for a random discount on your first Ink & Blink order." />
+<meta name="theme-color" content="#070510" />
+<title>Ink &amp; Blink — Comic Con Spin &amp; Save</title>
+<meta name="description" content="Spin for your Comic Con discount on your first Ink & Blink order." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1:#140d2b; --bg2:#1c1238; --bg3:#2a1a4d;
-    --gold:#f0c46a; --violet:#a78bfa; --ink:#f7f4ff;
+    --bg:#070510; --card:rgba(24,15,48,.72); --solid:#140d2b;
+    --glow:#c15cff; --light:#ead9ff; --mid:#8644ed; --deep:#4a19a8;
+    --gold:#ffb703; --pink:#ff2e88;
+    --text:#f4f1ff; --muted:#a89fc4; --border:rgba(160,100,255,.28);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{min-height:100%}
   body{
-    margin:0; color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    margin:0;color:var(--text);background:var(--bg);
+    font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+    padding:26px 16px 30px;overflow-x:hidden;line-height:1.55;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
     background:
-      radial-gradient(120% 80% at 50% 0%, #3a2568 0%, transparent 55%),
-      linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%);
-    min-height:100dvh; display:flex; flex-direction:column; align-items:center;
-    padding:18px 16px 26px;
+      radial-gradient(95% 55% at 50% -12%, #2c1460 0%, rgba(44,20,96,0) 64%),
+      radial-gradient(65% 40% at 100% 106%, rgba(134,68,237,.20) 0%, rgba(134,68,237,0) 70%);
   }
-  .brand{display:flex;align-items:center;gap:10px;margin:4px 0 16px;letter-spacing:.08em;font-weight:700;font-size:14px}
-  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold)}
-  .steps{display:flex;gap:7px;margin:0 0 16px}
-  .steps i{width:26px;height:4px;border-radius:3px;background:rgba(255,255,255,.14);transition:background .25s}
-  .steps i.on{background:var(--gold)}
+
+  .logo{
+    width:96px;height:96px;border-radius:16px;display:block;margin:2px auto 20px;
+    box-shadow:0 14px 34px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.07), 0 0 38px rgba(193,92,255,.28);
+  }
+
   .card{
-    width:100%;max-width:430px;background:rgba(255,255,255,.045);
-    border:1px solid rgba(255,255,255,.10);border-radius:22px;
-    padding:22px 20px 24px;backdrop-filter:blur(8px);
-    box-shadow:0 24px 60px rgba(0,0,0,.45);position:relative;overflow:hidden;
+    position:relative;width:100%;max-width:432px;overflow:hidden;
+    background:var(--card);border:1px solid var(--border);border-radius:26px;
+    padding:24px 22px 26px;backdrop-filter:blur(14px);
+    box-shadow:0 30px 70px rgba(0,0,0,.75), 0 0 40px rgba(134,68,237,.18);
   }
+
+  .steps{display:flex;gap:7px;margin:0 0 20px}
+  .steps i{flex:1;height:3px;border-radius:3px;background:rgba(160,100,255,.18);transition:background .3s}
+  .steps i.on{background:linear-gradient(90deg,var(--mid),var(--glow));box-shadow:0 0 10px rgba(193,92,255,.6)}
+
   .view{display:none}
-  .view.on{display:block;animation:slide .28s ease both}
-  @keyframes slide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
-  .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
-  h1{font-size:clamp(25px,6.6vw,32px);line-height:1.12;margin:0 0 10px;letter-spacing:-.01em}
-  .sub{color:#cfc6e6;font-size:14.5px;line-height:1.55;margin:0 0 18px}
-  label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#b9aee0;margin:0 0 6px}
+  .view.on{display:block;animation:slide .3s ease both}
+  @keyframes slide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+
+  .kicker{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:10px}
+  h1{
+    font-family:'Cinzel',Georgia,serif;font-weight:700;font-size:clamp(25px,6.8vw,33px);
+    line-height:1.14;margin:0 0 12px;letter-spacing:.3px;color:#fff;
+  }
+  h1 em{font-style:normal;color:var(--gold);display:block}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+
+  label{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9d90c2;font-weight:700;margin:0 0 8px}
   input[type=tel]{
-    width:100%;padding:15px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.14);
-    background:rgba(10,6,24,.55);color:#fff;font-size:17px;outline:none;margin-bottom:14px;letter-spacing:.06em;
+    width:100%;padding:16px 15px;border-radius:14px;border:1px solid var(--border);
+    background:rgba(0,0,0,.45);color:#fff;font-size:17px;letter-spacing:.1em;outline:none;
+    margin-bottom:14px;font-family:inherit;transition:border-color .25s,box-shadow .25s;
   }
-  input[type=tel]:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(167,139,250,.18)}
-  button,.btn{
-    display:block;width:100%;border:0;border-radius:14px;padding:15px 16px;font-size:16px;font-weight:700;
-    text-align:center;text-decoration:none;color:#1a1030;background:linear-gradient(135deg,#f6d798,#e7b45c);
-    cursor:pointer;box-shadow:0 10px 24px rgba(240,196,106,.22);
+  input[type=tel]:focus{border-color:var(--glow);box-shadow:0 0 0 4px rgba(193,92,255,.15)}
+  input::placeholder{color:#6f648f;letter-spacing:.02em}
+
+  .btn{
+    display:block;width:100%;border:0;border-radius:14px;padding:16px;font-family:inherit;
+    font-weight:800;font-size:15.5px;letter-spacing:.01em;text-align:center;text-decoration:none;
+    cursor:pointer;transition:transform .15s,box-shadow .2s,opacity .2s;
   }
-  button:disabled{opacity:.6;cursor:default}
-  .btn.ghost{background:transparent;color:#e7e0ff;border:1px solid rgba(255,255,255,.18);box-shadow:none;margin-top:10px}
-  .btn.ig{background:linear-gradient(135deg,#f9ce34,#ee2a7b 45%,#6228d7)}
-  .btn.rev{background:linear-gradient(135deg,#fff,#e8e8e8);color:#1a1030}
-  .fine{font-size:11.5px;color:#9d92bd;text-align:center;margin:12px 0 0;line-height:1.5}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .primary{background:linear-gradient(135deg,var(--mid),var(--deep));color:#fff;box-shadow:0 10px 26px rgba(134,68,237,.42)}
+  .ghost{background:rgba(255,255,255,.035);border:1px solid var(--border);color:var(--light);font-weight:700;box-shadow:none}
+  .ig{background:linear-gradient(135deg,#f9ce34,#ee2a7b 45%,#6228d7);color:#fff;box-shadow:0 10px 26px rgba(238,42,123,.26)}
+  .rev{background:#fff;color:#17171d;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+
   .hidden{display:none !important}
-  .hint{font-size:12px;color:#b3a8d4;text-align:center;margin:10px 0 0;line-height:1.45}
-  .hint b{color:#f0c46a}
-  .reveal{animation:slide .28s ease both}
-  .err{display:none;color:#ffb4b4;font-size:13px;margin:-4px 0 12px}
-  .handle{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:rgba(10,6,24,.45);
-          border:1px solid rgba(255,255,255,.08);margin-bottom:16px}
-  .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;
-          background:linear-gradient(135deg,#f9ce34,#ee2a7b 45%,#6228d7);color:#fff;flex:none}
-  .handle b{display:block;font-size:15px}
-  .handle span{font-size:12.5px;color:#b3a8d4}
-  .stars{font-size:22px;letter-spacing:3px;color:var(--gold);margin:2px 0 6px}
-  .pct{font-size:clamp(58px,17vw,80px);font-weight:800;line-height:1;letter-spacing:-.03em;text-align:center;
-       background:linear-gradient(180deg,#fff3d6,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;
-       margin:8px 0 2px;font-variant-numeric:tabular-nums}
-  .pct small{font-size:.36em;-webkit-text-fill-color:var(--gold)}
+
+  .handle{
+    display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:16px;
+    background:rgba(0,0,0,.35);border:1px solid rgba(160,100,255,.18);margin-bottom:16px;
+  }
+  .avatar{
+    width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,#f9ce34,#ee2a7b 45%,#6228d7);
+    font-weight:800;font-size:16px;color:#fff;
+  }
+  .handle b{display:block;font-size:14.5px;letter-spacing:.01em}
+  .handle span{font-size:12px;color:var(--muted)}
+
+  /* Confirm step sits in its own block, never glued to the open button */
+  .gate{margin-top:26px;padding-top:20px;border-top:1px solid rgba(160,100,255,.16)}
+  .gate-head{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#8b7fb0;font-weight:800;
+  }
+  .gate-head::before,.gate-head::after{
+    content:"";flex:1;height:1px;
+    background:linear-gradient(90deg,rgba(160,100,255,0) 0%,rgba(160,100,255,.42) 50%,rgba(160,100,255,0) 100%);
+  }
+  .hint{font-size:12.5px;color:var(--muted);text-align:center;margin:0;line-height:1.5}
+  .hint b{color:var(--light)}
+  .gate .btn{margin-top:14px}
+  .reveal{animation:rise .32s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .stars{font-size:20px;letter-spacing:4px;color:var(--gold);margin:0 0 10px}
+
+  .fine{font-size:11px;color:#8f83b5;text-align:center;margin:14px 0 0;line-height:1.5}
+  .err{display:none;color:#ff9fb0;font-size:12.5px;margin:-4px 0 12px}
+
+  /* Result */
+  .pct{
+    font-family:'Cinzel',Georgia,serif;font-weight:700;text-align:center;line-height:1;
+    font-size:clamp(62px,19vw,84px);letter-spacing:-.01em;margin:8px 0 0;font-variant-numeric:tabular-nums;
+    background:linear-gradient(180deg,#fff0c9,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .pct small{font-size:.32em;-webkit-text-fill-color:var(--gold);letter-spacing:.06em}
   .codewrap{text-align:center}
   .code{
-    display:inline-block;margin:12px 0 4px;padding:12px 20px;border-radius:12px;
-    border:1px dashed rgba(240,196,106,.55);background:rgba(240,196,106,.08);
-    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:21px;letter-spacing:.14em;color:#ffe9b8;
+    display:inline-block;margin:18px 0 4px;padding:13px 22px;border-radius:12px;
+    border:1px dashed rgba(255,183,3,.55);background:rgba(255,183,3,.07);
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;letter-spacing:.16em;color:#ffe6a8;
   }
-  .copy{margin-top:14px;background:transparent;border:1px solid rgba(255,255,255,.18);color:#e7e0ff;box-shadow:none;font-weight:600}
-  .note{margin-top:14px;font-size:12.5px;color:#a99ecb;line-height:1.5;text-align:center}
-  .overlay{position:absolute;inset:0;background:rgba(12,7,30,.92);display:none;place-items:center;text-align:center;padding:20px}
+  .copy{margin-top:16px}
+  .note{margin:14px 0 0;font-size:11.5px;color:#8f83b5;text-align:center;line-height:1.5}
+
+  .overlay{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:20px;
+    background:rgba(7,5,16,.93);z-index:5}
   .overlay.on{display:grid}
-  .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:var(--gold);
-           animation:spin .8s linear infinite;margin:0 auto 12px}
+  .spinner{width:32px;height:32px;border-radius:50%;border:3px solid rgba(160,100,255,.22);
+    border-top-color:var(--glow);animation:spin .8s linear infinite;margin:0 auto 12px}
   @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay div div:last-child{font-size:13px;color:var(--muted);letter-spacing:.04em}
+
+  .foot{
+    max-width:432px;margin:16px auto 0;text-align:center;
+    font-size:10.5px;color:#6f648f;line-height:1.6;letter-spacing:.02em;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .view.on,.reveal{animation:none}
+    .spinner{animation-duration:2s}
+  }
 </style>
 </head>
 <body>
-  <div class="brand"><span class="dot"></span> INK &amp; BLINK</div>
-
-  <div class="steps" id="steps">
-    <i class="on"></i><i></i><i></i><i></i>
-  </div>
+  <img class="logo" src="con-logo.jpg" alt="Ink &amp; Blink — by The Artesania Studio" width="96" height="96" />
 
   <main class="card">
+    <div class="steps" id="steps"><i class="on"></i><i></i><i></i><i></i></div>
+
     <!-- STEP 1 -->
     <section class="view on" id="v1">
       <div class="kicker">Comic Con special</div>
-      <h1>Win up to<br>25% off</h1>
-      <p class="sub">Enter your WhatsApp number to start. Follow us, leave a review, then spin for a random discount on your first order.</p>
+      <h1>Win up to<em>30% off</em></h1>
+      <p class="sub">Enter your WhatsApp number to start. Follow us, leave a review, then spin for your discount.</p>
       <form id="f1" novalidate>
         <label for="phone">WhatsApp number</label>
         <input type="tel" id="phone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="10-digit mobile number" />
         <div class="err" id="e1"></div>
-        <button type="submit" id="b1">Start</button>
-        <p class="fine">We only message you about your discount and our launch. No spam.</p>
+        <button type="submit" class="btn primary" id="b1">Start spinning</button>
+        <p class="fine">One spin per number. We only message you about your discount.</p>
       </form>
     </section>
 
     <!-- STEP 2 -->
     <section class="view" id="v2">
       <div class="kicker">Step 2 of 4</div>
-      <h1>Follow us on<br>Instagram</h1>
-      <p class="sub">Tap follow, then come back here to continue.</p>
+      <h1>Follow us on Instagram</h1>
+      <p class="sub">Tap below, follow the page, then come back to this screen.</p>
       <div class="handle">
         <div class="avatar">IB</div>
         <div><b>@inkandblink._</b><span>Anime collectibles · new drops</span></div>
       </div>
       <a class="btn ig" id="igLink" href="https://www.instagram.com/inkandblink._/" target="_blank" rel="noopener">Open Instagram</a>
-      <p class="hint" id="h2">Tap <b>Open Instagram</b> first — the next button appears when you come back.</p>
-      <button class="ghost hidden" type="button" id="b2">I followed — next</button>
+      <div class="gate">
+        <div class="gate-head">After you follow</div>
+        <p class="hint" id="h2">This button unlocks once Instagram has actually opened — not before.</p>
+        <button class="btn ghost hidden" type="button" id="b2">I followed — continue</button>
+      </div>
     </section>
 
     <!-- STEP 3 -->
     <section class="view" id="v3">
       <div class="kicker">Step 3 of 4</div>
-      <h1>Leave us a<br>Google review</h1>
+      <h1>Leave us a Google review</h1>
       <div class="stars">★★★★★</div>
       <p class="sub">It takes 20 seconds and helps our small studio more than you know.</p>
       <a class="btn rev" id="revLink" href="https://g.page/r/CccZxdT6gF4MEAE/review" target="_blank" rel="noopener">Write a review</a>
-      <p class="hint" id="h3">Tap <b>Write a review</b> first — the spin button appears when you come back.</p>
-      <button class="ghost hidden" type="button" id="b3">I reviewed — spin now</button>
+      <div class="gate">
+        <div class="gate-head">After you review</div>
+        <p class="hint" id="h3">This button unlocks once Google has actually opened — not before.</p>
+        <button class="btn ghost hidden" type="button" id="b3">I reviewed — spin now</button>
+      </div>
     </section>
 
     <!-- STEP 4 -->
-    <section class="view" id="v4">
+    <section class="view" id="v4" aria-live="polite">
       <div class="kicker">You're in</div>
       <div class="pct" id="pct">0<small>% OFF</small></div>
       <div class="codewrap">
         <div class="code" id="code">—</div>
-        <p class="sub" style="margin:8px 0 0">Use this code on your first order when the store opens.</p>
-        <button class="copy" type="button" id="copyBtn">Copy my code</button>
+        <p class="sub" style="margin:10px 0 0">Use this code on your first order. We'll remind you on WhatsApp.</p>
+        <button class="btn ghost copy" type="button" id="copyBtn">Copy my code</button>
         <p class="note">Same number again? You'll see the same code.</p>
       </div>
     </section>
 
     <div class="overlay" id="overlay"><div><div class="spinner"></div><div id="overlayText">Working…</div></div></div>
   </main>
+
+  <p class="foot">*Every spin wins 5–10% off your first order · one code per number<br>Ink &amp; Blink · by The Artesania Studio</p>
 
 <script>
 (function () {
@@ -155,7 +224,9 @@
   var API = "https://script.google.com/macros/s/AKfycbwCX7zcooZoDBhlAaQ_KUAaiXlP7Y26h8sNwYu-CfgKyW4mrC__9JZS9hoE08T_difz/exec";
   var CON_KEY = "inkblink-con";
   var QUEUE_KEY = "ib_con_queue_v1";
-  var WEIGHTS = [5, 5, 10, 10, 10, 15, 15, 15, 20, 20, 25];
+
+  // Every spin lands on one of these. Nothing above 10% is ever shown.
+  var PCTS = [5, 5, 10, 10];
 
   var phone = "";
   var dots = document.querySelectorAll("#steps i");
@@ -189,10 +260,10 @@
     });
   }
 
-  function randomPct() { return WEIGHTS[Math.floor(Math.random() * WEIGHTS.length)]; }
+  function randomPct() { return PCTS[Math.floor(Math.random() * PCTS.length)]; }
   function makeCode(pct) {
     var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
-    for (var i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    for (var i = 0; i < 4; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
     return "IB" + pct + "-" + s;
   }
 
@@ -233,10 +304,10 @@
 
   function validPhone(v) { return /^[6-9]\d{9}$/.test(v); }
 
-  /* Gate: the confirm button only appears after the open-link has been pressed
-     and enough time has passed for the follow / review to actually happen.
-     (A website cannot read Instagram follow status or Google review status,
-     so this is a sequence gate, not a real verification.) */
+  /* Gate: the confirm button unlocks only after the open-link was pressed AND
+     the visitor left the page for at least 10 seconds. A website cannot read
+     Instagram follow status or Google review status, so this enforces the
+     sequence instead of pretending to verify it. */
   function gateLink(opts) {
     var link = document.getElementById(opts.link);
     var btn = document.getElementById(opts.btn);
@@ -254,33 +325,22 @@
 
     function tick() {
       if (!openedAt || shown) return;
-      // Never unlock while they are away in Instagram / Google.
-      if (document.visibilityState === "hidden") return;
+      if (document.visibilityState === "hidden") return; // never unlock while away
       var left = Math.ceil((opts.minMs - (Date.now() - openedAt)) / 1000);
       if (left <= 0) { show(); return; }
-      if (hint) {
-        hint.innerHTML = "Come back in <b>" + left + "s</b> — then the button appears.";
-      }
+      if (hint) hint.innerHTML = "Unlocking in <b>" + left + "s</b> — finish the step and come back.";
     }
 
     link.addEventListener("click", function () {
-      if (shown) return;
-      if (openedAt) return;            // one press is enough; do not restart the clock
+      if (shown || openedAt) return;
       openedAt = Date.now();
-      if (hint) {
-        hint.innerHTML = "Opening… finish the step, then come back here.";
-        hint.classList.remove("hidden");
-      }
+      if (hint) hint.innerHTML = "Opening… finish the step, then come back here.";
       timer = setInterval(tick, 500);
     });
 
-    // Return detection: visibility covers mobile app switches, focus/pageshow
-    // cover desktop new tabs where the page never goes hidden.
     document.addEventListener("visibilitychange", tick);
     window.addEventListener("focus", tick);
     window.addEventListener("pageshow", tick);
-
-    return { done: function () { return shown; } };
   }
 
   gateLink({ link: "igLink", btn: "b2", hint: "h2", minMs: 10000 });
@@ -319,19 +379,22 @@
     if (spinning) return;
     spinning = true;
 
-    function finish(pct, code) {
+    // Pick the number here, so what the visitor sees is exactly what gets saved
+    // and can never come back higher than 10%.
+    var pct = randomPct(), code = makeCode(pct);
+
+    function finish(discount, shownCode) {
       spinning = false;
-      reveal(pct, code);
+      reveal(discount, shownCode);
     }
 
     overlay(true, "Spinning…");
-    save({ reviewed: 1, spin: 1, stage: "spin" }, 15000).then(function (data) {
+    save({ reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code }, 15000).then(function (data) {
       overlay(false);
-      if (data && data.discount) return finish(Number(data.discount), String(data.code || ""));
+      if (data && data.discount) return finish(Number(data.discount), String(data.code || code));
       throw new Error("server");
     }).catch(function () {
       overlay(false);
-      var pct = randomPct(), code = makeCode(pct);
       queuePush({ phone: phone, reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code, source: "Con" });
       finish(pct, code);
     });
