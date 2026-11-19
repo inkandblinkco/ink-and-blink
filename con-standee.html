@@ -15,9 +15,10 @@
       radial-gradient(80% 55% at 50% 8%, #3b2669 0%, rgba(59,38,105,0) 62%),
       linear-gradient(165deg, #140d2b 0%, #1c1238 55%, #2a1a4d 100%);
   }
-  .brand { display: flex; align-items: center; gap: 3mm; font-size: 11pt; font-weight: 700; letter-spacing: .1em; }
-  .brand .dot { width: 2.6mm; height: 2.6mm; border-radius: 50%; background: #f0c46a; box-shadow: 0 0 4mm #f0c46a; }
-  .brand small { margin-left: auto; font-size: 7pt; letter-spacing: .18em; color: #b6a9dc; font-weight: 600; }
+  .brand { display: flex; align-items: center; gap: 3.2mm; }
+  .brand-logo { width: 17mm; height: 17mm; border-radius: 3mm; display: block; box-shadow: 0 2mm 6mm rgba(0,0,0,.5); }
+  .brand-name { font-size: 10.5pt; font-weight: 700; letter-spacing: .14em; line-height: 1.2; }
+  .brand-name small { display: block; font-size: 6.2pt; letter-spacing: .2em; color: #b6a9dc; font-weight: 600; margin-top: .8mm; }
   .eyebrow { margin-top: 6mm; font-size: 8pt; letter-spacing: .26em; text-transform: uppercase; color: #f0c46a; }
   h1 { margin: 2mm 0 1.5mm; font-size: 26pt; line-height: 1.02; letter-spacing: -.02em; }
   h1 b { color: #f6d798; }
@@ -32,16 +33,16 @@
   .step i { display: block; font-style: normal; font-size: 7pt; letter-spacing: .12em; color: #f0c46a; font-weight: 700; margin-bottom: .8mm; }
   .step span { display: block; font-size: 7.4pt; color: #e6dfff; line-height: 1.2; }
   .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 3mm; font-size: 7pt; color: #a99ecb; letter-spacing: .04em; }
-  .foot b { color: #f0c46a; letter-spacing: .12em; }
+  .foot b { color: #f0c46a; letter-spacing: .02em; font-weight: 600; }
 </style>
 </head>
 <body>
   <div class="sheet">
     <div>
-      <div class="brand"><span class="dot"></span> INK &amp; BLINK <small>ANIME COLLECTIBLES</small></div>
+      <div class="brand"><img class="brand-logo" src="con-logo.jpg" alt="" /><div class="brand-name">INK &amp; BLINK<small>ANIME COLLECTIBLES</small></div></div>
       <div class="eyebrow">Comic Con special</div>
       <h1>SCAN.<br>SPIN.<br><b>SAVE.</b></h1>
-      <p class="lede">Win a random <b>5–25% off</b> your first order. Follow us, leave a review, then spin.</p>
+      <p class="lede">Win <b>up to 30% off</b> your first order. Follow us, leave a review, then spin.</p>
     </div>
 
     <div class="qrwrap">
@@ -56,7 +57,7 @@
       <div class="step"><i>04</i><span>Spin</span></div>
     </div>
 
-    <div class="foot"><span>inkandblinkco.github.io/ink-and-blink/con.html</span><b>INK &amp; BLINK</b></div>
+    <div class="foot"><span>*Every spin wins 5–10% off</span><b>inkandblinkco.github.io/ink-and-blink/con.html</b></div>
   </div>
 </body>
 </html>
