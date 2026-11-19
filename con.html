@@ -105,7 +105,25 @@
   .fine{font-size:11px;color:#8f83b5;text-align:center;margin:14px 0 0;line-height:1.5}
   .err{display:none;color:#ff9fb0;font-size:12.5px;margin:-4px 0 12px}
 
-  /* Result */
+  /* Result + wheel */
+  .wheelwrap{position:relative;width:min(292px,80vw);margin:4px auto 6px;aspect-ratio:1/1;transition:width .45s ease}
+  .wheelwrap.done{width:116px}
+  .wheel{width:100%;height:100%;display:block;border-radius:50%;
+    box-shadow:0 18px 40px rgba(0,0,0,.55), 0 0 0 5px #1b1035, 0 0 0 6px rgba(193,92,255,.35);
+    transition:transform 4.2s cubic-bezier(.15,.72,.16,1);will-change:transform}
+  .pointer{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;
+    border-left:10px solid transparent;border-right:10px solid transparent;border-top:19px solid var(--gold);
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.65));z-index:3}
+  .hub{position:absolute;top:50%;left:50%;width:23%;height:23%;transform:translate(-50%,-50%);
+    border-radius:50%;display:grid;place-items:center;z-index:2;
+    background:radial-gradient(circle at 50% 28%, #2c1a52, #140d2b 72%);
+    border:2px solid rgba(255,183,3,.85);
+    box-shadow:0 4px 14px rgba(0,0,0,.6), inset 0 0 12px rgba(0,0,0,.6)}
+  .hub span{font-family:'Cinzel',Georgia,serif;font-weight:700;font-size:15px;color:var(--gold);letter-spacing:.04em}
+  .result{margin-top:4px}
+  .nextnote{text-align:center;color:var(--gold);font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;font-weight:800;margin:4px 0 0}
+
   .pct{
     font-family:'Cinzel',Georgia,serif;font-weight:700;text-align:center;line-height:1;
     font-size:clamp(62px,19vw,84px);letter-spacing:-.01em;margin:8px 0 0;font-variant-numeric:tabular-nums;
@@ -148,7 +166,7 @@
     <!-- STEP 1 -->
     <section class="view on" id="v1">
       <div class="kicker">Comic Con special</div>
-      <h1>Win up to<em>30% off</em></h1>
+      <h1>Win up to<em>50% off</em></h1>
       <p class="sub">Enter your WhatsApp number to start. Follow us, leave a review, then spin for your discount.</p>
       <form id="f1" novalidate>
         <label for="phone">WhatsApp number</label>
@@ -188,20 +206,26 @@
 
     <!-- STEP 4 -->
     <section class="view" id="v4" aria-live="polite">
-      <div class="kicker">You're in</div>
-      <div class="pct" id="pct">0<small>% OFF</small></div>
-      <div class="codewrap">
-        <div class="code" id="code">—</div>
-        <p class="sub" style="margin:10px 0 0">Use this code on your first order. We'll remind you on WhatsApp.</p>
-        <button class="btn ghost copy" type="button" id="copyBtn">Copy my code</button>
-        <p class="note">Same number again? You'll see the same code.</p>
+      <div class="kicker" id="spinKicker">Your spin</div>
+      <div class="wheelwrap" id="wheelwrap">
+        <div class="pointer"></div>
+        <svg class="wheel" id="wheel" viewBox="0 0 200 200" role="img" aria-label="Discount wheel"></svg>
+        <div class="hub"><span>IB</span></div>
+      </div>
+      <div class="result hidden" id="resultBlock">
+        <div class="pct" id="pct">0<small>% OFF</small></div>
+        <p class="nextnote hidden" id="nextNote">on your next order</p>
+        <div class="codewrap">
+          <div class="code" id="code">—</div>
+          <button class="btn ghost copy" type="button" id="copyBtn">Copy my code</button>
+        </div>
       </div>
     </section>
 
     <div class="overlay" id="overlay"><div><div class="spinner"></div><div id="overlayText">Working…</div></div></div>
   </main>
 
-  <p class="foot">*Every spin wins 5–10% off your first order · one code per number<br>Ink &amp; Blink · by The Artesania Studio</p>
+  <p class="foot">Ink &amp; Blink · by The Artesania Studio</p>
 
 <script>
 (function () {
@@ -211,8 +235,18 @@
   var CON_KEY = "inkblink-con";
   var QUEUE_KEY = "ib_con_queue_v1";
 
-  // Every spin lands on one of these. Nothing above 10% is ever shown.
-  var PCTS = [5, 5, 10, 10];
+  // Six faces on the wheel. Only the first four can ever be landed on.
+  var WHEEL = [
+    { pct: 5,  line1: "5%",  line2: "",              next: false, live: true  },
+    { pct: 10, line1: "10%", line2: "",              next: false, live: true  },
+    { pct: 10, line1: "10%", line2: "ON NEXT ORDER", next: true,  live: true  },
+    { pct: 15, line1: "15%", line2: "ON NEXT ORDER", next: true,  live: true  },
+    { pct: 25, line1: "25%", line2: "",              next: false, live: false },
+    { pct: 50, line1: "50%", line2: "",              next: false, live: false }
+  ];
+  var LIVE = [0, 1, 2, 3];
+  var wheelRot = 0;
+  var spinning = false;
 
   var phone = "";
   var dots = document.querySelectorAll("#steps i");
@@ -246,11 +280,67 @@
     });
   }
 
-  function randomPct() { return PCTS[Math.floor(Math.random() * PCTS.length)]; }
   function makeCode(pct) {
     var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
     for (var i = 0; i < 4; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
     return "IB" + pct + "-" + s;
+  }
+
+  /* Wheel drawing */
+  function wheelPoint(cx, cy, r, deg) {
+    var a = deg * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function wheelSlice(cx, cy, r, a0, a1) {
+    var p0 = wheelPoint(cx, cy, r, a0), p1 = wheelPoint(cx, cy, r, a1);
+    return "M" + cx + "," + cy +
+      " L" + p0[0].toFixed(2) + "," + p0[1].toFixed(2) +
+      " A" + r + "," + r + " 0 0 1 " + p1[0].toFixed(2) + "," + p1[1].toFixed(2) + " Z";
+  }
+
+  function buildWheel() {
+    var COLORS = ["#4a19a8", "#8644ed", "#2c1460", "#6b2fd6", "#8a6320", "#c9931f"];
+    var out = "";
+    for (var i = 0; i < 6; i++) {
+      out += '<path d="' + wheelSlice(100, 100, 96, -90 + i * 60, -30 + i * 60) +
+        '" fill="' + COLORS[i] + '"/>';
+    }
+    for (var j = 0; j < 6; j++) {
+      var mid = -60 + j * 60;
+      var at = wheelPoint(100, 100, 58, mid);
+      var rot = mid + 90;
+      var flip = (rot > 90 && rot <= 270) ? 180 : 0;
+      var tf = 'transform="translate(' + at[0].toFixed(2) + ',' + at[1].toFixed(2) +
+        ') rotate(' + (rot + flip) + ')" x="0"';
+      var face = WHEEL[j];
+
+      out += '<text ' + tf + ' y="' + (face.line2 ? -3.5 : 0) + '" text-anchor="middle" ' +
+        'dominant-baseline="central" fill="#fff" font-family="Plus Jakarta Sans, Arial, sans-serif" ' +
+        'font-weight="800" font-size="10.5" letter-spacing="0.2">' + face.line1 + '</text>';
+
+      if (face.line2) {
+        out += '<text ' + tf + ' y="5.1" text-anchor="middle" ' +
+          'dominant-baseline="central" fill="rgba(255,255,255,.72)" ' +
+          'font-family="Plus Jakarta Sans, Arial, sans-serif" font-weight="700" font-size="5.4" ' +
+          'letter-spacing="0.18">' + face.line2 + '</text>';
+      }
+    }
+    out += '<circle cx="100" cy="100" r="96.5" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1.4"/>';
+    document.getElementById("wheel").innerHTML = out;
+
+    // Rest at a slight tilt so the pointer never sits on a face before the spin.
+    wheelRot = -24;
+    document.getElementById("wheel").style.transform = "rotate(" + wheelRot + "deg)";
+  }
+
+  // Rotate so the chosen face ends under the pointer at the top.
+  function spinWheelTo(faceIndex) {
+    var el = document.getElementById("wheel");
+    var want = ((330 - 60 * faceIndex) % 360 + 360) % 360;
+    var cur = ((wheelRot % 360) + 360) % 360;
+    var delta = ((want - cur) % 360 + 360) % 360;
+    wheelRot += 360 * 5 + delta;
+    el.style.transform = "rotate(" + wheelRot + "deg)";
   }
 
   function save(extra, timeout) {
@@ -318,6 +408,8 @@
   gateLink({ link: "igLink", btn: "b2", minMs: 15000 });
   gateLink({ link: "revLink", btn: "b3", minMs: 15000 });
 
+  buildWheel();
+
   /* Step 1 */
   document.getElementById("f1").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -329,7 +421,7 @@
     overlay(true, "Checking…");
     save({ stage: "number" }, 12000).then(function (data) {
       overlay(false);
-      if (data && data.discount) return reveal(data.discount, data.code);
+      if (data && data.discount) return showStored(data.discount, data.code);
       view(2);
     }).catch(function () {
       overlay(false);
@@ -345,49 +437,52 @@
     }).then(function () { overlay(false); view(3); });
   });
 
-  /* Step 3 + spin */
-  var spinning = false;
+  /* Step 3 — the wheel */
   document.getElementById("b3").addEventListener("click", function () {
     if (spinning) return;
     spinning = true;
 
-    // Pick the number here, so what the visitor sees is exactly what gets saved
-    // and can never come back higher than 10%.
-    var pct = randomPct(), code = makeCode(pct);
+    var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
+    var face = WHEEL[faceIndex];
+    var pct = face.pct;
+    var code = makeCode(pct);
 
-    function finish(discount, shownCode) {
-      spinning = false;
-      reveal(discount, shownCode);
-    }
+    view(4);
+    document.getElementById("spinKicker").textContent = "Spinning…";
+    document.getElementById("resultBlock").classList.add("hidden");
+    document.getElementById("resultBlock").classList.remove("reveal");
+    document.getElementById("wheelwrap").classList.remove("done", "hidden");
 
-    overlay(true, "Spinning…");
-    save({ reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code }, 15000).then(function (data) {
-      overlay(false);
-      if (data && data.discount) return finish(Number(data.discount), String(data.code || code));
-      throw new Error("server");
-    }).catch(function () {
-      overlay(false);
+    spinWheelTo(faceIndex);
+
+    save({ reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code }, 15000).catch(function () {
       queuePush({ phone: phone, reviewed: 1, spin: 1, stage: "spin", pct: pct, code: code, source: "Con" });
-      finish(pct, code);
     });
+
+    setTimeout(function () {
+      spinning = false;
+      showResult(pct, code, face.next);
+    }, 4400);
   });
 
   /* Result */
-  function reveal(pct, code) {
+  function showResult(pct, code, onNextOrder) {
+    document.getElementById("wheelwrap").classList.add("done");
+    document.getElementById("spinKicker").textContent = "You're in";
+    document.getElementById("pct").innerHTML = pct + "<small>% OFF</small>";
+    document.getElementById("nextNote").classList.toggle("hidden", !onNextOrder);
+    document.getElementById("code").textContent = code || "";
+    window.__ibCode = code || "";
+    var block = document.getElementById("resultBlock");
+    block.classList.remove("hidden");
+    block.classList.add("reveal");
+  }
+
+  // A number that already has a code skips the wheel.
+  function showStored(pct, code) {
     view(4);
-    var el = document.getElementById("pct");
-    var ticks = 0, total = 18;
-    var timer = setInterval(function () {
-      ticks++;
-      if (ticks >= total) {
-        clearInterval(timer);
-        el.innerHTML = pct + "<small>% OFF</small>";
-        document.getElementById("code").textContent = code || "";
-        window.__ibCode = code || "";
-        return;
-      }
-      el.innerHTML = randomPct() + "<small>% OFF</small>";
-    }, 65);
+    document.getElementById("wheelwrap").classList.add("hidden");
+    showResult(Number(pct), String(code || ""), false);
   }
 
   document.getElementById("copyBtn").addEventListener("click", function () {
