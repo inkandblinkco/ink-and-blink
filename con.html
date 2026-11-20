@@ -241,10 +241,10 @@
 
   // Six faces on the wheel. Only the first four can ever be landed on.
   var WHEEL = [
-    { pct: 5,  line1: "5% OFF",  line2: "",              next: false, live: true  },
+    { pct: 5,  line1: "5% OFF",  line2: "ON NEXT ORDER", next: true,  live: true  },
     { pct: 10, line1: "10% OFF", line2: "",              next: false, live: true  },
     { pct: 10, line1: "10% OFF", line2: "ON NEXT ORDER", next: true,  live: true  },
-    { pct: 15, line1: "15% OFF", line2: "ON NEXT ORDER", next: true,  live: true  },
+    { pct: 15, line1: "15% OFF", line2: "",              next: false, live: true  },
     { pct: 25, line1: "25% OFF", line2: "",              next: false, live: false },
     { pct: 50, line1: "50% OFF", line2: "",              next: false, live: false }
   ];
