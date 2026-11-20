@@ -175,7 +175,6 @@
         <input type="tel" id="phone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="10-digit mobile number" />
         <div class="err" id="e1"></div>
         <button type="submit" class="btn primary" id="b1">Start spinning</button>
-        <p class="fine">One discount per number. We only message you about your discount.</p>
       </form>
     </section>
 
@@ -343,13 +342,19 @@
   }
 
   // Rotate so the chosen face ends under the pointer at the top.
-  function spinWheelTo(faceIndex) {
+  function landOn(faceIndex, onDone) {
     var el = document.getElementById("wheel");
+    if (hoverRAF) { cancelAnimationFrame(hoverRAF); hoverRAF = null; }
+
     var want = ((330 - 60 * faceIndex) % 360 + 360) % 360;
     var cur = ((wheelRot % 360) + 360) % 360;
     var delta = ((want - cur) % 360 + 360) % 360;
-    wheelRot += 360 * 5 + delta;
+    wheelRot += 1080 + delta;
+
+    el.style.transition = "transform 3.2s cubic-bezier(.16,.74,.12,1)";
+    void el.getBoundingClientRect();
     el.style.transform = "rotate(" + wheelRot + "deg)";
+    setTimeout(onDone, 3400);
   }
 
   function save(extra, timeout) {
@@ -403,6 +408,7 @@
       if (timer) { clearInterval(timer); timer = null; }
       btn.classList.remove("hidden");
       btn.classList.add("reveal");
+      if (opts.warm) warmUp();
     }
 
     link.addEventListener("click", function () {
@@ -414,8 +420,21 @@
     });
   }
 
+  /* Wake the script while the visitor is still reading the last step, so the
+     draw comes back without a cold start. */
+  function warmUp() {
+    try {
+      var cb = "ibw_" + Math.random().toString(36).slice(2, 9);
+      window[cb] = function () { try { delete window[cb]; } catch (e) { window[cb] = undefined; } };
+      var s = document.createElement("script");
+      s.src = API + "?con=1&k=" + CON_KEY + "&warm=1&callback=" + cb + "&_=" + Date.now();
+      s.onload = s.onerror = function () { if (s.parentNode) s.parentNode.removeChild(s); };
+      document.head.appendChild(s);
+    } catch (e) {}
+  }
+
   gateLink({ link: "igLink", btn: "b2", minMs: 15000 });
-  gateLink({ link: "revLink", btn: "b3", minMs: 15000 });
+  gateLink({ link: "revLink", btn: "b3", minMs: 15000, warm: true });
 
   buildWheel();
 
@@ -448,28 +467,29 @@
     }).then(function () { overlay(false); view(3); });
   });
 
-  /* One spin animation, reused by the first spin and the bonus spin. */
-  function playSpin(faceIndex, onDone) {
+  /* The wheel starts turning the instant the button is pressed, then settles
+     on the face the script sends back. */
+  var hoverRAF = null;
+
+  function startHover() {
     document.getElementById("spinKicker").textContent = "Spinning…";
     document.getElementById("resultBlock").classList.add("hidden");
     document.getElementById("resultBlock").classList.remove("reveal");
     document.getElementById("wheelwrap").classList.remove("done", "hidden");
 
-    // The wheel sits inside a section that was display:none a moment ago.
-    // Paint it at its current angle first, otherwise the browser applies the
-    // end angle in the same frame and the wheel never visibly spins.
-    var wheelEl = document.getElementById("wheel");
-    wheelEl.style.transition = "none";
-    wheelEl.style.transform = "rotate(" + wheelRot + "deg)";
-    void wheelEl.getBoundingClientRect();
-    wheelEl.style.transition = "transform 4.2s cubic-bezier(.15,.72,.16,1)";
+    var el = document.getElementById("wheel");
+    el.style.transition = "none";
 
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        spinWheelTo(faceIndex);
-        setTimeout(onDone, 4400);
-      });
-    });
+    var last = 0;
+    function step(ts) {
+      if (!last) last = ts;
+      var dt = Math.min(80, ts - last);
+      last = ts;
+      wheelRot += dt * 1.05;
+      el.style.transform = "rotate(" + wheelRot + "deg)";
+      hoverRAF = requestAnimationFrame(step);
+    }
+    hoverRAF = requestAnimationFrame(step);
   }
 
   /* Step 3 — the wheel. The prize is picked by the script, so the page holds
@@ -507,12 +527,11 @@
     spinning = true;
 
     view(4);
-    document.getElementById("spinKicker").textContent = "Spinning…";
-    document.getElementById("wheelwrap").classList.remove("done", "hidden");
+    startHover();
 
     requestDraw(false).catch(offlineDraw).then(function (d) {
       var faceIndex = faceFor(d.pct, d.next);
-      playSpin(faceIndex, function () {
+      landOn(faceIndex, function () {
         spinning = false;
         spins = 1;
         locked = { face: faceIndex, pct: d.pct, next: d.next, code: d.code };
@@ -525,11 +544,11 @@
   document.getElementById("againBtn").addEventListener("click", function () {
     if (spinning || !locked || spins >= 2) return;
     spinning = true;
-    document.getElementById("spinKicker").textContent = "Spinning…";
+    startHover();
 
     requestDraw(true).catch(offlineDraw).then(function (d) {
       var faceIndex = faceFor(d.pct, d.next);
-      playSpin(faceIndex, function () {
+      landOn(faceIndex, function () {
         spinning = false;
         spins = 2;
         locked = { face: faceIndex, pct: d.pct, next: d.next, code: d.code };
@@ -557,6 +576,8 @@
 
     function finish(code) {
       locked.code = code;
+      document.getElementById("pct").innerHTML = locked.pct + "<small>% OFF</small>";
+      document.getElementById("nextNote").classList.toggle("hidden", !locked.next);
       document.getElementById("code").textContent = code;
       document.getElementById("code").classList.remove("hidden");
       copyText(code);
@@ -577,6 +598,11 @@
 
     save({ reviewed: 1, spin: 1, stage: "spin", pct: locked.pct, next: locked.next ? 1 : 0 }, 15000)
       .then(function (d) {
+        // The script has the final say; never let the card disagree with it.
+        if (d && d.discount) {
+          locked.pct = Number(d.discount);
+          locked.next = Number(d.next) === 1;
+        }
         finish(d && d.code ? String(d.code) : makeFallbackCode(locked.pct, locked.next));
       })
       .catch(function () {
