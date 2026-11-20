@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#070510" />
 <title>Ink &amp; Blink — Spin &amp; Save</title>
-<meta name="description" content="Spin for your discount on your first Ink &amp; Blink order." />
+<meta name="description" content="Spin for your discount on your first Ink &amp; Blink purchase." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -216,7 +216,7 @@
       </div>
       <div class="result hidden" id="resultBlock">
         <div class="pct" id="pct">0<small>% OFF</small></div>
-        <p class="nextnote hidden" id="nextNote">on your next order</p>
+        <p class="nextnote hidden" id="nextNote">on your next purchase</p>
         <div class="codewrap">
           <div class="code hidden" id="code">—</div>
           <p class="claimnote hidden" id="claimNote">Code copied — show it at the booth.</p>
@@ -241,14 +241,13 @@
 
   // Six faces on the wheel. Only the first four can ever be landed on.
   var WHEEL = [
-    { pct: 5,  line1: "5% OFF",  line2: "ON NEXT ORDER", next: true,  live: true  },
-    { pct: 10, line1: "10% OFF", line2: "",              next: false, live: true  },
-    { pct: 10, line1: "10% OFF", line2: "ON NEXT ORDER", next: true,  live: true  },
-    { pct: 15, line1: "15% OFF", line2: "",              next: false, live: true  },
-    { pct: 25, line1: "25% OFF", line2: "",              next: false, live: false },
-    { pct: 50, line1: "50% OFF", line2: "",              next: false, live: false }
+    { pct: 5,  line1: "5% OFF",  line2: "ON NEXT PURCHASE", next: true  },
+    { pct: 10, line1: "10% OFF", line2: "",                 next: false },
+    { pct: 10, line1: "10% OFF", line2: "ON NEXT PURCHASE", next: true  },
+    { pct: 15, line1: "15% OFF", line2: "",                 next: false },
+    { pct: 25, line1: "25% OFF", line2: "",                 next: false },
+    { pct: 50, line1: "50% OFF", line2: "",                 next: false }
   ];
-  var LIVE = [0, 1, 2, 3];
   var wheelRot = 0;
   var spinning = false;
   var locked = null;
@@ -431,7 +430,9 @@
     overlay(true, "Checking…");
     save({ stage: "number" }, 12000).then(function (data) {
       overlay(false);
-      if (data && data.discount) return showStored(data.discount, data.code);
+      if (data && data.discount && data.code) {
+        return showStored(data.discount, data.code, Number(data.next) === 1);
+      }
       view(2);
     }).catch(function () {
       overlay(false);
@@ -471,42 +472,74 @@
     });
   }
 
-  /* Step 3 — the wheel */
+  /* Step 3 — the wheel. The prize is picked by the script, so the page holds
+     no odds of its own; it just animates whatever comes back. */
+  function faceFor(pct, next) {
+    for (var j = 0; j < WHEEL.length; j++) {
+      if (WHEEL[j].pct === pct && !!WHEEL[j].next === !!next) return j;
+    }
+    return 0;
+  }
+
+  function requestDraw(redraw) {
+    return save({ stage: "draw", draw: 1, redraw: redraw ? 1 : 0 }, 15000).then(function (d) {
+      var pct = d ? Number(d.discount) : 0;
+      if (!d || !d.ok || !d.code || !pct) throw new Error("draw");
+      return { pct: pct, next: Number(d.next) === 1, code: String(d.code) };
+    });
+  }
+
+  // Only if the script cannot be reached: pick from the prizes the wheel really
+  // shows, so the code can never disagree with the face it stopped on.
+  var OFFLINE = [
+    { pct: 5,  next: true  },
+    { pct: 10, next: false },
+    { pct: 10, next: true  },
+    { pct: 15, next: false }
+  ];
+
+  function offlineDraw() {
+    return OFFLINE[Math.floor(Math.random() * OFFLINE.length)];
+  }
+
   document.getElementById("b3").addEventListener("click", function () {
     if (spinning) return;
     spinning = true;
 
-    var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
-    var face = WHEEL[faceIndex];
-
     view(4);
-    playSpin(faceIndex, function () {
-      spinning = false;
-      spins = 1;
-      locked = { face: faceIndex, pct: face.pct, next: face.next };
-      showResult(face.pct, "", face.next, "first");
+    document.getElementById("spinKicker").textContent = "Spinning…";
+    document.getElementById("wheelwrap").classList.remove("done", "hidden");
+
+    requestDraw(false).catch(offlineDraw).then(function (d) {
+      var faceIndex = faceFor(d.pct, d.next);
+      playSpin(faceIndex, function () {
+        spinning = false;
+        spins = 1;
+        locked = { face: faceIndex, pct: d.pct, next: d.next, code: d.code };
+        showResult(d.pct, "", d.next, "first");
+      });
     });
   });
 
-  /* Spin once more — a straight second spin. Whatever it lands on replaces the
-     first result, and that is what gets saved when they claim. */
+  /* Spin once more — a fresh draw that replaces the first one. */
   document.getElementById("againBtn").addEventListener("click", function () {
     if (spinning || !locked || spins >= 2) return;
     spinning = true;
+    document.getElementById("spinKicker").textContent = "Spinning…";
 
-    var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
-    var face = WHEEL[faceIndex];
-
-    playSpin(faceIndex, function () {
-      spinning = false;
-      spins = 2;
-      locked = { face: faceIndex, pct: face.pct, next: face.next };
-      showResult(face.pct, "", face.next, "second");
+    requestDraw(true).catch(offlineDraw).then(function (d) {
+      var faceIndex = faceFor(d.pct, d.next);
+      playSpin(faceIndex, function () {
+        spinning = false;
+        spins = 2;
+        locked = { face: faceIndex, pct: d.pct, next: d.next, code: d.code };
+        showResult(d.pct, "", d.next, "second");
+      });
     });
   });
 
-  /* Claim — the server issues the running code here, so every code is unique
-     and in order, and the sheet always matches what the visitor is holding. */
+  /* Claim — usually the code already came with the draw, so this just hands it
+     over. If the draw had to be made offline, the prize is saved right here. */
   document.getElementById("claimBtn").addEventListener("click", function () {
     if (!locked || claiming) return;
 
@@ -521,36 +554,39 @@
     }
 
     claiming = true;
-    b.textContent = "Claiming…";
-    b.disabled = true;
 
     function finish(code) {
-      claiming = false;
       locked.code = code;
       document.getElementById("code").textContent = code;
       document.getElementById("code").classList.remove("hidden");
       copyText(code);
-
       b.textContent = "Claimed ✓";
       b.disabled = true;
       document.getElementById("againBtn").classList.add("hidden");
       document.getElementById("claimNote").classList.remove("hidden");
     }
 
-    save({
-      reviewed: 1, spin: 1, stage: "spin",
-      pct: locked.pct, next: locked.next ? 1 : 0
-    }, 15000).then(function (data) {
-      // The server owns the running number; use whatever it issued.
-      finish(data && data.code ? String(data.code) : makeFallbackCode(locked.pct, locked.next));
-    }).catch(function () {
-      var code = makeFallbackCode(locked.pct, locked.next);
-      queuePush({
-        phone: phone, reviewed: 1, spin: 1, stage: "spin",
-        pct: locked.pct, next: locked.next ? 1 : 0, code: code, source: "Spin"
+    if (locked.code) {
+      finish(locked.code);
+      save({ stage: "claimed" }, 6000).catch(function () {});
+      return;
+    }
+
+    b.textContent = "Claiming…";
+    b.disabled = true;
+
+    save({ spin: 1, stage: "spin", pct: locked.pct, next: locked.next ? 1 : 0 }, 15000)
+      .then(function (d) {
+        finish(d && d.code ? String(d.code) : makeFallbackCode(locked.pct, locked.next));
+      })
+      .catch(function () {
+        var code = makeFallbackCode(locked.pct, locked.next);
+        queuePush({
+          phone: phone, reviewed: 1, spin: 1, stage: "spin",
+          pct: locked.pct, next: locked.next ? 1 : 0, code: code, source: "Spin"
+        });
+        finish(code);
       });
-      finish(code);
-    });
   });
 
   function copyText(text) {
@@ -593,11 +629,11 @@
   }
 
   // A number that already has a code skips the wheel.
-  function showStored(pct, code) {
+  function showStored(pct, code, onNext) {
     view(4);
     document.getElementById("wheelwrap").classList.add("hidden");
-    locked = { pct: Number(pct), code: String(code || ""), next: false, stored: true };
-    showResult(Number(pct), String(code || ""), false, "stored");
+    locked = { pct: Number(pct), code: String(code || ""), next: !!onNext, stored: true };
+    showResult(Number(pct), String(code || ""), !!onNext, "stored");
   }
 
   document.getElementById("phone").addEventListener("input", function () {
