@@ -482,7 +482,7 @@
   }
 
   function requestDraw(redraw) {
-    return save({ stage: "draw", draw: 1, redraw: redraw ? 1 : 0 }, 15000).then(function (d) {
+    return save({ stage: "draw", draw: 1, redraw: redraw ? 1 : 0, reviewed: 1 }, 15000).then(function (d) {
       var pct = d ? Number(d.discount) : 0;
       if (!d || !d.ok || !d.code || !pct) throw new Error("draw");
       return { pct: pct, next: Number(d.next) === 1, code: String(d.code) };
@@ -568,14 +568,14 @@
 
     if (locked.code) {
       finish(locked.code);
-      save({ stage: "claimed" }, 6000).catch(function () {});
+      save({ reviewed: 1, stage: "claimed" }, 6000).catch(function () {});
       return;
     }
 
     b.textContent = "Claiming…";
     b.disabled = true;
 
-    save({ spin: 1, stage: "spin", pct: locked.pct, next: locked.next ? 1 : 0 }, 15000)
+    save({ reviewed: 1, spin: 1, stage: "spin", pct: locked.pct, next: locked.next ? 1 : 0 }, 15000)
       .then(function (d) {
         finish(d && d.code ? String(d.code) : makeFallbackCode(locked.pct, locked.next));
       })
