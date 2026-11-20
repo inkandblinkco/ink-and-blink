@@ -218,7 +218,7 @@
         <div class="pct" id="pct">0<small>% OFF</small></div>
         <p class="nextnote hidden" id="nextNote">on your next order</p>
         <div class="codewrap">
-          <div class="code" id="code">—</div>
+          <div class="code hidden" id="code">—</div>
           <p class="claimnote hidden" id="claimNote">Code copied — show it at the booth.</p>
           <button class="btn primary claim" type="button" id="claimBtn">Claim discount</button>
           <button class="btn ghost again" type="button" id="againBtn">Spin once more</button>
@@ -253,6 +253,7 @@
   var spinning = false;
   var locked = null;
   var spins = 0;
+  var claiming = false;
 
   var phone = "";
   var dots = document.querySelectorAll("#steps i");
@@ -286,10 +287,12 @@
     });
   }
 
-  function makeCode(pct) {
-    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+  // Only used when the claim request cannot reach the server: same shape as a
+  // real code, so the sheet still matches what the visitor is holding.
+  function makeFallbackCode(pct, isNext) {
+    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", s = "";
     for (var i = 0; i < 4; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
-    return "IB" + pct + "-" + s;
+    return "IB" + ("0" + pct).slice(-2) + (isNext ? "N" : "") + "-" + s;
   }
 
   /* Wheel drawing */
@@ -474,15 +477,13 @@
 
     var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
     var face = WHEEL[faceIndex];
-    var pct = face.pct;
-    var code = makeCode(pct);
 
     view(4);
     playSpin(faceIndex, function () {
       spinning = false;
       spins = 1;
-      locked = { face: faceIndex, pct: pct, code: code, next: face.next };
-      showResult(pct, code, face.next, "first");
+      locked = { face: faceIndex, pct: face.pct, next: face.next };
+      showResult(face.pct, "", face.next, "first");
     });
   });
 
@@ -494,42 +495,60 @@
 
     var faceIndex = LIVE[Math.floor(Math.random() * LIVE.length)];
     var face = WHEEL[faceIndex];
-    var pct = face.pct;
-    var code = makeCode(pct);
 
     playSpin(faceIndex, function () {
       spinning = false;
       spins = 2;
-      locked = { face: faceIndex, pct: pct, code: code, next: face.next };
-      showResult(pct, code, face.next, "second");
+      locked = { face: faceIndex, pct: face.pct, next: face.next };
+      showResult(face.pct, "", face.next, "second");
     });
   });
 
-  /* Claim — this is the moment the discount is written to the sheet, so the
-     stored number and code are always the ones the visitor walks away with. */
+  /* Claim — the server issues the running code here, so every code is unique
+     and in order, and the sheet always matches what the visitor is holding. */
   document.getElementById("claimBtn").addEventListener("click", function () {
-    if (!locked) return;
+    if (!locked || claiming) return;
 
     var b = this;
-    copyText(locked.code);
 
-    // Returning number: the code already exists in the sheet, just hand it over.
+    // Returning number: the code already exists, just hand it over.
     if (locked.stored) {
+      copyText(locked.code);
       b.textContent = "Copied!";
       setTimeout(function () { b.textContent = "Copy code"; }, 1500);
       return;
     }
 
-    b.textContent = "Claimed ✓";
+    claiming = true;
+    b.textContent = "Claiming…";
     b.disabled = true;
-    document.getElementById("againBtn").classList.add("hidden");
-    document.getElementById("claimNote").classList.remove("hidden");
 
-    save({ reviewed: 1, spin: 1, stage: "spin", pct: locked.pct, code: locked.code }, 15000).catch(function () {
+    function finish(code) {
+      claiming = false;
+      locked.code = code;
+      document.getElementById("code").textContent = code;
+      document.getElementById("code").classList.remove("hidden");
+      copyText(code);
+
+      b.textContent = "Claimed ✓";
+      b.disabled = true;
+      document.getElementById("againBtn").classList.add("hidden");
+      document.getElementById("claimNote").classList.remove("hidden");
+    }
+
+    save({
+      reviewed: 1, spin: 1, stage: "spin",
+      pct: locked.pct, next: locked.next ? 1 : 0
+    }, 15000).then(function (data) {
+      // The server owns the running number; use whatever it issued.
+      finish(data && data.code ? String(data.code) : makeFallbackCode(locked.pct, locked.next));
+    }).catch(function () {
+      var code = makeFallbackCode(locked.pct, locked.next);
       queuePush({
         phone: phone, reviewed: 1, spin: 1, stage: "spin",
-        pct: locked.pct, code: locked.code, source: "Spin"
+        pct: locked.pct, next: locked.next ? 1 : 0, code: code, source: "Spin"
       });
+      finish(code);
     });
   });
 
@@ -550,8 +569,15 @@
     document.getElementById("spinKicker").textContent = "You're in";
     document.getElementById("pct").innerHTML = pct + "<small>% OFF</small>";
     document.getElementById("nextNote").classList.toggle("hidden", !onNextOrder);
-    document.getElementById("code").textContent = code || "";
-    window.__ibCode = code || "";
+
+    var codeEl = document.getElementById("code");
+    if (code) {
+      codeEl.textContent = code;
+      codeEl.classList.remove("hidden");
+    } else {
+      codeEl.textContent = "";
+      codeEl.classList.add("hidden");
+    }
 
     var btn = document.getElementById("claimBtn");
     btn.disabled = false;
