@@ -137,6 +137,8 @@
   }
   .copy{margin-top:16px}
   .claim{margin-top:16px}
+  .claimform{margin-top:18px;text-align:left}
+  .claimform .claim{margin-top:2px}
   .again{margin-top:10px;font-size:13.5px;padding:12px}
   .claimnote{margin:12px 0 0;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.4}
   .note{margin:14px 0 0;font-size:11.5px;color:#8f83b5;text-align:center;line-height:1.5}
@@ -163,24 +165,11 @@
   <img class="logo" src="con-logo.jpg" alt="Ink &amp; Blink — by The Artesania Studio" width="96" height="96" />
 
   <main class="card">
-    <div class="steps" id="steps"><i class="on"></i><i></i><i></i><i></i></div>
+    <div class="steps" id="steps"><i class="on"></i><i></i><i></i></div>
 
     <!-- STEP 1 -->
-    <section class="view on" id="v1">
-      <div class="kicker">Spin &amp; save</div>
-      <h1>Win up to<em>50% off</em></h1>
-      <p class="sub">Enter your WhatsApp number to start. Follow us, leave a review, then spin for your discount.</p>
-      <form id="f1" novalidate>
-        <label for="phone">WhatsApp number</label>
-        <input type="tel" id="phone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="10-digit mobile number" />
-        <div class="err" id="e1"></div>
-        <button type="submit" class="btn primary" id="b1">Start spinning</button>
-      </form>
-    </section>
-
-    <!-- STEP 2 -->
-    <section class="view" id="v2">
-      <div class="kicker">Step 2 of 4</div>
+    <section class="view on" id="v2">
+      <div class="kicker">Step 1 of 3</div>
       <h1>Follow us on Instagram</h1>
       <p class="sub">Tap below and follow the page.</p>
       <div class="handle">
@@ -193,19 +182,19 @@
       </div>
     </section>
 
-    <!-- STEP 3 -->
+    <!-- STEP 2 -->
     <section class="view" id="v3">
-      <div class="kicker">Step 3 of 4</div>
+      <div class="kicker">Step 2 of 3</div>
       <h1>Leave us a Google review</h1>
       <div class="stars">★★★★★</div>
-      <p class="sub">It takes 20 seconds and helps our small studio more than you know.</p>
+      <p class="sub">It takes 15 seconds and helps our small studio more than you know.</p>
       <a class="btn rev" id="revLink" href="https://g.page/r/CccZxdT6gF4MEAE/review" target="_blank" rel="noopener">Write a review</a>
       <div class="gate">
         <button class="btn ghost hidden" type="button" id="b3">I reviewed — spin now</button>
       </div>
     </section>
 
-    <!-- STEP 4 -->
+    <!-- STEP 3 -->
     <section class="view" id="v4" aria-live="polite">
       <div class="kicker" id="spinKicker">Your spin</div>
       <div class="wheelwrap" id="wheelwrap">
@@ -216,11 +205,16 @@
       <div class="result hidden" id="resultBlock">
         <div class="pct" id="pct">0<small>% OFF</small></div>
         <p class="nextnote hidden" id="nextNote">on your next purchase</p>
+        <form class="claimform" id="f2" novalidate>
+          <label for="phone">WhatsApp number</label>
+          <input type="tel" id="phone" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="10-digit mobile number" />
+          <div class="err" id="e2"></div>
+          <button type="submit" class="btn primary claim" id="claimBtn">Get my code</button>
+        </form>
         <div class="codewrap">
+          <button class="btn ghost again" type="button" id="againBtn">Spin once more</button>
           <div class="code hidden" id="code">—</div>
           <p class="claimnote hidden" id="claimNote">Code copied — show it at the booth.</p>
-          <button class="btn primary claim" type="button" id="claimBtn">Claim discount</button>
-          <button class="btn ghost again" type="button" id="againBtn">Spin once more</button>
         </div>
       </div>
     </section>
@@ -254,10 +248,14 @@
   var claiming = false;
 
   var phone = "";
+  var token = "";
+  var followed = 0;
   var dots = document.querySelectorAll("#steps i");
+  var VIEWS = ["v2", "v3", "v4"];
 
   function view(n) {
-    for (var i = 1; i <= 4; i++) document.getElementById("v" + i).classList.toggle("on", i === n);
+    for (var i = 0; i < VIEWS.length; i++)
+      document.getElementById(VIEWS[i]).classList.toggle("on", i === n - 1);
     for (var d = 0; d < dots.length; d++) dots[d].classList.toggle("on", d < n);
     window.scrollTo(0, 0);
   }
@@ -438,33 +436,11 @@
 
   buildWheel();
 
-  /* Step 1 */
-  document.getElementById("f1").addEventListener("submit", function (e) {
-    e.preventDefault();
-    document.getElementById("e1").style.display = "none";
-    var v = document.getElementById("phone").value.replace(/\D/g, "").slice(-10);
-    if (!validPhone(v)) return err("e1", "Enter a valid 10-digit mobile number.");
-
-    phone = v;
-    overlay(true, "Checking…");
-    save({ stage: "number" }, 12000).then(function (data) {
-      overlay(false);
-      if (data && data.discount && data.code) {
-        return showStored(data.discount, data.code, Number(data.next) === 1);
-      }
-      view(2);
-    }).catch(function () {
-      overlay(false);
-      view(2); // don't block the funnel; the queue will sync later
-    });
-  });
-
-  /* Step 2 */
+  /* Step 1 — following is on trust: there is nobody to save it against until
+     the visitor gives a number at claim time. It rides along with the draw. */
   document.getElementById("b2").addEventListener("click", function () {
-    overlay(true, "Saving…");
-    save({ followed: 1, stage: "follow" }).catch(function () {
-      queuePush({ phone: phone, followed: 1, stage: "follow", source: "Spin" });
-    }).then(function () { overlay(false); view(3); });
+    followed = 1;
+    view(2);
   });
 
   /* The wheel starts turning the instant the button is pressed, then settles
@@ -502,10 +478,12 @@
   }
 
   function requestDraw(redraw) {
-    return save({ stage: "draw", draw: 1, redraw: redraw ? 1 : 0, reviewed: 1 }, 15000).then(function (d) {
+    var p = { stage: "draw", draw: 1, redraw: redraw ? 1 : 0, reviewed: 1, followed: followed, token: token };
+    return save(p, 15000).then(function (d) {
       var pct = d ? Number(d.discount) : 0;
-      if (!d || !d.ok || !d.code || !pct) throw new Error("draw");
-      return { pct: pct, next: Number(d.next) === 1, code: String(d.code) };
+      if (!d || !d.ok || !pct || !d.token) throw new Error("draw");
+      token = String(d.token);
+      return { pct: pct, next: Number(d.next) === 1 };
     });
   }
 
@@ -526,7 +504,7 @@
     if (spinning) return;
     spinning = true;
 
-    view(4);
+    view(3);
     startHover();
 
     requestDraw(false).catch(offlineDraw).then(function (d) {
@@ -534,8 +512,8 @@
       landOn(faceIndex, function () {
         spinning = false;
         spins = 1;
-        locked = { face: faceIndex, pct: d.pct, next: d.next, code: d.code };
-        showResult(d.pct, "", d.next, "first");
+        locked = { face: faceIndex, pct: d.pct, next: d.next };
+        showResult(d.pct, d.next, "first");
       });
     });
   });
@@ -551,28 +529,28 @@
       landOn(faceIndex, function () {
         spinning = false;
         spins = 2;
-        locked = { face: faceIndex, pct: d.pct, next: d.next, code: d.code };
-        showResult(d.pct, "", d.next, "second");
+        locked = { face: faceIndex, pct: d.pct, next: d.next };
+        showResult(d.pct, d.next, "second");
       });
     });
   });
 
-  /* Claim — usually the code already came with the draw, so this just hands it
-     over. If the draw had to be made offline, the prize is saved right here. */
-  document.getElementById("claimBtn").addEventListener("click", function () {
+  /* Claim — the number is the last thing we ask for, and it is what turns the
+     spin into a code. A number that already owns a code just gets it back. */
+  document.getElementById("f2").addEventListener("submit", function (e) {
+    e.preventDefault();
     if (!locked || claiming) return;
 
-    var b = this;
+    document.getElementById("e2").style.display = "none";
+    var v = document.getElementById("phone").value.replace(/\D/g, "").slice(-10);
+    if (!validPhone(v)) return err("e2", "Enter a valid 10-digit mobile number.");
 
-    // Returning number: the code already exists, just hand it over.
-    if (locked.stored) {
-      copyText(locked.code);
-      b.textContent = "Copied!";
-      setTimeout(function () { b.textContent = "Copy code"; }, 1500);
-      return;
-    }
-
+    phone = v;
     claiming = true;
+
+    var b = document.getElementById("claimBtn");
+    b.disabled = true;
+    b.textContent = "Getting your code…";
 
     function finish(code) {
       locked.code = code;
@@ -580,36 +558,28 @@
       document.getElementById("nextNote").classList.toggle("hidden", !locked.next);
       document.getElementById("code").textContent = code;
       document.getElementById("code").classList.remove("hidden");
-      copyText(code);
-      b.textContent = "Claimed ✓";
-      b.disabled = true;
+      document.getElementById("f2").classList.add("hidden");
       document.getElementById("againBtn").classList.add("hidden");
       document.getElementById("claimNote").classList.remove("hidden");
+      copyText(code);
     }
 
-    if (locked.code) {
-      finish(locked.code);
-      save({ reviewed: 1, stage: "claimed" }, 6000).catch(function () {});
-      return;
-    }
-
-    b.textContent = "Claiming…";
-    b.disabled = true;
-
-    save({ reviewed: 1, spin: 1, stage: "spin", pct: locked.pct, next: locked.next ? 1 : 0 }, 15000)
+    save({ stage: "claim", claim: 1, followed: followed, reviewed: 1,
+           pct: locked.pct, next: locked.next ? 1 : 0, token: token }, 15000)
       .then(function (d) {
+        if (!d || !d.ok || !d.code) throw new Error("claim");
         // The script has the final say; never let the card disagree with it.
-        if (d && d.discount) {
+        if (d.discount) {
           locked.pct = Number(d.discount);
           locked.next = Number(d.next) === 1;
         }
-        finish(d && d.code ? String(d.code) : makeFallbackCode(locked.pct, locked.next));
+        finish(String(d.code));
       })
       .catch(function () {
         var code = makeFallbackCode(locked.pct, locked.next);
         queuePush({
-          phone: phone, reviewed: 1, spin: 1, stage: "spin",
-          pct: locked.pct, next: locked.next ? 1 : 0, code: code, source: "Spin"
+          claim: 1, token: token, phone: phone, followed: followed, reviewed: 1,
+          pct: locked.pct, next: locked.next ? 1 : 0, code: code, stage: "claim", source: "Spin"
         });
         finish(code);
       });
@@ -626,40 +596,29 @@
     document.body.removeChild(t);
   }
 
-  /* Result */
-  function showResult(pct, code, onNextOrder, mode) {
+  /* Result — the prize first, then the number that turns it into a code. */
+  function showResult(pct, onNextOrder, mode) {
     document.getElementById("wheelwrap").classList.add("done");
     document.getElementById("spinKicker").textContent = "You're in";
     document.getElementById("pct").innerHTML = pct + "<small>% OFF</small>";
     document.getElementById("nextNote").classList.toggle("hidden", !onNextOrder);
 
-    var codeEl = document.getElementById("code");
-    if (code) {
-      codeEl.textContent = code;
-      codeEl.classList.remove("hidden");
-    } else {
-      codeEl.textContent = "";
-      codeEl.classList.add("hidden");
-    }
+    document.getElementById("code").textContent = "";
+    document.getElementById("code").classList.add("hidden");
+    document.getElementById("claimNote").classList.add("hidden");
 
+    document.getElementById("f2").classList.remove("hidden");
+    document.getElementById("e2").style.display = "none";
     var btn = document.getElementById("claimBtn");
     btn.disabled = false;
-    btn.textContent = mode === "stored" ? "Copy code" : "Claim discount";
+    btn.textContent = "Get my code";
+    claiming = false;
 
     document.getElementById("againBtn").classList.toggle("hidden", mode !== "first");
-    document.getElementById("claimNote").classList.add("hidden");
 
     var block = document.getElementById("resultBlock");
     block.classList.remove("hidden");
     block.classList.add("reveal");
-  }
-
-  // A number that already has a code skips the wheel.
-  function showStored(pct, code, onNext) {
-    view(4);
-    document.getElementById("wheelwrap").classList.add("hidden");
-    locked = { pct: Number(pct), code: String(code || ""), next: !!onNext, stored: true };
-    showResult(Number(pct), String(code || ""), !!onNext, "stored");
   }
 
   document.getElementById("phone").addEventListener("input", function () {
