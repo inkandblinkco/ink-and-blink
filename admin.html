@@ -134,6 +134,34 @@
     .picker-tile span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.55rem; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .picker-status { font-size: 0.76rem; color: var(--muted); }
 
+    /* 3:4 photo cropper */
+    .crop-backdrop { position: fixed; inset: 0; background: rgba(17,17,26,0.76); z-index: 120; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .crop-backdrop.open { display: flex; }
+    .crop-box { background: #fff; border-radius: 16px; width: min(940px, 100%); max-height: 94vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.38); }
+    .crop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .crop-head h3 { font-size: 1rem; margin: 0; }
+    .crop-subtitle { font-size: 0.73rem; color: var(--muted); margin-top: 2px; }
+    .crop-body { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(210px, 0.7fr); gap: 18px; padding: 18px; overflow: auto; }
+    .crop-stage { background: #14121c; border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 320px; }
+    .crop-frame { position: relative; width: min(100%, 330px); aspect-ratio: 3 / 4; overflow: hidden; background: #0b0912; border-radius: 5px; cursor: grab; touch-action: none; outline: none; box-shadow: 0 0 0 1px rgba(255,255,255,0.2), inset 0 0 0 1px rgba(0,0,0,0.4); }
+    .crop-frame.dragging { cursor: grabbing; }
+    .crop-frame img { position: absolute; left: 50%; top: 50%; max-width: none; max-height: none; user-select: none; -webkit-user-drag: none; transform-origin: center center; will-change: transform; }
+    .crop-grid { position: absolute; inset: 0; pointer-events: none; }
+    .crop-grid::before { content: ""; position: absolute; top: 0; bottom: 0; left: 33.333%; right: 33.333%; border-left: 1px solid rgba(255,255,255,0.24); border-right: 1px solid rgba(255,255,255,0.24); }
+    .crop-grid::after { content: ""; position: absolute; left: 0; right: 0; top: 33.333%; bottom: 33.333%; border-top: 1px solid rgba(255,255,255,0.24); border-bottom: 1px solid rgba(255,255,255,0.24); }
+    .crop-controls { display: flex; flex-direction: column; gap: 12px; font-size: 0.78rem; color: #4a4a55; }
+    .crop-zoom-row { display: flex; align-items: center; gap: 8px; }
+    .crop-zoom-row input[type="range"] { flex: 1; min-width: 80px; accent-color: var(--purple); }
+    .crop-nudge { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: 34px 34px; gap: 6px; }
+    .crop-nudge .mini { padding: 0; font-size: 0.9rem; }
+    .crop-info { background: #f4efff; border: 1px solid #d9c8ff; border-radius: 9px; padding: 8px 10px; font-size: 0.75rem; color: #4a2b8c; line-height: 1.55; }
+    .crop-info b { color: var(--purple); }
+    .crop-tips { font-size: 0.72rem; color: var(--muted); line-height: 1.5; }
+    .crop-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .crop-hint { font-size: 0.74rem; color: var(--muted); max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .crop-actions { display: flex; gap: 8px; }
+    .crop-note { font-size: 0.74rem; font-weight: 700; color: #0d7a3d; margin-top: 4px; }
+
     @media (max-width: 1100px) {
       .two-col { grid-template-columns: 1fr; gap: 0; }
       .two-col > .card { margin-bottom: 1.2rem; }
@@ -144,6 +172,10 @@
       .variant-row { grid-template-columns: minmax(0, 1fr) 54px 34px; }
       .var-prices { grid-column: 1 / -1; }
       .picker-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+      .crop-body { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+      .crop-stage { min-height: 0; padding: 12px; }
+      .crop-frame { width: min(100%, 270px); }
+      .crop-hint { white-space: normal; }
     }
   </style>
 </head>
@@ -203,16 +235,17 @@
           <div><label>Fan World (optional):</label><select id="new-world" onchange="onWorldSelectChange()"></select></div>
         </div>
         <label>Main Image — Upload from Computer:</label>
-        <input type="file" id="new-img-file" accept="image/*">
+        <input type="file" id="new-img-file" accept="image/*" onchange="onMainImagePicked(this)">
+        <div class="crop-note" id="new-img-crop-note" style="display:none;"></div>
         <div class="sync-note" style="margin-top:0.35rem;">
-          An uploaded photo is shrunk and saved as a real file in the <b>images</b> folder on GitHub, so the catalog stays small. When you publish, the product's <b>previous</b> photo file is deleted from the repo automatically — unless another listing (such as its multi-pack) still uses it.
+          A picked photo opens in a 3:4 cropper — drag it, zoom in or out, then press <b>Crop &amp; use photo</b>. It is saved as a real file in the <b>images</b> folder on GitHub, so the catalog stays small. When you publish, the product's <b>previous</b> photo file is deleted from the repo automatically — unless another listing (such as its multi-pack) still uses it.
           <br><span id="photo-upload-mode" style="opacity:0.85;"></span>
         </div>
         <label>Main Image — Or Paste Image URL:</label>
         <input type="text" id="new-img-url" placeholder="https://… or images/photo.webp">
         <label>Extra Photos (product page gallery):</label>
         <div class="sync-note" style="margin-top:0.25rem;">
-          Pick photos from your computer or choose ones already in the photo library — no links to copy. They are saved as real files when you press <b>+ Save Product</b>, and go live when you <b>Publish</b>.
+          Pick photos from your computer or choose ones already in the photo library — no links to copy. Every picked photo is cropped to 3:4, saved as a real file when you press <b>+ Save Product</b>, and goes live when you <b>Publish</b>.
         </div>
         <div id="extra-photo-strip" class="photo-strip"></div>
         <div class="photo-actions">
@@ -227,7 +260,7 @@
 
         <label>Variants — optional (colours, sizes, styles in ONE product)</label>
         <div class="sync-note" style="margin-top:0.25rem;">
-          Same tumbler in 5 colours, or one figure in 3 sizes? Add it once here and list each option below. Shoppers pick the option on the product page, and its own photo and price show up automatically. Leave the price boxes empty when every option costs the same.
+          Same tumbler in 5 colours, or one figure in 3 sizes? Add it once here and list each option below. Shoppers pick the option on the product page, and its own photo and price show up automatically. Option photos are cropped to 3:4 when you pick them. Leave the price boxes empty when every option costs the same.
         </div>
         <div class="variant-box">
           <div class="variant-top">
@@ -289,7 +322,7 @@
     <div id="tab-images" class="tab-page">
       <div class="card">
         <h3>🖼️ Category Tiles &amp; Fan-World Cards</h3>
-        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer. Picked photos are saved as real files in the repo. When you're done with as many rows as you like, click <b>💾 Save All Images</b> once — then publish.</div>
+        <div class="sync-note">For each row: paste an image link <b>or</b> pick a photo from your computer. Picked photos are cropped to 3:4 and saved as real files in the repo. When you're done with as many rows as you like, click <b>💾 Save All Images</b> once — then publish.</div>
         <div class="btn-row" style="margin-top:0; margin-bottom:1rem;">
           <button class="btn" id="save-all-images-btn" onclick="saveAllImages(this)">💾 Save All Images</button>
         </div>
@@ -566,11 +599,62 @@ function json_(o) {
     </div>
   </div>
 
+  <div id="crop-modal" class="crop-backdrop" onclick="if(event.target===this) cancelCrop()">
+    <div class="crop-box" role="dialog" aria-modal="true" aria-labelledby="crop-title">
+      <div class="crop-head">
+        <div>
+          <h3 id="crop-title">Crop photo to 3:4</h3>
+          <div class="crop-subtitle" id="crop-subtitle">Drag to move · zoom to frame the product</div>
+        </div>
+        <button type="button" class="mini" onclick="cancelCrop()" title="Close">✕</button>
+      </div>
+      <div class="crop-body">
+        <div class="crop-stage">
+          <div class="crop-frame" id="crop-frame" tabindex="0">
+            <img id="crop-img" alt="Photo crop preview" draggable="false">
+            <div class="crop-grid"></div>
+          </div>
+        </div>
+        <div class="crop-controls">
+          <div>
+            <label style="margin-top:0;">Zoom</label>
+            <div class="crop-zoom-row">
+              <button type="button" class="mini icon" onclick="cropZoom(-1)" title="Zoom out">−</button>
+              <input type="range" id="crop-zoom" min="100" max="400" step="1" value="100" oninput="cropSetZoom(this.value)" aria-label="Zoom">
+              <button type="button" class="mini icon" onclick="cropZoom(1)" title="Zoom in">+</button>
+            </div>
+          </div>
+          <div>
+            <label>Move</label>
+            <div class="crop-nudge">
+              <span></span>
+              <button type="button" class="mini" onclick="cropNudge(0,-1)" title="Move photo up">▲</button>
+              <span></span>
+              <button type="button" class="mini" onclick="cropNudge(-1,0)" title="Move photo left">◀</button>
+              <button type="button" class="mini" onclick="cropNudge(0,1)" title="Move photo down">▼</button>
+              <button type="button" class="mini" onclick="cropNudge(1,0)" title="Move photo right">▶</button>
+            </div>
+          </div>
+          <div class="crop-info" id="crop-info">Output <b>—</b></div>
+          <div class="crop-tips">Drag the photo to slide it. Scroll, pinch or use the slider to zoom. Arrow keys nudge too.</div>
+          <button type="button" class="mini" onclick="cropReset()">↺ Reset framing</button>
+        </div>
+      </div>
+      <div class="crop-foot">
+        <span class="crop-hint" id="crop-name"></span>
+        <div class="crop-actions">
+          <button type="button" class="btn grey" onclick="cancelCrop()">Cancel</button>
+          <button type="button" class="btn" id="crop-apply-btn" onclick="applyCrop()">Crop &amp; use photo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ================= Studio Dashboard (standalone admin) =================
     // Bump this whenever admin.html changes. Publish refuses to run from an
     // older, cached copy of this page, so a stale tab can't overwrite the shop.
-    const ADMIN_BUILD = "2026-11-18-variants";
+    const ADMIN_BUILD = "2026-11-24-cropper";
     const adminDefaultHashKey = "ink_admin_hash_override";
     const DEFAULT_ADMIN_HASH = "1c77704525ebc9a473edab9c0538a29f5781062f165e8da9faa6cc930286c18d"; // default password set in chat
     const GH_REPO = "https://api.github.com/repos/inkandblinkco/ink-and-blink/contents/";
@@ -1019,6 +1103,10 @@ function json_(o) {
       document.getElementById("new-category").value = p.category;
       setWorldSelect(p.world || "");
       document.getElementById("new-img-url").value = (typeof p.img === "string" && p.img.startsWith("data:")) ? "" : p.img;
+      const mainImgFile = document.getElementById("new-img-file");
+      if (mainImgFile) mainImgFile.value = "";
+      const mainImgNote = document.getElementById("new-img-crop-note");
+      if (mainImgNote) { mainImgNote.style.display = "none"; mainImgNote.textContent = ""; }
       document.getElementById("new-images").value = "";
       extraPhotos = (Array.isArray(p.images) ? p.images : []).map(src => ({ src }));
       renderExtraPhotos();
@@ -1050,6 +1138,8 @@ function json_(o) {
       onVariantKindChange();
       renderExtraPhotos();
       renderVariantRows();
+      const imgNote = document.getElementById("new-img-crop-note");
+      if (imgNote) { imgNote.style.display = "none"; imgNote.textContent = ""; }
       setWorldSelect("");
       document.getElementById("new-img-file").value = "";
       document.getElementById("form-title").textContent = "Add New Product";
@@ -1068,12 +1158,18 @@ function json_(o) {
         </div>`).join("");
     }
 
-    function onExtraFilesPicked(input) {
-      [...(input.files || [])].forEach(file => {
-        extraPhotos.push({ src: "", file, preview: URL.createObjectURL(file) });
-      });
+    async function onExtraFilesPicked(input) {
+      const files = [...(input.files || [])];
       input.value = "";
-      renderExtraPhotos();
+      for (let i = 0; i < files.length; i++) {
+        const label = files.length > 1
+          ? "Extra photo " + (i + 1) + " of " + files.length
+          : "Extra photo";
+        const shot = await cropPickedPhoto(files[i], label);
+        if (!shot) continue; // cancelled — skip only this photo
+        extraPhotos.push({ src: "", file: files[i], preview: shot.dataUrl });
+        renderExtraPhotos();
+      }
     }
 
     function removeExtraPhoto(i) { extraPhotos.splice(i, 1); renderExtraPhotos(); }
@@ -1136,13 +1232,15 @@ function json_(o) {
       const input = document.getElementById("variant-file-" + i);
       if (input) input.click();
     }
-    function onVariantFilePicked(i, input) {
+    async function onVariantFilePicked(i, input) {
       const file = input.files && input.files[0];
-      if (!file) return;
-      variantOptions[i].file = file;
-      variantOptions[i].preview = URL.createObjectURL(file);
-      variantOptions[i].img = "";
       input.value = "";
+      if (!file) return;
+      const shot = await cropPickedPhoto(file, "Option photo — " + (variantOptions[i].name || "option " + (i + 1)));
+      if (!shot) return;
+      variantOptions[i].file = file;
+      variantOptions[i].preview = shot.dataUrl;
+      variantOptions[i].img = "";
       renderVariantRows();
     }
     function setVariantImage(i, src) {
@@ -1229,6 +1327,436 @@ function json_(o) {
       closePhotoPicker();
     }
 
+    // ---------- 3:4 photo cropper ----------
+    // Every picked product photo is framed to a perfect 3:4 here, before it is
+    // uploaded. The crop is taken from the original image at its own
+    // resolution (never upscaled) and encoded once, so nothing is compressed
+    // twice. 3:4 matches the storefront's product card and product page.
+    const CROP_RATIO_W = 3;
+    const CROP_RATIO_H = 4;
+    const CROP_MAX_W = 900;    // 900 × 1200 — sharper than the old 675 × 900
+    const CROP_MAX_H = 1200;
+    const CROP_MIN_ZOOM = 1;   // 1 = the photo just fills the frame
+    const CROP_MAX_ZOOM = 4;
+    const croppedPicks = new WeakMap();  // File -> { dataUrl, ext, width, height }
+    let cropSession = null;
+
+    function cropClamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+
+    function loadPhotoFile(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => resolve({ img, url });
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("That file is not a readable image.")); };
+        img.src = url;
+      });
+    }
+
+    // Opens the cropper for one file and resolves with the cropped shot:
+    // { dataUrl, ext, width, height }. Resolves null when cancelled.
+    function cropPickedPhoto(file, label) {
+      if (!file) return Promise.resolve(null);
+      if (cropSession) return Promise.resolve(null);
+      return loadPhotoFile(file).then(({ img, url }) => new Promise(resolve => {
+        const modal = document.getElementById("crop-modal");
+        const frame = document.getElementById("crop-frame");
+        if (!modal || !frame) { URL.revokeObjectURL(url); resolve(null); return; }
+
+        // The modal must be visible before measuring, or clientWidth is 0.
+        modal.classList.add("open");
+        document.body.style.overflow = "hidden";
+        const FW = frame.clientWidth || 330;
+        const FH = frame.clientHeight || Math.round(FW * CROP_RATIO_H / CROP_RATIO_W);
+
+        const W = img.naturalWidth || img.width;
+        const H = img.naturalHeight || img.height;
+        if (!W || !H) {
+          cropHide();
+          URL.revokeObjectURL(url);
+          resolve(null);
+          return;
+        }
+
+        // "Cover" fit: the photo always fills the frame, so the crop can never
+        // contain empty bars. The extra part is what the visitor slides away.
+        const fitScale = Math.max(FW / W, FH / H);
+        const baseW = W * fitScale;
+        const baseH = H * fitScale;
+
+        cropSession = {
+          file, img, url, frame, FW, FH, W, H, fitScale, baseW, baseH,
+          zoom: 1, dx: 0, dy: 0, pointers: new Map(), drag: null, pinch: null,
+          applied: false, resolve
+        };
+
+        const el = document.getElementById("crop-img");
+        el.src = url;
+        el.style.width = baseW + "px";
+        el.style.height = baseH + "px";
+        el.style.transform = "translate(-50%, -50%)";
+
+        const subtitle = document.getElementById("crop-subtitle");
+        if (subtitle) subtitle.textContent = W + " × " + H + " px original — crop to 3:4";
+        const nameEl = document.getElementById("crop-name");
+        if (nameEl) nameEl.textContent = (label ? label + " · " : "") + (file.name || "photo");
+        const zoomEl = document.getElementById("crop-zoom");
+        if (zoomEl) zoomEl.value = "100";
+        const applyBtn = document.getElementById("crop-apply-btn");
+        if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = "Crop & use photo"; }
+
+        cropClampOffsets();
+        cropPaint();
+        frame.focus();
+      })).catch(err => {
+        alert(err.message || "That photo could not be opened.");
+        return null;
+      });
+    }
+
+    function cropHide() {
+      const modal = document.getElementById("crop-modal");
+      if (modal) modal.classList.remove("open");
+      document.body.style.overflow = "";
+      const frame = document.getElementById("crop-frame");
+      if (frame) frame.classList.remove("dragging");
+    }
+
+    function finishCrop(result) {
+      const s = cropSession;
+      cropSession = null;
+      cropHide();
+      const el = document.getElementById("crop-img");
+      if (el) el.removeAttribute("src");
+      if (s) {
+        try { URL.revokeObjectURL(s.url); } catch (e) {}
+        if (s.resolve) s.resolve(result || null);
+      }
+    }
+
+    function cancelCrop() { finishCrop(null); }
+
+    function cropActiveScale() { return cropSession ? cropSession.fitScale * cropSession.zoom : 1; }
+
+    function cropClampOffsets() {
+      const s = cropSession;
+      if (!s) return;
+      const scale = cropActiveScale();
+      const maxX = Math.max(0, (s.W * scale - s.FW) / 2);
+      const maxY = Math.max(0, (s.H * scale - s.FH) / 2);
+      s.dx = cropClamp(s.dx, -maxX, maxX);
+      s.dy = cropClamp(s.dy, -maxY, maxY);
+    }
+
+    // The part of the original image that the frame currently shows.
+    function cropSourceRect() {
+      const s = cropSession;
+      const scale = cropActiveScale();
+      const cw = Math.min(s.W, s.FW / scale);
+      const ch = Math.min(s.H, s.FH / scale);
+      const cx = s.W / 2 - s.dx / scale;  // source point at the frame centre
+      const cy = s.H / 2 - s.dy / scale;
+      const x = cropClamp(cx - cw / 2, 0, Math.max(0, s.W - cw));
+      const y = cropClamp(cy - ch / 2, 0, Math.max(0, s.H - ch));
+      return { x, y, w: cw, h: ch };
+    }
+
+    // Biggest 3:4 output the crop can give without upscaling, capped at 900×1200.
+    // Sizes are whole steps of 4 px tall / 3 px wide so the ratio is exact.
+    function cropOutputSize(rect) {
+      const maxW = Math.floor(rect.w + 1e-6);
+      const maxH = Math.floor(rect.h + 1e-6);
+      if (maxH < 4 || maxW < 3) {
+        return { w: Math.max(1, maxW), h: Math.max(1, maxH) };
+      }
+      let h = Math.min(CROP_MAX_H, Math.floor(maxH / 4) * 4);
+      let w = h * CROP_RATIO_W / CROP_RATIO_H;
+      if (w > maxW) {
+        w = Math.floor(maxW / 3) * 3;
+        h = w * CROP_RATIO_H / CROP_RATIO_W;
+      }
+      return { w, h };
+    }
+
+    function cropPaint() {
+      const s = cropSession;
+      if (!s) return;
+      const el = document.getElementById("crop-img");
+      if (el) el.style.transform = "translate(-50%, -50%) translate(" + s.dx.toFixed(2) + "px, " + s.dy.toFixed(2) + "px) scale(" + s.zoom + ")";
+      const out = cropOutputSize(cropSourceRect());
+      const info = document.getElementById("crop-info");
+      if (info) {
+        info.innerHTML = "Output <b>" + out.w + " × " + out.h + " px</b> · exact 3:4" +
+          (out.h < 600 ? '<br><span style="color:#b45309">Small crop — zoom out a little for a sharper photo.</span>' : "");
+      }
+      const zoomEl = document.getElementById("crop-zoom");
+      if (zoomEl && Number(zoomEl.value) !== Math.round(s.zoom * 100)) zoomEl.value = String(Math.round(s.zoom * 100));
+    }
+
+    // Zoom while keeping the source point under (px, py) in place.
+    // px/py are measured from the frame centre.
+    function cropZoomAt(target, px, py, panX, panY) {
+      const s = cropSession;
+      if (!s) return;
+      const scale0 = cropActiveScale();
+      const sx = s.W / 2 + (px - s.dx) / scale0;
+      const sy = s.H / 2 + (py - s.dy) / scale0;
+      s.zoom = cropClamp(target, CROP_MIN_ZOOM, CROP_MAX_ZOOM);
+      const scale1 = cropActiveScale();
+      s.dx = px - (sx - s.W / 2) * scale1 + (panX || 0);
+      s.dy = py - (sy - s.H / 2) * scale1 + (panY || 0);
+      cropClampOffsets();
+      cropPaint();
+    }
+
+    function cropSetZoom(percent) { cropZoomAt(Number(percent) / 100, 0, 0); }
+    function cropZoom(step) {
+      const s = cropSession;
+      if (!s) return;
+      cropZoomAt(s.zoom * (step > 0 ? 1.2 : 1 / 1.2), 0, 0);
+    }
+    function cropNudge(dx, dy, mult) {
+      const s = cropSession;
+      if (!s) return;
+      const step = Math.max(6, Math.round(s.FW * 0.025)) * (mult || 1);
+      s.dx += dx * step;
+      s.dy += dy * step;
+      cropClampOffsets();
+      cropPaint();
+    }
+    function cropReset() {
+      const s = cropSession;
+      if (!s) return;
+      s.zoom = 1; s.dx = 0; s.dy = 0;
+      cropPaint();
+    }
+
+    function cropPointerDown(e) {
+      const s = cropSession;
+      if (!s) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      try { s.frame.setPointerCapture(e.pointerId); } catch (err) {}
+      s.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (s.pointers.size >= 2) {
+        const pts = [...s.pointers.values()].slice(0, 2);
+        const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+        s.pinch = { dist: Math.max(1, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)), zoom: s.zoom, lastMid: mid };
+        s.drag = null;
+        s.frame.classList.remove("dragging");
+      } else {
+        s.drag = { x: e.clientX, y: e.clientY, dx: s.dx, dy: s.dy };
+        s.frame.classList.add("dragging");
+      }
+    }
+
+    function cropPointerMove(e) {
+      const s = cropSession;
+      if (!s || !s.pointers.has(e.pointerId)) return;
+      s.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (s.pointers.size >= 2 && s.pinch) {
+        const pts = [...s.pointers.values()].slice(0, 2);
+        const dist = Math.max(1, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y));
+        const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+        const r = s.frame.getBoundingClientRect();
+        const px = mid.x - (r.left + r.width / 2);
+        const py = mid.y - (r.top + r.height / 2);
+        const last = s.pinch.lastMid || mid;
+        cropZoomAt(s.pinch.zoom * (dist / s.pinch.dist), px, py, mid.x - last.x, mid.y - last.y);
+        s.pinch.lastMid = mid;
+        return;
+      }
+
+      if (s.drag) {
+        s.dx = s.drag.dx + (e.clientX - s.drag.x);
+        s.dy = s.drag.dy + (e.clientY - s.drag.y);
+        cropClampOffsets();
+        cropPaint();
+      }
+    }
+
+    function cropPointerUp(e) {
+      const s = cropSession;
+      if (!s) return;
+      s.pointers.delete(e.pointerId);
+      try { s.frame.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (s.pointers.size === 1) {
+        const p = [...s.pointers.values()][0];
+        s.pinch = null;
+        s.drag = { x: p.x, y: p.y, dx: s.dx, dy: s.dy };
+      } else if (s.pointers.size === 0) {
+        s.drag = null;
+        s.pinch = null;
+        s.frame.classList.remove("dragging");
+      }
+    }
+
+    function cropWheel(e) {
+      const s = cropSession;
+      if (!s) return;
+      e.preventDefault();
+      const r = s.frame.getBoundingClientRect();
+      const px = e.clientX - (r.left + r.width / 2);
+      const py = e.clientY - (r.top + r.height / 2);
+      cropZoomAt(s.zoom * Math.exp(-e.deltaY * 0.0015), px, py);
+    }
+
+    function cropKeyDown(e) {
+      if (!cropSession) return;
+      const mult = e.shiftKey ? 3 : 1;
+      if (e.key === "Escape") { e.preventDefault(); cancelCrop(); }
+      else if (e.key === "Enter") { e.preventDefault(); applyCrop(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); cropNudge(-1, 0, mult); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); cropNudge(1, 0, mult); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); cropNudge(0, -1, mult); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); cropNudge(0, 1, mult); }
+      else if (e.key === "+" || e.key === "=") { e.preventDefault(); cropZoom(1); }
+      else if (e.key === "-" || e.key === "_") { e.preventDefault(); cropZoom(-1); }
+    }
+
+    // Keep the same thing framed when the window is resized or a phone turns.
+    function cropOnResize() {
+      const s = cropSession;
+      if (!s) return;
+      const nw = s.frame.clientWidth, nh = s.frame.clientHeight;
+      if (!nw || !nh || (nw === s.FW && nh === s.FH)) return;
+      const scale0 = s.fitScale * s.zoom;
+      const cx = s.W / 2 - s.dx / scale0;
+      const cy = s.H / 2 - s.dy / scale0;
+      s.FW = nw; s.FH = nh;
+      s.fitScale = Math.max(nw / s.W, nh / s.H);
+      s.baseW = s.W * s.fitScale;
+      s.baseH = s.H * s.fitScale;
+      const scale1 = s.fitScale * s.zoom;
+      s.dx = -(cx - s.W / 2) * scale1;
+      s.dy = -(cy - s.H / 2) * scale1;
+      const el = document.getElementById("crop-img");
+      if (el) { el.style.width = s.baseW + "px"; el.style.height = s.baseH + "px"; }
+      cropClampOffsets();
+      cropPaint();
+    }
+
+    // Draw the chosen crop into a canvas. Large reductions are stepped down,
+    // which keeps edges clean instead of aliased. Never enlarges the photo.
+    function drawCropToCanvas(s, rect, out) {
+      const canvas = document.createElement("canvas");
+      canvas.width = out.w;
+      canvas.height = out.h;
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      if (rect.w > out.w * 2.2 && rect.h > out.h * 2.2) {
+        const stageScale = Math.min(1, (out.w * 3) / rect.w, (out.h * 3) / rect.h);
+        let stage = document.createElement("canvas");
+        stage.width = Math.max(out.w, Math.round(rect.w * stageScale));
+        stage.height = Math.max(out.h, Math.round(rect.h * stageScale));
+        const sc = stage.getContext("2d");
+        sc.imageSmoothingEnabled = true;
+        sc.imageSmoothingQuality = "high";
+        sc.drawImage(s.img, rect.x, rect.y, rect.w, rect.h, 0, 0, stage.width, stage.height);
+        while (stage.width > out.w * 2 && stage.height > out.h * 2) {
+          const next = document.createElement("canvas");
+          next.width = Math.max(out.w, Math.round(stage.width / 2));
+          next.height = Math.max(out.h, Math.round(stage.height / 2));
+          const nc = next.getContext("2d");
+          nc.imageSmoothingEnabled = true;
+          nc.imageSmoothingQuality = "high";
+          nc.drawImage(stage, 0, 0, next.width, next.height);
+          stage = next;
+        }
+        ctx.drawImage(stage, 0, 0, stage.width, stage.height, 0, 0, out.w, out.h);
+      } else {
+        ctx.drawImage(s.img, rect.x, rect.y, rect.w, rect.h, 0, 0, out.w, out.h);
+      }
+      return canvas;
+    }
+
+    function applyCrop() {
+      const s = cropSession;
+      if (!s || s.applied) return;
+      const rect = cropSourceRect();
+      const out = cropOutputSize(rect);
+
+      let dataUrl, ext;
+      try {
+        const canvas = drawCropToCanvas(s, rect, out);
+        // One encode at high quality. WebP keeps this small; JPEG is the
+        // fallback for browsers that cannot write WebP.
+        dataUrl = canvas.toDataURL("image/webp", 0.9);
+        ext = "webp";
+        if (!dataUrl.startsWith("data:image/webp")) {
+          dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+          ext = "jpg";
+        }
+      } catch (err) {
+        finishCrop(null);
+        alert("That photo could not be cropped. Try a smaller image.");
+        return;
+      }
+
+      const shot = { dataUrl, ext, width: out.w, height: out.h };
+      croppedPicks.set(s.file, shot);
+      s.applied = true;
+      finishCrop(shot);
+    }
+
+    function getCroppedShot(file) {
+      return file ? croppedPicks.get(file) || null : null;
+    }
+
+    // The main product photo input.
+    async function onMainImagePicked(input) {
+      const note = document.getElementById("new-img-crop-note");
+      const file = input.files && input.files[0];
+      if (!file) {
+        if (note) { note.style.display = "none"; note.textContent = ""; }
+        return;
+      }
+      const shot = await cropPickedPhoto(file, "Main product photo");
+      if (!shot) {
+        input.value = "";
+        if (note) { note.style.display = "none"; note.textContent = ""; }
+        return;
+      }
+      if (note) {
+        note.style.display = "block";
+        note.textContent = "✓ Cropped to 3:4 — " + shot.width + " × " + shot.height + " px";
+      }
+    }
+
+    // Category tiles / fan-world cards on the Images tab.
+    async function onTileImagePicked(input) {
+      const file = input.files && input.files[0];
+      const row = input.closest(".img-row");
+      let note = row ? row.querySelector(".crop-note") : null;
+      if (!file) { if (note) note.remove(); return; }
+      const labelNode = row ? row.querySelector(".img-row-label") : null;
+      const shot = await cropPickedPhoto(file, labelNode ? labelNode.textContent.trim() : "Tile image");
+      if (!shot) { input.value = ""; if (note) note.remove(); return; }
+      if (row) {
+        if (!note) {
+          note = document.createElement("span");
+          note.className = "crop-note";
+          input.insertAdjacentElement("afterend", note);
+        }
+        note.textContent = "✓ 3:4 · " + shot.width + "×" + shot.height;
+      }
+    }
+
+    (function initCropUI() {
+      const frame = document.getElementById("crop-frame");
+      if (!frame) return;
+      frame.addEventListener("pointerdown", cropPointerDown);
+      frame.addEventListener("pointermove", cropPointerMove);
+      frame.addEventListener("pointerup", cropPointerUp);
+      frame.addEventListener("pointercancel", cropPointerUp);
+      frame.addEventListener("wheel", cropWheel, { passive: false });
+      document.addEventListener("keydown", cropKeyDown);
+      window.addEventListener("resize", cropOnResize);
+    })();
+
     // ---------- Photo upload (saved as real files in images/) ----------
     // Picks a photo, shrinks it (max 900px) and encodes it as WebP.
     // Returns { dataUrl, ext, width, height }.
@@ -1263,8 +1791,11 @@ function json_(o) {
       });
     }
 
-    // Kept for older code paths: returns just the compressed data URL.
+    // Kept for older code paths: returns just the data URL. A 3:4 crop already
+    // made for this file is used untouched.
     function compressImageToDataURL(file) {
+      const shot = getCroppedShot(file);
+      if (shot) return Promise.resolve(shot.dataUrl);
       return compressPickedImage(file, 700, 0.75).then(r => r.dataUrl);
     }
 
@@ -1280,9 +1811,15 @@ function json_(o) {
     // Throws "NO_TOKEN" when there is no GitHub token saved.
     async function uploadPickedImage(file, hint, token) {
       if (!token) throw new Error("NO_TOKEN");
-      let shot = await compressPickedImage(file, 900, 0.82);
-      // Keep uploads lean: if it is still big, compress a bit harder.
-      if (shot.dataUrl.length > 400000) shot = await compressPickedImage(file, 700, 0.7);
+      // Use the 3:4 crop exactly as the cropper produced it: no second resize
+      // and no second encode. The old compression is only a safety net for a
+      // file that somehow skipped the cropper.
+      let shot = getCroppedShot(file);
+      if (!shot) {
+        shot = await compressPickedImage(file, 900, 0.82);
+        // Keep uploads lean: if it is still big, compress a bit harder.
+        if (shot.dataUrl.length > 400000) shot = await compressPickedImage(file, 700, 0.7);
+      }
       const path = makeUploadPath(hint, shot.ext);
       const b64 = shot.dataUrl.split(",")[1];
       const res = await fetch(GH_REPO + path, {
@@ -1390,10 +1927,12 @@ function json_(o) {
             uploaded++;
             return up.path;
           } catch (e) {
-            // Never lose a photo: fall back to a compressed copy inside the catalog.
-            let shot;
-            try { shot = await compressPickedImage(pickedFile, 700, 0.78); }
-            catch (readErr) { throw new Error(readErr.message || "That photo could not be read — please pick a different file."); }
+            // Never lose a photo: fall back to the 3:4 crop inside the catalog.
+            let shot = getCroppedShot(pickedFile);
+            if (!shot) {
+              try { shot = await compressPickedImage(pickedFile, 700, 0.78); }
+              catch (readErr) { throw new Error(readErr.message || "That photo could not be read — please pick a different file."); }
+            }
             if (e.message === "NO_TOKEN") embeddedNoToken = true;
             else embeddedError = e.message || "GitHub upload failed";
             return shot.dataUrl;
@@ -1551,7 +2090,7 @@ function json_(o) {
         <div class="img-row">
           <span class="img-row-label">${icon} ${name}</span>
           <input type="text" id="img-url-${type}-${safeId(name)}" placeholder="https:// image link" value="${saved.startsWith("data:") ? "" : saved}">
-          <input type="file" id="img-file-${type}-${safeId(name)}" accept="image/*">
+          <input type="file" id="img-file-${type}-${safeId(name)}" accept="image/*" onchange="onTileImagePicked(this)">
           <button class="mini danger" onclick="clearSingleImage('${type}','${name}')" title="Remove image">×</button>
         </div>`;
     }
